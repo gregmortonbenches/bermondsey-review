@@ -27,7 +27,7 @@ export default function ArticleCarousel({ articles }) {
                 <div className="relative overflow-hidden rounded-sm aspect-[4/5]">
                   <Image
                     src={article.cover_image_url}
-                    alt=""
+                    alt={article.cover_image_alt || ""}
                     fill
                     sizes="(max-width: 640px) 68vw, 27vw"
                     className="object-cover"

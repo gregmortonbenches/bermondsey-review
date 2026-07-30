@@ -72,6 +72,7 @@ const emptyPost = {
   dek: "",
   body: [],
   cover_image_url: "",
+  cover_image_alt: "",
   media_url: "",
   category: "Bermondsey",
   author: "",
@@ -241,6 +242,7 @@ export default function PostForm({ mode, initialPost }) {
       dek: snapshot.dek,
       body: snapshot.body,
       cover_image_url: snapshot.cover_image_url,
+      cover_image_alt: snapshot.cover_image_alt,
       media_url: snapshot.media_url,
       category: snapshot.category,
       author: snapshot.author,
@@ -509,6 +511,14 @@ export default function PostForm({ mode, initialPost }) {
             onSelectUrl={(url) => set("cover_image_url", url)}
             supabase={supabase}
           />
+          {post.cover_image_url && (
+            <input
+              value={post.cover_image_alt || ""}
+              onChange={(e) => set("cover_image_alt", e.target.value)}
+              placeholder="Describe this image for screen readers…"
+              className="w-full font-sans text-xs text-steel border-b border-transparent hover:border-steel/20 focus:border-river outline-none mt-1.5 py-1 placeholder:text-steel/40"
+            />
+          )}
         </div>
 
         {/* Type-specific fields */}

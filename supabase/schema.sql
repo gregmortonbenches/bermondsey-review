@@ -31,10 +31,11 @@ create table posts (
   dek text,
   -- Array of content blocks, e.g.
   -- [{ "type": "paragraph", "text": "..." },
-  --  { "type": "image", "url": "..." },
+  --  { "type": "image", "url": "...", "alt": "..." },
   --  { "type": "embed", "post_id": "..." }]
   body jsonb not null default '[]'::jsonb,
   cover_image_url text,
+  cover_image_alt text,          -- for screen readers — shown wherever the cover image is (the post itself, its card on the homepage/archive)
   media_url text,               -- video embed URL / podcast audio file URL
   media_duration_seconds integer,
   category text,                -- "Bermondsey" | "Books" | "Film" | "Culture"
@@ -47,6 +48,10 @@ create table posts (
   updated_at timestamptz not null default now(),
   created_at timestamptz not null default now()
 );
+
+-- Existing installs: run this once to add cover_image_alt without
+-- losing anything already written.
+--   alter table posts add column if not exists cover_image_alt text;
 
 create index posts_status_published_at_idx on posts (status, published_at desc);
 create index posts_slug_idx on posts (slug);

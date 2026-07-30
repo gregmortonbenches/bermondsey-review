@@ -64,7 +64,13 @@ export default function BlockContent({ blocks, accentHex, emptyText }) {
         if (block.type === "image" && block.url) {
           return (
             <div key={i} className="relative w-full aspect-[3/2] rounded-sm overflow-hidden">
-              <Image src={block.url} alt="" fill sizes="(max-width: 780px) 100vw, 780px" className="object-cover" />
+              <Image
+                src={block.url}
+                alt={block.alt || ""}
+                fill
+                sizes="(max-width: 780px) 100vw, 780px"
+                className="object-cover"
+              />
             </div>
           );
         }

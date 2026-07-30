@@ -137,6 +137,12 @@ Articles, videos, podcasts, and cartoons are now editable through a real
   automatic resizing, lazy loading, and modern formats (WebP/AVIF) are
   handled for you the moment this is deployed to Vercel — see the
   `images.remotePatterns` entry in `next.config.mjs`.
+- **Alt text** — a cover image (post or body image block) grows a small
+  "Describe this image for screen readers…" field the moment you add
+  one, right underneath it in the canvas. Optional, not enforced, but
+  no longer absent by default the way it was before — every cover image
+  and body image had a hardcoded empty `alt=""` regardless of what it
+  showed.
 - **Roles: admin vs. contributor** — new editor accounts default to
   "contributor" (see the `profiles` table and its auto-create trigger in
   `supabase/schema.sql`). Contributors can write and save drafts;

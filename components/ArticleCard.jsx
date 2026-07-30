@@ -17,7 +17,7 @@ export default function ArticleCard({ article, size = "regular" }) {
         <div className={`relative overflow-hidden rounded-sm ${coverClassName}`}>
           <Image
             src={article.cover_image_url}
-            alt=""
+            alt={article.cover_image_alt || ""}
             fill
             sizes={isFeatured ? "(max-width: 640px) 100vw, 50vw" : "140px"}
             className="object-cover"

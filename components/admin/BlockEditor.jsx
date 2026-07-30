@@ -23,7 +23,7 @@ function emptyBlockFor(type) {
     case "heading":
       return { type, text: "" };
     case "image":
-      return { type, url: "" };
+      return { type, url: "", alt: "" };
     case "quote":
       return { type, text: "", attribution: "" };
     case "button":
@@ -375,14 +375,24 @@ function BlockCanvasItem({
         {block.type === "divider" && <hr className="border-steel/25 my-3" />}
         {block.type === "button" && <ButtonField block={block} onChange={onChange} accentHex={accentHex} />}
         {block.type === "image" && (
-          <ImageDropzone
-            url={block.url}
-            uploading={block.uploading}
-            onFile={onUploadImage}
-            onSelectUrl={onSelectImageUrl}
-            supabase={supabase}
-            aspect="aspect-[3/2]"
-          />
+          <div>
+            <ImageDropzone
+              url={block.url}
+              uploading={block.uploading}
+              onFile={onUploadImage}
+              onSelectUrl={onSelectImageUrl}
+              supabase={supabase}
+              aspect="aspect-[3/2]"
+            />
+            {block.url && (
+              <input
+                value={block.alt || ""}
+                onChange={(e) => onChange({ alt: e.target.value })}
+                placeholder="Describe this image for screen readers…"
+                className="w-full font-sans text-xs text-steel bg-transparent outline-none mt-1.5 placeholder:text-steel/40"
+              />
+            )}
+          </div>
         )}
       </div>
     </div>

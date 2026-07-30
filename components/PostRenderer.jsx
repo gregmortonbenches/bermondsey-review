@@ -28,7 +28,7 @@ export default function PostRenderer({ post }) {
         <div className="relative w-full aspect-[16/9] mt-8 rounded-sm overflow-hidden">
           <Image
             src={post.cover_image_url}
-            alt=""
+            alt={post.cover_image_alt || ""}
             fill
             sizes="(max-width: 780px) 100vw, 780px"
             className="object-cover"
