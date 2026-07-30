@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --rule: 1px solid #c9c1af;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #FFFFFF;
+  color: #1C1B17;
+}
+
+/* Drop cap for article openings */
+.drop-cap::first-letter {
+  font-family: var(--font-zilla), Georgia, serif;
+  font-weight: 700;
+  float: left;
+  font-size: 4.2rem;
+  line-height: 0.8;
+  padding-right: 0.5rem;
+  padding-top: 0.3rem;
+  color: var(--drop-cap-color, #9C6B42);
+}
+
+.hairline {
+  border-top: var(--rule);
+}
+
+.hairline-b {
+  border-bottom: var(--rule);
+}
+
+/* visible keyboard focus, per accessibility floor */
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--color-brick, #9C6B42);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

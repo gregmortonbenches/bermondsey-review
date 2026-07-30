@@ -1,0 +1,186 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { saveSiteSettings, DEFAULT_SITE_SETTINGS, DISPLAY_FONT_OPTIONS, BODY_FONT_OPTIONS } from "@/lib/theme";
+import DevicePreview from "./DevicePreview";
+
+const AUTOSAVE_DELAY_MS = 1200;
+
+export default function ThemeEditor({ initialSettings }) {
+  const supabase = createClient();
+  const [settings, setSettings] = useState({ ...DEFAULT_SITE_SETTINGS, ...initialSettings });
+  const [saveState, setSaveState] = useState("saved");
+  const [refreshToken, setRefreshToken] = useState(0);
+  const [codeOpen, setCodeOpen] = useState(false);
+
+  const autosaveTimer = useRef(null);
+  const lastSavedRef = useRef(JSON.stringify(initialSettings));
+  const isFirstRender = useRef(true);
+
+  function set(field, value) {
+    setSettings((s) => ({ ...s, [field]: value }));
+  }
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    const json = JSON.stringify(settings);
+    if (json === lastSavedRef.current) return;
+
+    setSaveState("unsaved");
+    if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    autosaveTimer.current = setTimeout(async () => {
+      setSaveState("saving");
+      try {
+        await saveSiteSettings(supabase, settings);
+        lastSavedRef.current = json;
+        setSaveState("saved");
+        setRefreshToken((t) => t + 1);
+      } catch {
+        setSaveState("error");
+      }
+    }, AUTOSAVE_DELAY_MS);
+
+    return () => clearTimeout(autosaveTimer.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings]);
+
+  const statusCopy = { saved: "\u2713 Saved", unsaved: "Unsaved changes…", saving: "Saving…", error: "Couldn't save" };
+  const statusColor = { saved: "text-river", unsaved: "text-steel", saving: "text-steel", error: "text-brick" };
+
+  return (
+    <div className="grid lg:grid-cols-[380px_1fr] h-[calc(100vh-53px)]">
+      <div className="border-r border-steel/20 overflow-y-auto p-5">
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="font-display font-700 text-lg text-ink">Design</h2>
+          <span className={`font-sans text-xs ${statusColor[saveState]}`}>{statusCopy[saveState]}</span>
+        </div>
+        <p className="font-sans text-xs text-steel mb-5">
+          Changes apply to the live site. Paper, ink, and hairline colours stay fixed to keep
+          text readable — these two accents are the ones worth playing with.
+        </p>
+
+        <div className="space-y-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-sans text-sm font-600 text-ink">Primary accent</p>
+              <p className="font-sans text-xs text-steel">Buttons, links, the wharf line</p>
+            </div>
+            <input
+              type="color"
+              value={settings.brick_color}
+              onChange={(e) => set("brick_color", e.target.value)}
+              className="w-10 h-10 rounded-sm border border-steel/25 cursor-pointer bg-transparent"
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-sans text-sm font-600 text-ink">Secondary accent</p>
+              <p className="font-sans text-xs text-steel">Masthead, nav hover, newsletter band</p>
+            </div>
+            <input
+              type="color"
+              value={settings.river_color}
+              onChange={(e) => set("river_color", e.target.value)}
+              className="w-10 h-10 rounded-sm border border-steel/25 cursor-pointer bg-transparent"
+            />
+          </div>
+
+          {(settings.brick_color !== DEFAULT_SITE_SETTINGS.brick_color ||
+            settings.river_color !== DEFAULT_SITE_SETTINGS.river_color) && (
+            <button
+              type="button"
+              onClick={() => {
+                set("brick_color", DEFAULT_SITE_SETTINGS.brick_color);
+                set("river_color", DEFAULT_SITE_SETTINGS.river_color);
+              }}
+              className="font-sans text-xs text-river hover:text-ink underline underline-offset-4"
+            >
+              Reset colours to default
+            </button>
+          )}
+
+          <div>
+            <label className="block font-sans text-sm font-600 text-ink mb-1">Headline font</label>
+            <select
+              value={settings.display_font}
+              onChange={(e) => set("display_font", e.target.value)}
+              className="w-full font-sans text-sm border border-steel/25 rounded-sm px-2 py-1.5"
+            >
+              {DISPLAY_FONT_OPTIONS.map((f) => (
+                <option key={f} value={f}>
+                  {f}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block font-sans text-sm font-600 text-ink mb-1">Body font</label>
+            <select
+              value={settings.body_font}
+              onChange={(e) => set("body_font", e.target.value)}
+              className="w-full font-sans text-sm border border-steel/25 rounded-sm px-2 py-1.5"
+            >
+              {BODY_FONT_OPTIONS.map((f) => (
+                <option key={f} value={f}>
+                  {f}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="border-t border-steel/20 pt-4">
+            <button
+              type="button"
+              onClick={() => setCodeOpen((v) => !v)}
+              className="font-sans text-sm font-600 text-steel hover:text-ink flex items-center gap-1.5"
+            >
+              <span className={`transition-transform ${codeOpen ? "rotate-90" : ""}`}>›</span>
+              Advanced: Code injection
+            </button>
+
+            {codeOpen && (
+              <div className="mt-4 space-y-4">
+                <p className="font-sans text-xs text-brick bg-brick/[0.08] rounded-sm px-3 py-2">
+                  This runs directly on the live site for every visitor. Treat it like editing
+                  the codebase, not like writing a post — a mistake here can break the page.
+                </p>
+                <div>
+                  <label className="block font-sans text-xs uppercase tracking-[0.1em] text-steel mb-1">
+                    Custom CSS
+                  </label>
+                  <textarea
+                    value={settings.custom_css || ""}
+                    onChange={(e) => set("custom_css", e.target.value)}
+                    rows={6}
+                    placeholder=".some-class { color: red; }"
+                    className="w-full font-mono text-xs border border-steel/25 rounded-sm px-3 py-2 resize-y"
+                  />
+                </div>
+                <div>
+                  <label className="block font-sans text-xs uppercase tracking-[0.1em] text-steel mb-1">
+                    Custom JS
+                  </label>
+                  <textarea
+                    value={settings.custom_js || ""}
+                    onChange={(e) => set("custom_js", e.target.value)}
+                    rows={6}
+                    placeholder="console.log('loaded');"
+                    className="w-full font-mono text-xs border border-steel/25 rounded-sm px-3 py-2 resize-y"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <DevicePreview src="/admin/layout/preview/frame" refreshToken={refreshToken} heightClass="h-full" />
+    </div>
+  );
+}
