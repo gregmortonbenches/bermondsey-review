@@ -184,16 +184,22 @@ Articles, videos, podcasts, and cartoons are now editable through a real
   for. Browse and delete everything from `/admin/media`, or click
   "Choose from library" wherever you're adding an image to reuse one
   instead of re-uploading it.
-- **`/admin/layout` — the visual page-layout builder.** Drag whole
-  sections (Featured Article, Puzzles & Games, Article Carousel,
-  Newsletter Signup) into a new order, or untick one to hide it from the
-  homepage entirely, with a live device preview (mobile/tablet/desktop)
-  right next to the section list. Autosaves the same way the post editor
-  does. This is backed by a real `page_layouts` table — the homepage
-  isn't hardcoded to one fixed section order any more, it renders
-  whatever order is saved there (see `components/HomePageBody.jsx`,
-  shared by both the public homepage and the builder's preview, so they
-  can never drift out of sync).
+- **`/admin/layout` — the visual page-layout builder, also a true
+  canvas.** This is the actual homepage — real Masthead, real theme
+  colours, the real featured post and carousel, a real Footer — not a
+  section-name list next to an iframe of the real thing. Hover a
+  section for its controls (drag handle, move, hide/show); hidden
+  sections stay visible but dimmed, with a clear "Hidden from homepage"
+  badge, so you can see what you're switching back on rather than
+  guessing from a label. Newsletter is toggle-only, not reorderable, on
+  purpose — it always renders full-bleed at the very bottom regardless
+  of its position in the list (see `components/HomePageBody.jsx`), so
+  offering a drag handle that silently did nothing would be worse than
+  not offering one. A separate "Preview on mobile/tablet" link covers
+  the device-size check the old split-pane used to handle inline — same
+  pattern as the post/page editors' own Preview links. Autosaves to the
+  same real `page_layouts` table as before. See
+  `components/admin/LayoutCanvas.jsx`.
 - `/admin/posts/new` — a type picker (article/video/podcast/cartoon) with
   plain-language descriptions instead of jargon
 - **A true visual canvas, not a form describing the content.** The
