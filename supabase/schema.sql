@@ -1,5 +1,24 @@
 -- The Bermondsey Review — database schema
 -- Run this once in the Supabase SQL editor for a fresh project.
+--
+-- If you ever reset with `drop schema public cascade; create schema
+-- public;` before rerunning this file, that also wipes Supabase's
+-- default grants that let the anon/authenticated roles (which every
+-- request — logged in or not — uses to query anything at all) touch the
+-- public schema in the first place, causing every query to fail with
+-- "permission denied for schema public" even though every table's own
+-- RLS policies are still intact underneath. Restoring these first is
+-- safe either way: RLS (enabled per-table below) is still what actually
+-- decides row-level access — this grant only controls whether a role
+-- can attempt to query the schema at all, matching what a fresh
+-- Supabase project already has by default.
+grant usage on schema public to postgres, anon, authenticated, service_role;
+grant all on all tables in schema public to postgres, anon, authenticated, service_role;
+grant all on all routines in schema public to postgres, anon, authenticated, service_role;
+grant all on all sequences in schema public to postgres, anon, authenticated, service_role;
+alter default privileges in schema public grant all on tables to postgres, anon, authenticated, service_role;
+alter default privileges in schema public grant all on routines to postgres, anon, authenticated, service_role;
+alter default privileges in schema public grant all on sequences to postgres, anon, authenticated, service_role;
 
 create extension if not exists "pgcrypto";
 
