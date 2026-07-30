@@ -1,10 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 
-// Handles two unrelated jobs, since Next.js only allows one middleware
+// Handles two unrelated jobs, since Next.js only allows one proxy
 // file: (1) redirect resolution for old article URLs, and (2) admin
 // auth. Split by path prefix below.
-export async function middleware(request) {
+export async function proxy(request) {
   const pathname = request.nextUrl.pathname;
   let response = NextResponse.next({ request: { headers: request.headers } });
 

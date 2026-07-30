@@ -91,7 +91,7 @@ Articles, videos, podcasts, and cartoons are now editable through a real
   post's URL in the SEO section and a redirect from the old address to
   the new one is created automatically (see `updatePost` in
   `lib/posts.js`), so old links and search results don't just 404.
-  Resolved in `middleware.js`, scoped to `/article/*` only on purpose —
+  Resolved in `proxy.js`, scoped to `/article/*` only on purpose —
   checking every single request against the database would be needless
   overhead for a feature that's used occasionally. Add one manually here
   too, e.g. for an old external URL.

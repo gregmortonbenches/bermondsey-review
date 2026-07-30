@@ -10,7 +10,8 @@ const CATEGORIES = ["All", "Bermondsey", "Books", "Film", "Culture", "Cartoon"];
 // Reads ?category= from the URL so the pill filter below is a real link,
 // not client-side state — keeps this page a plain server component.
 export default async function ArchivePage({ searchParams }) {
-  const activeCategory = searchParams?.category || "All";
+  const params = await searchParams;
+  const activeCategory = params?.category || "All";
 
   let posts = [];
   try {
