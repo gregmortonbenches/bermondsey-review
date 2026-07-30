@@ -5,15 +5,18 @@ import Image from "next/image";
 import { uploadMedia } from "@/lib/posts";
 import { getYouTubeEmbedUrl } from "@/lib/youtube";
 import MediaPicker from "./MediaPicker";
+import CarouselCountControl from "./CarouselCountControl";
 import { usePublishOutline } from "./EditorOutlineContext";
 import {
   BACKGROUND_OPTIONS,
   PADDING_OPTIONS,
   ALIGN_OPTIONS,
+  VISIBILITY_OPTIONS,
   ALIGNABLE_BLOCK_TYPES,
   UNSTYLABLE_BLOCK_TYPES,
   blockStyleClasses,
 } from "@/lib/blockStyle";
+import { MOBILE_ITEM_COUNT_OPTIONS, DESKTOP_ITEM_COUNT_OPTIONS } from "@/lib/carouselLayout";
 
 const DEFAULT_ACCENT = "var(--color-river, #2B4C73)";
 
@@ -167,7 +170,12 @@ export default function BlockEditor({ blocks, onChange, supabase, accentHex = DE
   // array itself, so it hydrates consistently.
   usePublishOutline(
     "Content",
-    items.map((b, i) => ({ id: `block-${i}`, label: outlineLabelFor(b) })),
+    items.map((b, i) => ({
+      id: `block-${i}`,
+      label: outlineLabelFor(b),
+      hint: b.style?.visibility === "mobile" ? "Mobile only" : b.style?.visibility === "desktop" ? "Desktop only" : undefined,
+      muted: b.style?.visibility && b.style.visibility !== "all",
+    })),
     { enabled: !nested }
   );
 
@@ -368,13 +376,17 @@ function InserterMenu({ onInsert, types = BLOCK_TYPES, centered }) {
   );
 }
 
-// Background/padding/alignment for one block — the same options list
-// components/BlockContent.jsx uses to render the live page, via the
-// shared lib/blockStyle.js, so what's picked here is exactly what ships.
-// No outside-click dismissal, same as Gap's InserterMenu below — toggled
-// by its own toolbar button instead.
-function StylePanel({ style, alignable, onChange }) {
-  const current = { background: "none", padding: "none", align: "left", ...style };
+// Background/padding/alignment/visibility for one block — the same
+// options lists components/BlockContent.jsx uses to render the live page,
+// via the shared lib/blockStyle.js, so what's picked here is exactly what
+// ships. No outside-click dismissal, same as Gap's InserterMenu below —
+// toggled by its own toolbar button instead.
+//
+// `containerStyleable` gates Background/Padding/Alignment — meaningless
+// on a spacer/divider — but Visibility always shows: a divider or gap you
+// only want on mobile is a real case, so every block type gets it.
+function StylePanel({ style, alignable, containerStyleable, onChange }) {
+  const current = { background: "none", padding: "none", align: "left", visibility: "all", ...style };
 
   function set(key, value) {
     onChange({ ...current, [key]: value });
@@ -382,35 +394,77 @@ function StylePanel({ style, alignable, onChange }) {
 
   return (
     <div className="absolute z-20 right-0 top-6 bg-paper border border-steel/25 rounded-sm shadow-lg p-3 w-60 space-y-3">
-      <div>
-        <p className="font-sans text-[10px] uppercase tracking-[0.08em] text-steel mb-1.5">Background</p>
-        <div className="flex gap-1.5">
-          {BACKGROUND_OPTIONS.map((opt) => (
-            <button
-              key={opt.id}
-              type="button"
-              onClick={() => set("background", opt.id)}
-              title={opt.label}
-              className={`w-7 h-7 rounded-sm border flex items-center justify-center text-steel/50 text-xs ${
-                opt.class || "bg-paper"
-              } ${current.background === opt.id ? "border-river ring-1 ring-river" : "border-steel/25"}`}
-            >
-              {opt.id === "none" && "✕"}
-            </button>
-          ))}
-        </div>
-      </div>
+      {containerStyleable && (
+        <>
+          <div>
+            <p className="font-sans text-[10px] uppercase tracking-[0.08em] text-steel mb-1.5">Background</p>
+            <div className="flex gap-1.5">
+              {BACKGROUND_OPTIONS.map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => set("background", opt.id)}
+                  title={opt.label}
+                  className={`w-7 h-7 rounded-sm border flex items-center justify-center text-steel/50 text-xs ${
+                    opt.class || "bg-paper"
+                  } ${current.background === opt.id ? "border-river ring-1 ring-river" : "border-steel/25"}`}
+                >
+                  {opt.id === "none" && "✕"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="font-sans text-[10px] uppercase tracking-[0.08em] text-steel mb-1.5">Padding</p>
+            <div className="flex gap-1">
+              {PADDING_OPTIONS.map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => set("padding", opt.id)}
+                  className={`flex-1 font-sans text-xs px-2 py-1 rounded-sm border transition-colors ${
+                    current.padding === opt.id ? "border-river text-river bg-river/[0.06]" : "border-steel/25 text-steel hover:text-ink"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {alignable && (
+            <div>
+              <p className="font-sans text-[10px] uppercase tracking-[0.08em] text-steel mb-1.5">Alignment</p>
+              <div className="flex gap-1">
+                {ALIGN_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => set("align", opt.id)}
+                    className={`flex-1 font-sans text-xs px-2 py-1 rounded-sm border transition-colors ${
+                      current.align === opt.id ? "border-river text-river bg-river/[0.06]" : "border-steel/25 text-steel hover:text-ink"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       <div>
-        <p className="font-sans text-[10px] uppercase tracking-[0.08em] text-steel mb-1.5">Padding</p>
+        <p className="font-sans text-[10px] uppercase tracking-[0.08em] text-steel mb-1.5">Show on</p>
         <div className="flex gap-1">
-          {PADDING_OPTIONS.map((opt) => (
+          {VISIBILITY_OPTIONS.map((opt) => (
             <button
               key={opt.id}
               type="button"
-              onClick={() => set("padding", opt.id)}
+              onClick={() => set("visibility", opt.id)}
               className={`flex-1 font-sans text-xs px-2 py-1 rounded-sm border transition-colors ${
-                current.padding === opt.id ? "border-river text-river bg-river/[0.06]" : "border-steel/25 text-steel hover:text-ink"
+                current.visibility === opt.id ? "border-river text-river bg-river/[0.06]" : "border-steel/25 text-steel hover:text-ink"
               }`}
             >
               {opt.label}
@@ -418,26 +472,6 @@ function StylePanel({ style, alignable, onChange }) {
           ))}
         </div>
       </div>
-
-      {alignable && (
-        <div>
-          <p className="font-sans text-[10px] uppercase tracking-[0.08em] text-steel mb-1.5">Alignment</p>
-          <div className="flex gap-1">
-            {ALIGN_OPTIONS.map((opt) => (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => set("align", opt.id)}
-                className={`flex-1 font-sans text-xs px-2 py-1 rounded-sm border transition-colors ${
-                  current.align === opt.id ? "border-river text-river bg-river/[0.06]" : "border-steel/25 text-steel hover:text-ink"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -474,7 +508,7 @@ function BlockCanvasItem({
 }) {
   const paragraphRef = useRef(null);
   const [styleOpen, setStyleOpen] = useState(false);
-  const styleable = !UNSTYLABLE_BLOCK_TYPES.includes(block.type);
+  const containerStyleable = !UNSTYLABLE_BLOCK_TYPES.includes(block.type);
 
   function exec(command, value = null) {
     paragraphRef.current?.focus();
@@ -513,18 +547,14 @@ function BlockCanvasItem({
             <span className="w-px h-4 bg-steel/25 mx-0.5" />
           </>
         )}
-        {styleable && (
-          <>
-            <ToolbarButton
-              onClick={() => setStyleOpen((v) => !v)}
-              title="Background, padding, alignment"
-              className={styleOpen ? "border-river text-river" : ""}
-            >
-              🎨
-            </ToolbarButton>
-            <span className="w-px h-4 bg-steel/25 mx-0.5" />
-          </>
-        )}
+        <ToolbarButton
+          onClick={() => setStyleOpen((v) => !v)}
+          title="Background, padding, alignment, visibility"
+          className={styleOpen ? "border-river text-river" : ""}
+        >
+          🎨
+        </ToolbarButton>
+        <span className="w-px h-4 bg-steel/25 mx-0.5" />
         {!nested && (
           <ToolbarButton title="Drag to reorder" className="cursor-grab active:cursor-grabbing">
             ⠿
@@ -541,15 +571,18 @@ function BlockCanvasItem({
         </ToolbarButton>
       </div>
 
-      {styleOpen && styleable && (
+      {styleOpen && (
         <StylePanel
           style={block.style}
           alignable={ALIGNABLE_BLOCK_TYPES.includes(block.type)}
+          containerStyleable={containerStyleable}
           onChange={(style) => onChange({ style })}
         />
       )}
 
-      <div className={`rounded-sm py-1.5 group-hover:bg-river/[0.03] transition-colors ${blockStyleClasses(block.style)}`}>
+      <div
+        className={`rounded-sm py-1.5 group-hover:bg-river/[0.03] transition-colors ${blockStyleClasses(block.style, block.type)}`}
+      >
         {block.type === "paragraph" && (
           <EditableParagraph
             ref={paragraphRef}
@@ -961,6 +994,21 @@ function HeroCarouselField({ block, onChange, supabase }) {
       {pickerOpen && (
         <MediaPicker supabase={supabase} onSelect={handlePickerSelect} onClose={() => setPickerOpen(false)} />
       )}
+
+      <div className="mt-3 pt-3 border-t border-steel/15 flex flex-wrap gap-4">
+        <CarouselCountControl
+          label="Visible on mobile"
+          value={block.mobileCount}
+          options={MOBILE_ITEM_COUNT_OPTIONS}
+          onChange={(mobileCount) => onChange({ mobileCount })}
+        />
+        <CarouselCountControl
+          label="Visible on desktop"
+          value={block.desktopCount}
+          options={DESKTOP_ITEM_COUNT_OPTIONS}
+          onChange={(desktopCount) => onChange({ desktopCount })}
+        />
+      </div>
     </div>
   );
 }

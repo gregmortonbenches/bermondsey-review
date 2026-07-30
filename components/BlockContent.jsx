@@ -1,7 +1,8 @@
 import Image from "next/image";
 import DOMPurify from "isomorphic-dompurify";
 import { getYouTubeEmbedUrl } from "@/lib/youtube";
-import { blockStyleClasses, UNSTYLABLE_BLOCK_TYPES } from "@/lib/blockStyle";
+import { blockStyleClasses } from "@/lib/blockStyle";
+import { carouselWidthVars } from "@/lib/carouselLayout";
 
 // Paragraph blocks store raw HTML captured from the admin's contentEditable
 // canvas (see components/admin/BlockEditor.jsx) — but "captured" isn't
@@ -168,10 +169,22 @@ function renderBlockBody(block, i, list, accentHex) {
   if (block.type === "hero-carousel") {
     const images = (block.images || []).filter((img) => img.url);
     if (images.length === 0) return null;
+    const widthVars = carouselWidthVars(block.mobileCount, block.desktopCount, {
+      defaultMobile: "85%",
+      defaultDesktop: "70%",
+    });
     return (
-      <div className="flex overflow-x-auto snap-x snap-mandatory gap-3 -mx-4 px-4 sm:mx-0 sm:px-0 [scrollbar-width:thin]">
+      <div
+        className="flex overflow-x-auto snap-x snap-mandatory gap-3 -mx-4 px-4 sm:mx-0 sm:px-0 [scrollbar-width:thin]"
+        style={widthVars || undefined}
+      >
         {images.map((img, j) => (
-          <div key={j} className="relative shrink-0 w-[85%] sm:w-[70%] aspect-video snap-start rounded-sm overflow-hidden">
+          <div
+            key={j}
+            className={`relative shrink-0 aspect-video snap-start rounded-sm overflow-hidden ${
+              widthVars ? "w-[var(--carousel-item-w-mobile)] sm:w-[var(--carousel-item-w-desktop)]" : "w-[85%] sm:w-[70%]"
+            }`}
+          >
             <Image src={img.url} alt={img.alt || ""} fill sizes="(max-width: 780px) 85vw, 546px" className="object-cover" />
           </div>
         ))}
@@ -226,15 +239,12 @@ export default function BlockContent({ blocks, accentHex, emptyText }) {
       {list.map((block, i) => {
         const body = renderBlockBody(block, i, list, accentHex);
         if (body === null) return null;
-        // Spacer/divider are spacing/rule elements, not content — no
-        // background/padding container around them (see UNSTYLABLE_BLOCK_TYPES
-        // in lib/blockStyle.js, which the editor's style panel also checks
-        // so there's nothing to set here in the first place).
-        if (UNSTYLABLE_BLOCK_TYPES.includes(block.type)) {
-          return <div key={i}>{body}</div>;
-        }
+        // blockStyleClasses itself skips background/padding/alignment for
+        // spacer/divider (see UNSTYLABLE_BLOCK_TYPES in lib/blockStyle.js)
+        // but still applies visibility — a divider or gap you only want
+        // on mobile is a real case, unlike a background tint on one.
         return (
-          <div key={i} className={blockStyleClasses(block.style)}>
+          <div key={i} className={blockStyleClasses(block.style, block.type)}>
             {body}
           </div>
         );

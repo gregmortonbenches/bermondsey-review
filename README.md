@@ -345,6 +345,42 @@ Articles, videos, podcasts, and cartoons are now editable through a real
     for each column's block list, so a column gets the exact same
     rendering (and the exact same HTML sanitization) as the top level,
     not a parallel, easier-to-drift-out-of-sync implementation.
+- **Per-block visibility — "Show on: All devices / Desktop only / Mobile
+  only."** Part of the same 🎨 style panel as background/padding/alignment,
+  but offered on *every* block, including spacer and divider (a divider
+  or gap you only want on mobile is a real case, unlike a background tint
+  on one — see the `containerStyleable` split in `components/admin/
+  BlockEditor.jsx`, which still gates background/padding/alignment to the
+  blocks they make sense on). A block set to one device shows a muted
+  "Mobile only"/"Desktop only" hint in the sidebar's "on this page"
+  outline, so it doesn't look like it silently vanished. `sm` (640px) —
+  the same breakpoint the masthead's own nav collapse already uses — is
+  the mobile/desktop line.
+- **How many items a carousel shows at once, mobile vs desktop** — both
+  the hero-carousel body block and the homepage's article carousel
+  (configured from `/admin/layout`, on the carousel section's own ⚙
+  button) get an "Auto / 1 / 2 / 3…" control for each. "Auto" is the
+  default and keeps each carousel's existing peek-width look pixel-for-
+  pixel; picking a number switches that carousel to exactly that many
+  items per view instead. The option lists and the actual width math
+  live in `lib/carouselLayout.js`, shared by both carousels — the number
+  drives a CSS custom property set via inline style, not a Tailwind class
+  built from the number directly (`w-[${100 / count}%]` would be a
+  different literal string per instance, and Tailwind's JIT only
+  generates CSS for class strings that appear literally in source, the
+  same reasoning behind the `--color-brick-rgb` fix elsewhere in this
+  README) — `w-[var(--carousel-item-w-mobile)]` is the fixed, scannable
+  literal; only the variable's value varies per carousel.
+  - Wiring the homepage carousel's count settings up for live preview
+    inside `/admin/layout` needed one structural change: every other
+    section's real content is a Server Component, pre-rendered by the
+    server page and handed to `LayoutCanvas` (a Client Component) as an
+    already-built element, since a Client Component can't render a Server
+    Component itself. `ArticleCarousel` has no server-only dependencies
+    though — just `articles`, already-fetched data — so `LayoutCanvas`
+    now imports and renders it directly, with that section's own live
+    `mobileCount`/`desktopCount` from state, rather than a static
+    pre-rendered element that couldn't reflect an in-progress edit.
 - **Drag-and-drop** — reorder blocks by dragging the ⠿ handle that
   appears on hover, and drop image files straight from the desktop onto
   the cover image or an image block instead of hunting for a file picker

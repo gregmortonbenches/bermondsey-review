@@ -31,15 +31,20 @@ create table posts (
   dek text,
   -- Array of content blocks — paragraph, heading, image, quote, button,
   -- divider, spacer, video (a YouTube URL), hero-carousel (an array of
-  -- images), embed (sanitized third-party iframe HTML — see the
-  -- sanitizeEmbedHtml comment in components/BlockContent.jsx for why this
-  -- is NOT arbitrary/unsanitized HTML, script tags included), and columns
-  -- (exactly two side-by-side sub-lists of this same block shape, one
-  -- level deep only — a column can't itself contain a columns block). Any
-  -- block except spacer/divider may also carry an optional `style` object
-  -- — { background, padding, align }, one of the fixed option ids in
-  -- lib/blockStyle.js, not a raw colour/CSS value — for a per-block
-  -- background tint, padding, and (on text-ish blocks) alignment. See
+  -- images, plus optional mobileCount/desktopCount — how many show per
+  -- view; unset keeps its default peek-width look, see
+  -- lib/carouselLayout.js), embed (sanitized third-party iframe HTML —
+  -- see the sanitizeEmbedHtml comment in components/BlockContent.jsx for
+  -- why this is NOT arbitrary/unsanitized HTML, script tags included),
+  -- and columns (exactly two side-by-side sub-lists of this same block
+  -- shape, one level deep only — a column can't itself contain a columns
+  -- block). Any block may also carry an optional `style` object — {
+  -- background, padding, align, visibility }, one of the fixed option ids
+  -- in lib/blockStyle.js, not a raw colour/CSS value — for a per-block
+  -- background tint, padding, (on text-ish blocks) alignment, and which
+  -- devices it shows on (background/padding/align are skipped for
+  -- spacer/divider, but visibility still applies to every block type —
+  -- a mobile-only or desktop-only divider is a real case). See
   -- components/admin/BlockEditor.jsx for exactly what each block stores.
   body jsonb not null default '[]'::jsonb,
   cover_image_url text,
@@ -96,6 +101,10 @@ create table issues (
 --  {"id":"puzzles","type":"puzzles","enabled":true},
 --  {"id":"carousel","type":"carousel","enabled":false},
 --  {"id":"newsletter","type":"newsletter","enabled":true}]
+-- The carousel entry may also carry optional mobileCount/desktopCount —
+-- how many articles show per view; unset keeps its default peek-width
+-- look (see lib/carouselLayout.js, shared with the hero-carousel block's
+-- own version of the same setting).
 create table page_layouts (
   id uuid primary key default gen_random_uuid(),
   page_key text not null unique,   -- "home" for now; more pages can reuse this table later

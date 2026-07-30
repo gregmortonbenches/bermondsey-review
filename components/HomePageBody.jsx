@@ -43,7 +43,14 @@ export default async function HomePageBody() {
       case "puzzles":
         return <PuzzlesSection key={section.id} />;
       case "carousel":
-        return <ArticleCarousel key={section.id} articles={rest} />;
+        return (
+          <ArticleCarousel
+            key={section.id}
+            articles={rest}
+            mobileCount={section.mobileCount}
+            desktopCount={section.desktopCount}
+          />
+        );
       default:
         return null;
     }

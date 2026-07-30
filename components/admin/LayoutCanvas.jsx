@@ -5,6 +5,9 @@ import { createClient } from "@/lib/supabase/client";
 import { savePageLayout } from "@/lib/layout";
 import { SECTION_REGISTRY } from "@/lib/sections";
 import { usePublishOutline } from "./EditorOutlineContext";
+import ArticleCarousel from "@/components/ArticleCarousel";
+import CarouselCountControl from "./CarouselCountControl";
+import { MOBILE_ITEM_COUNT_OPTIONS, DESKTOP_ITEM_COUNT_OPTIONS } from "@/lib/carouselLayout";
 
 const AUTOSAVE_DELAY_MS = 1200;
 
@@ -16,13 +19,19 @@ const AUTOSAVE_DELAY_MS = 1200;
  * with reorder/show-hide controls layered on hover, instead of a list on
  * one side and an iframe of the real thing on the other.
  *
- * Masthead/Footer/ThemeVars and each section's real content are Server
+ * Masthead/Footer/ThemeVars and most sections' real content are Server
  * Components, so they're rendered by the server page (app/admin/(dashboard)/
  * layout/page.jsx) and passed in here as already-rendered elements — a
  * Client Component can't import and render a Server Component itself, but
- * it can place one it was handed.
+ * it can place one it was handed. The carousel section is the one
+ * exception: ArticleCarousel has no server-only dependencies (just
+ * `articles`, fetched once server-side and handed down as plain data via
+ * `carouselArticles`), so it's rendered directly, here, with this
+ * section's own live mobileCount/desktopCount from state — the settings
+ * panel on that section needs to preview instantly as you change it,
+ * which a pre-rendered opaque element handed down as a prop can't do.
  */
-export default function LayoutCanvas({ pageKey, initialSections, sectionContent, masthead, footer, themeVars }) {
+export default function LayoutCanvas({ pageKey, initialSections, sectionContent, carouselArticles, masthead, footer, themeVars }) {
   const supabase = createClient();
   const [sections, setSections] = useState(initialSections);
   const [saveState, setSaveState] = useState("saved");
@@ -74,6 +83,9 @@ export default function LayoutCanvas({ pageKey, initialSections, sectionContent,
 
   function toggleEnabled(id) {
     setSections((prev) => prev.map((s) => (s.id === id ? { ...s, enabled: !s.enabled } : s)));
+  }
+  function updateSection(id, updates) {
+    setSections((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
   }
   function moveSection(id, direction) {
     setSections((prev) => {
@@ -165,8 +177,17 @@ export default function LayoutCanvas({ pageKey, initialSections, sectionContent,
               onToggle={() => toggleEnabled(section.id)}
               onMoveUp={() => moveSection(section.id, -1)}
               onMoveDown={() => moveSection(section.id, 1)}
+              onUpdateSection={(updates) => updateSection(section.id, updates)}
             >
-              {sectionContent[section.type]}
+              {section.type === "carousel" ? (
+                <ArticleCarousel
+                  articles={carouselArticles}
+                  mobileCount={section.mobileCount}
+                  desktopCount={section.desktopCount}
+                />
+              ) : (
+                sectionContent[section.type]
+              )}
             </SectionSlot>
           ))}
         </div>
@@ -238,10 +259,13 @@ function SectionSlot({
   onToggle,
   onMoveUp,
   onMoveDown,
+  onUpdateSection,
   fixed,
   children,
 }) {
   const meta = SECTION_REGISTRY[section.type] || { label: section.type };
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const hasSettings = section.type === "carousel";
 
   return (
     <div
@@ -271,6 +295,15 @@ function SectionSlot({
             </ControlButton>
           </>
         )}
+        {hasSettings && (
+          <ControlButton
+            onClick={() => setSettingsOpen((v) => !v)}
+            title="How many articles show at once, mobile vs desktop"
+            className={settingsOpen ? "border-river text-river" : ""}
+          >
+            ⚙
+          </ControlButton>
+        )}
         <CopyLinkButton anchor={`#${section.id}`} />
         <ControlButton
           onClick={onToggle}
@@ -280,6 +313,23 @@ function SectionSlot({
           {section.enabled ? "Hide" : "Show"}
         </ControlButton>
       </div>
+
+      {settingsOpen && hasSettings && (
+        <div className="absolute right-2 top-10 z-20 bg-paper border border-steel/25 rounded-sm shadow-lg p-3 w-64 space-y-3">
+          <CarouselCountControl
+            label="Articles visible on mobile"
+            value={section.mobileCount}
+            options={MOBILE_ITEM_COUNT_OPTIONS}
+            onChange={(mobileCount) => onUpdateSection({ mobileCount })}
+          />
+          <CarouselCountControl
+            label="Articles visible on desktop"
+            value={section.desktopCount}
+            options={DESKTOP_ITEM_COUNT_OPTIONS}
+            onChange={(desktopCount) => onUpdateSection({ desktopCount })}
+          />
+        </div>
+      )}
 
       {!section.enabled && (
         <div className="absolute left-2 top-2 z-10 font-sans text-[10px] uppercase tracking-[0.06em] text-paper bg-ink/70 rounded-sm px-2 py-1">
