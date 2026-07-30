@@ -87,6 +87,16 @@ Articles, videos, podcasts, and cartoons are now editable through a real
     visitor — restricted to admins by RLS, with a clear warning in the
     UI, but worth treating with the same care as editing the repository
     directly.
+- **`/admin/site` — site identity, navigation, and footer.** Title,
+  tagline, and logo (upload one and it replaces the text title in the
+  masthead); a drag-to-reorder navigation menu shown in both the masthead
+  and the footer; social links (Twitter/X, Instagram, Facebook — shown as
+  footer icons, only for whichever you fill in); and an optional footer
+  note (address, charity number, whatever belongs in small print). All of
+  it lives in the same `site_settings` row as `/admin/theme`'s colours and
+  fonts (see `lib/theme.js`), so there's one place that owns "what does
+  this site look/say like," not several. See `components/Masthead.jsx`
+  and the new `components/Footer.jsx` for how it's actually applied.
 - **`/admin/redirects` — automatic and manual redirects.** Rename a
   post's URL in the SEO section and a redirect from the old address to
   the new one is created automatically (see `updatePost` in
@@ -175,9 +185,14 @@ Articles, videos, podcasts, and cartoons are now editable through a real
   page rather than a stack of generic text boxes
 - **Rich text paragraphs** — select text to bold it, italicise it, or turn
   it into a link, right in the editor (see `components/admin/RichParagraph.jsx`)
-- **Drag-and-drop** — reorder paragraphs and images by dragging the ⠿
-  handle, and drop image files straight from the desktop onto the cover
-  image or an image block instead of hunting for a file picker
+- **Six block types** — paragraph, image, heading, quote, button, and
+  divider, so a piece can be more than a wall of paragraphs (a pull quote,
+  a call-to-action button linking to a form, a section break) without
+  needing a full page-builder. See `components/admin/BlockEditor.jsx` for
+  editing and `components/PostRenderer.jsx` for how each renders.
+- **Drag-and-drop** — reorder blocks by dragging the ⠿ handle, and drop
+  image files straight from the desktop onto the cover image or an image
+  block instead of hunting for a file picker
   (see `ImageDropzone` in `components/admin/BlockEditor.jsx`)
 - **A sticky action bar** — Save draft / Publish / Preview stay visible
   at the top of the screen no matter how far down you've scrolled

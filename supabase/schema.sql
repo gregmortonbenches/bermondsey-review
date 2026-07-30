@@ -149,6 +149,10 @@ create index page_views_path_viewed_at_idx on page_views (path, viewed_at desc);
 -- gets applied to the live site, and note what's deliberately NOT
 -- editable here: paper/ink/steel stay fixed in code, to protect basic
 -- readability from an accidental "black text on black background."
+--
+-- Also holds site identity (title/tagline/logo), navigation, footer, and
+-- social links — everything that used to be hardcoded in Masthead.jsx and
+-- app/layout.jsx. See components/Masthead.jsx and components/Footer.jsx.
 create table site_settings (
   id boolean primary key default true check (id),
   brick_color text not null default '#9C6B42',
@@ -157,10 +161,31 @@ create table site_settings (
   body_font text not null default 'Source Serif 4',
   custom_css text,
   custom_js text,
+  site_title text not null default 'The Bermondsey Review',
+  site_tagline text not null default 'Free, fortnightly, from SE16 & thereabouts',
+  logo_url text,
+  -- Array of { "label": "...", "href": "..." }, rendered in both the
+  -- masthead nav and the footer — see lib/theme.js's DEFAULT_SITE_SETTINGS
+  -- for the shape this ships with.
+  nav_links jsonb not null default '[]'::jsonb,
+  -- { "twitter": "...", "instagram": "...", "facebook": "..." } — any key
+  -- left blank simply isn't rendered as an icon in the footer.
+  social_links jsonb not null default '{}'::jsonb,
+  footer_text text,
   updated_at timestamptz not null default now()
 );
 
 insert into site_settings (id) values (true) on conflict (id) do nothing;
+
+-- Existing installs: run this once to add the new columns without
+-- losing your current brick/river/font/code settings.
+--   alter table site_settings
+--     add column if not exists site_title text not null default 'The Bermondsey Review',
+--     add column if not exists site_tagline text not null default 'Free, fortnightly, from SE16 & thereabouts',
+--     add column if not exists logo_url text,
+--     add column if not exists nav_links jsonb not null default '[]'::jsonb,
+--     add column if not exists social_links jsonb not null default '{}'::jsonb,
+--     add column if not exists footer_text text;
 
 -- General-purpose forms — not just the newsletter signup. `fields` is an
 -- ordered JSON array, e.g.

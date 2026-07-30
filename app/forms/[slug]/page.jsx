@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Masthead from "@/components/Masthead";
+import Footer from "@/components/Footer";
 import ThemeVars from "@/components/ThemeVars";
 import PageViewTracker from "@/components/PageViewTracker";
 import PublicForm from "@/components/PublicForm";
@@ -13,17 +14,18 @@ export default async function PublicFormPage({ params }) {
   if (!form) notFound();
 
   return (
-    <main className="bg-paper min-h-screen">
+    <main className="bg-paper min-h-screen flex flex-col">
       <ThemeVars />
       <PageViewTracker path={`/forms/${form.slug}`} />
       <Masthead />
-      <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-12 py-10">
+      <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-12 py-10 flex-1">
         <h1 className="font-display font-700 text-3xl sm:text-4xl text-ink">{form.title}</h1>
         {form.description && <p className="font-body text-lg text-steel mt-3">{form.description}</p>}
         <div className="mt-8">
           <PublicForm form={form} />
         </div>
       </div>
+      <Footer />
     </main>
   );
 }

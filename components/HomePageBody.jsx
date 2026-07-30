@@ -1,4 +1,5 @@
 import Masthead from "@/components/Masthead";
+import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
 import PuzzlesSection from "@/components/PuzzlesSection";
 import ArticleCarousel from "@/components/ArticleCarousel";
@@ -49,13 +50,14 @@ export default async function HomePageBody() {
   }
 
   return (
-    <main className="bg-paper min-h-screen">
+    <main className="bg-paper min-h-screen flex flex-col">
       <ThemeVars />
       <Masthead />
-      <div className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12">
+      <div className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12 flex-1">
         {mainSections.map(renderSection)}
       </div>
       {newsletterOn && <Newsletter />}
+      <Footer />
     </main>
   );
 }

@@ -6,12 +6,24 @@ import { uploadMedia } from "@/lib/posts";
 import RichParagraph from "./RichParagraph";
 import MediaPicker from "./MediaPicker";
 
+const BLOCK_LABELS = {
+  paragraph: "Paragraph",
+  image: "Image",
+  heading: "Heading",
+  quote: "Quote",
+  divider: "Divider",
+  button: "Button",
+};
+
 /**
  * `blocks` is the same array-of-blocks shape stored in posts.body:
- *   [{ type: "paragraph", text }, { type: "image", url }]
- * Paragraphs are edited as rich text (see RichParagraph.jsx). Blocks can
- * be dragged into a new order, or nudged with the arrow buttons — drag is
- * the quick way, arrows are the reliable fallback.
+ *   [{ type: "paragraph", text }, { type: "image", url },
+ *    { type: "heading", text }, { type: "quote", text, attribution },
+ *    { type: "divider" }, { type: "button", label, url }]
+ * Paragraphs are edited as rich text (see RichParagraph.jsx); the rest are
+ * plain text/URL fields — no formatting needed for a heading or a button
+ * label. Blocks can be dragged into a new order, or nudged with the arrow
+ * buttons — drag is the quick way, arrows are the reliable fallback.
  */
 export default function BlockEditor({ blocks, onChange, supabase }) {
   const dragIndex = useRef(null);
@@ -48,6 +60,22 @@ export default function BlockEditor({ blocks, onChange, supabase }) {
 
   function addImagePlaceholder() {
     onChange([...blocks, { type: "image", url: "" }]);
+  }
+
+  function addHeading() {
+    onChange([...blocks, { type: "heading", text: "" }]);
+  }
+
+  function addQuote() {
+    onChange([...blocks, { type: "quote", text: "", attribution: "" }]);
+  }
+
+  function addDivider() {
+    onChange([...blocks, { type: "divider" }]);
+  }
+
+  function addButton() {
+    onChange([...blocks, { type: "button", label: "", url: "" }]);
   }
 
   async function uploadImageToBlock(index, file) {
@@ -110,7 +138,7 @@ export default function BlockEditor({ blocks, onChange, supabase }) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1">
                 <span className="font-sans text-[11px] uppercase tracking-[0.08em] text-steel">
-                  {block.type === "paragraph" ? "Paragraph" : "Image"}
+                  {BLOCK_LABELS[block.type] || block.type}
                 </span>
                 <div className="flex items-center gap-1 font-sans text-xs">
                   <button
@@ -160,12 +188,62 @@ export default function BlockEditor({ blocks, onChange, supabase }) {
                   supabase={supabase}
                 />
               )}
+
+              {block.type === "heading" && (
+                <input
+                  value={block.text || ""}
+                  onChange={(e) => updateBlock(index, { text: e.target.value })}
+                  placeholder="Section heading…"
+                  className="w-full font-display font-700 text-2xl text-ink border border-steel/25 rounded-sm px-3 py-2 outline-none focus:border-river"
+                />
+              )}
+
+              {block.type === "quote" && (
+                <div className="space-y-2">
+                  <textarea
+                    value={block.text || ""}
+                    onChange={(e) => updateBlock(index, { text: e.target.value })}
+                    placeholder="Quote…"
+                    rows={2}
+                    className="w-full font-display italic text-lg text-ink border border-steel/25 rounded-sm px-3 py-2 outline-none focus:border-river resize-y"
+                  />
+                  <input
+                    value={block.attribution || ""}
+                    onChange={(e) => updateBlock(index, { attribution: e.target.value })}
+                    placeholder="Attribution (optional)"
+                    className="w-full font-sans text-sm text-steel border border-steel/25 rounded-sm px-3 py-1.5 outline-none focus:border-river"
+                  />
+                </div>
+              )}
+
+              {block.type === "divider" && (
+                <div className="py-3">
+                  <hr className="border-steel/25" />
+                </div>
+              )}
+
+              {block.type === "button" && (
+                <div className="flex gap-2">
+                  <input
+                    value={block.label || ""}
+                    onChange={(e) => updateBlock(index, { label: e.target.value })}
+                    placeholder="Button text"
+                    className="flex-1 font-sans text-sm border border-steel/25 rounded-sm px-3 py-2 outline-none focus:border-river"
+                  />
+                  <input
+                    value={block.url || ""}
+                    onChange={(e) => updateBlock(index, { url: e.target.value })}
+                    placeholder="/forms/get-in-touch or https://…"
+                    className="flex-1 font-sans text-sm border border-steel/25 rounded-sm px-3 py-2 outline-none focus:border-river"
+                  />
+                </div>
+              )}
             </div>
           </div>
         ))}
       </div>
 
-      <div className="flex gap-3 mt-3">
+      <div className="flex flex-wrap gap-3 mt-3">
         <button
           type="button"
           onClick={addParagraph}
@@ -179,6 +257,34 @@ export default function BlockEditor({ blocks, onChange, supabase }) {
           className="font-sans text-sm font-600 border border-steel/40 text-ink px-3 py-1.5 rounded-sm hover:border-river hover:text-river transition-colors"
         >
           + Add image
+        </button>
+        <button
+          type="button"
+          onClick={addHeading}
+          className="font-sans text-sm font-600 border border-steel/40 text-ink px-3 py-1.5 rounded-sm hover:border-river hover:text-river transition-colors"
+        >
+          + Add heading
+        </button>
+        <button
+          type="button"
+          onClick={addQuote}
+          className="font-sans text-sm font-600 border border-steel/40 text-ink px-3 py-1.5 rounded-sm hover:border-river hover:text-river transition-colors"
+        >
+          + Add quote
+        </button>
+        <button
+          type="button"
+          onClick={addButton}
+          className="font-sans text-sm font-600 border border-steel/40 text-ink px-3 py-1.5 rounded-sm hover:border-river hover:text-river transition-colors"
+        >
+          + Add button
+        </button>
+        <button
+          type="button"
+          onClick={addDivider}
+          className="font-sans text-sm font-600 border border-steel/40 text-ink px-3 py-1.5 rounded-sm hover:border-river hover:text-river transition-colors"
+        >
+          + Add divider
         </button>
       </div>
     </div>

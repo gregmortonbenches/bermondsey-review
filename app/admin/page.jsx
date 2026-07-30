@@ -73,6 +73,14 @@ export default async function AdminPage() {
             )}
             {isAdmin && (
               <Link
+                href="/admin/site"
+                className="font-sans text-sm font-600 border border-steel/40 text-ink px-4 py-2 rounded-sm hover:border-river hover:text-river transition-colors"
+              >
+                Site
+              </Link>
+            )}
+            {isAdmin && (
+              <Link
                 href="/admin/theme"
                 className="font-sans text-sm font-600 border border-steel/40 text-ink px-4 py-2 rounded-sm hover:border-river hover:text-river transition-colors"
               >

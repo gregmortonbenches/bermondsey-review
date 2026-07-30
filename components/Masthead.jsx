@@ -1,14 +1,6 @@
-"use client";
-
-import { useState } from "react";
-import Link from "next/link";
-
-const NAV_LINKS = [
-  { href: "/", label: "The Latest" },
-  { href: "/archive", label: "Reviews" },
-  { href: "/archive?category=Cartoon", label: "Cartoons" },
-  { href: "/#puzzles", label: "Puzzles" },
-];
+import { createClient } from "@/lib/supabase/server";
+import { getSiteSettingsSafe, DEFAULT_SITE_SETTINGS } from "@/lib/theme";
+import MastheadNav from "./MastheadNav";
 
 /**
  * Hand-drawn-style skyline strip: crane, warehouse chimneys, the Shard,
@@ -64,87 +56,30 @@ function SkylineStrip() {
   );
 }
 
-function HamburgerIcon({ open }) {
-  return (
-    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="#1C1B17" strokeWidth="2" strokeLinecap="round">
-      {open ? (
-        <>
-          <line x1="5" y1="5" x2="19" y2="19" />
-          <line x1="19" y1="5" x2="5" y2="19" />
-        </>
-      ) : (
-        <>
-          <line x1="4" y1="7" x2="20" y2="7" />
-          <line x1="4" y1="12" x2="20" y2="12" />
-          <line x1="4" y1="17" x2="20" y2="17" />
-        </>
-      )}
-    </svg>
-  );
-}
-
-export default function Masthead() {
-  const [menuOpen, setMenuOpen] = useState(false);
+// Fetches identity/nav from site_settings (title, tagline, logo, nav
+// links — see /admin/site) rather than hardcoding them, so the "Site"
+// admin section actually controls what every visitor sees here.
+export default async function Masthead() {
+  let settings = DEFAULT_SITE_SETTINGS;
+  try {
+    const supabase = await createClient();
+    settings = await getSiteSettingsSafe(supabase);
+  } catch {
+    settings = DEFAULT_SITE_SETTINGS;
+  }
+  const navLinks = settings.nav_links?.length ? settings.nav_links : DEFAULT_SITE_SETTINGS.nav_links;
 
   return (
     <header className="bg-paper">
       <SkylineStrip />
       <div className="h-[5px] bg-brick" aria-hidden="true" />
       <div className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12">
-        {/* On mobile this row is just the title, hamburger, and Subscribe —
-            the strapline and full nav are hidden until you tap the menu. */}
-        <div className="flex items-center justify-between py-4 hairline-b gap-2">
-          <Link href="/" className="group">
-            <h1 className="font-display font-700 text-[1.7rem] sm:text-[2.75rem] leading-none tracking-tight text-ink">
-              The Bermondsey Review
-            </h1>
-            <p className="hidden sm:block font-sans text-[11px] sm:text-xs tracking-[0.16em] uppercase text-steel mt-1">
-              Free, fortnightly, from SE16 &amp; thereabouts
-            </p>
-          </Link>
-          <div className="flex items-center gap-3 shrink-0">
-            <button
-              type="button"
-              className="sm:hidden p-1 -mr-1"
-              aria-label={menuOpen ? "Close menu" : "Open menu"}
-              aria-expanded={menuOpen}
-              onClick={() => setMenuOpen((v) => !v)}
-            >
-              <HamburgerIcon open={menuOpen} />
-            </button>
-            <Link
-              href="/#newsletter"
-              className="font-sans text-sm font-600 bg-brick text-paper px-4 py-2 rounded-sm hover:bg-ink transition-colors whitespace-nowrap"
-            >
-              Subscribe
-            </Link>
-          </div>
-        </div>
-
-        {/* Desktop nav — always visible from sm upward */}
-        <nav className="hidden sm:flex flex-wrap gap-x-5 gap-y-2 py-3 font-sans text-sm text-ink">
-          {NAV_LINKS.map((link) => (
-            <Link key={link.label} href={link.href} className="hover:text-river transition-colors">
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-
-        {/* Mobile nav — only rendered once the hamburger is tapped */}
-        {menuOpen && (
-          <nav className="sm:hidden flex flex-col gap-3 py-4 font-sans text-base text-ink">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                onClick={() => setMenuOpen(false)}
-                className="hover:text-river transition-colors"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-        )}
+        <MastheadNav
+          logoUrl={settings.logo_url}
+          siteTitle={settings.site_title}
+          siteTagline={settings.site_tagline}
+          links={navLinks}
+        />
       </div>
     </header>
   );

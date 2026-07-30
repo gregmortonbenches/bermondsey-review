@@ -1,4 +1,5 @@
 import Masthead from "@/components/Masthead";
+import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
 import PageViewTracker from "@/components/PageViewTracker";
 import ThemeVars from "@/components/ThemeVars";
@@ -25,11 +26,11 @@ export default async function ArchivePage({ searchParams }) {
     activeCategory === "All" ? posts : posts.filter((p) => p.category === activeCategory);
 
   return (
-    <main className="bg-paper min-h-screen">
+    <main className="bg-paper min-h-screen flex flex-col">
       <ThemeVars />
       <PageViewTracker path="/archive" />
       <Masthead />
-      <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-12 py-8">
+      <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-12 py-8 flex-1">
         <h2 className="font-display font-700 text-3xl sm:text-4xl text-ink">Archive</h2>
         <p className="font-body text-steel mt-2">
           Every issue of the Review, newest first.
@@ -60,6 +61,7 @@ export default async function ArchivePage({ searchParams }) {
           )}
         </div>
       </div>
+      <Footer />
     </main>
   );
 }
