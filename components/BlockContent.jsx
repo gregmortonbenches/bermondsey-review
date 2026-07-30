@@ -187,6 +187,21 @@ function renderBlockBody(block, i, list, accentHex) {
       />
     );
   }
+  if (block.type === "columns") {
+    const columns = block.columns && block.columns.length === 2 ? block.columns : [[], []];
+    if (columns.every((col) => col.length === 0)) return null;
+    // Recurses into the same component for each column's own block list —
+    // a column is just another blocks array, same shape as posts.body/
+    // pages.body itself, so it gets the exact same rendering (and the
+    // exact same sanitization) rather than a parallel implementation.
+    return (
+      <div className="grid sm:grid-cols-2 gap-6 sm:gap-8">
+        {columns.map((colBlocks, i) => (
+          <BlockContent key={i} blocks={colBlocks} accentHex={accentHex} />
+        ))}
+      </div>
+    );
+  }
   return null;
 }
 

@@ -48,13 +48,22 @@ export function jumpToElement(id) {
 // render, since `items` is a fresh array each time) and clears it again
 // on unmount, so navigating away from a canvas doesn't leave a stale
 // outline showing in the sidebar.
-export function usePublishOutline(title, items) {
+//
+// `enabled: false` skips publishing (and skips clearing on unmount)
+// entirely — for a nested BlockEditor instance editing one column of a
+// "columns" block, whose blocks are a sub-list of the outer canvas's own
+// outline, not a second independent page. Without this, each column's
+// instance would stomp over the outer canvas's outline with its own
+// (wrong) sub-list on every render, and clear it out from under the outer
+// canvas on unmount.
+export function usePublishOutline(title, items, { enabled = true } = {}) {
   const { setOutline } = useEditorOutline() || {};
   const itemsKey = JSON.stringify(items);
 
   useEffect(() => {
+    if (!enabled) return;
     setOutline?.({ title, items: JSON.parse(itemsKey) });
     return () => setOutline?.(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [title, itemsKey, setOutline]);
+  }, [enabled, title, itemsKey, setOutline]);
 }

@@ -31,11 +31,13 @@ create table posts (
   dek text,
   -- Array of content blocks — paragraph, heading, image, quote, button,
   -- divider, spacer, video (a YouTube URL), hero-carousel (an array of
-  -- images), and embed (sanitized third-party iframe HTML — see the
+  -- images), embed (sanitized third-party iframe HTML — see the
   -- sanitizeEmbedHtml comment in components/BlockContent.jsx for why this
-  -- is NOT arbitrary/unsanitized HTML, script tags included). Any block
-  -- except spacer/divider may also carry an optional `style` object —
-  -- { background, padding, align }, one of the fixed option ids in
+  -- is NOT arbitrary/unsanitized HTML, script tags included), and columns
+  -- (exactly two side-by-side sub-lists of this same block shape, one
+  -- level deep only — a column can't itself contain a columns block). Any
+  -- block except spacer/divider may also carry an optional `style` object
+  -- — { background, padding, align }, one of the fixed option ids in
   -- lib/blockStyle.js, not a raw colour/CSS value — for a per-block
   -- background tint, padding, and (on text-ish blocks) alignment. See
   -- components/admin/BlockEditor.jsx for exactly what each block stores.

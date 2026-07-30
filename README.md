@@ -260,10 +260,11 @@ Articles, videos, podcasts, and cartoons are now editable through a real
   plus bold/italic/link for text); hover the gap above or below any
   block for a "+" that inserts a new one exactly there. See
   `components/admin/BlockEditor.jsx`.
-- **Ten block types** — paragraph, heading, image, image carousel, video,
-  quote, button, embed, spacer, and divider, so a piece can be more than
-  a wall of paragraphs (a pull quote, a gallery, an embedded YouTube
-  video, a section break) without needing a full page-builder.
+- **Eleven block types** — paragraph, heading, image, image carousel,
+  video, quote, button, embed, spacer, divider, and columns, so a piece
+  can be more than a wall of paragraphs (a pull quote, a gallery, an
+  embedded YouTube video, a section break, a side-by-side layout) without
+  needing a full page-builder.
   - **Video** embeds a YouTube URL (reuses `lib/youtube.js`, same as the
     top-level video post type — this just makes it available *inside*
     any post or page too, not only as the whole piece).
@@ -318,6 +319,32 @@ Articles, videos, podcasts, and cartoons are now editable through a real
     by comparing a screenshot against the class names actually being
     applied, not just trusting that a correctly-named Tailwind class
     means the CSS exists.
+- **Columns** — an eleventh block type that splits into two side-by-side
+  sub-canvases, each independently editable (its own insert menu, its own
+  drag-and-drop, its own style panel), for image + text and other
+  side-by-side layouts without a whole separate page-builder. Nesting is
+  one level deep only — a column can't itself contain a columns block.
+  - Implemented by literally reusing `BlockEditor` for each column (`{
+    type: "columns", columns: [[...], [...]] }`, each half just another
+    blocks array — same shape as `posts.body` itself), rather than a
+    second parallel editor. A `nested` flag suppresses the three things
+    that only make sense once per page: publishing to the "on this page"
+    outline (a column's blocks are part of the outer canvas's own single
+    "Columns" outline entry, not a second page — see the `enabled` option
+    `usePublishOutline` grew in `components/admin/EditorOutlineContext.jsx`
+    for this), the `block-${index}` DOM id (would otherwise collide with
+    the outer canvas's own), and native drag-to-reorder. That last one
+    matters: nesting a second independent HTML5 drag zone inside a block
+    that's itself a drag source is the same "conflicting drag events"
+    problem `HeroCarouselField`'s own comment already flagged, one level
+    up — so a column reorders with its arrow buttons only, verified with
+    a throwaway harness that dragging/reordering a top-level block leaves
+    a column's own contents untouched, and vice versa, and that no
+    duplicate DOM ids or outline pollution show up anywhere on the page.
+  - `components/BlockContent.jsx` mirrors this by recursing into itself
+    for each column's block list, so a column gets the exact same
+    rendering (and the exact same HTML sanitization) as the top level,
+    not a parallel, easier-to-drift-out-of-sync implementation.
 - **Drag-and-drop** — reorder blocks by dragging the ⠿ handle that
   appears on hover, and drop image files straight from the desktop onto
   the cover image or an image block instead of hunting for a file picker

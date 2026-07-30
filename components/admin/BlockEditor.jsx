@@ -28,6 +28,7 @@ const BLOCK_TYPES = [
   { type: "embed", label: "Embed" },
   { type: "spacer", label: "Spacer" },
   { type: "divider", label: "Divider" },
+  { type: "columns", label: "Columns" },
 ];
 
 // A short, human-readable label for the "on this page" outline — text
@@ -56,6 +57,10 @@ function outlineLabelFor(block) {
       return block.alt ? `Image: ${truncate(block.alt, 30)}` : typeLabel;
     case "hero-carousel":
       return `${typeLabel} (${(block.images || []).length})`;
+    case "columns": {
+      const count = (block.columns || []).reduce((n, col) => n + col.length, 0);
+      return count ? `${typeLabel} (${count} blocks)` : `${typeLabel} (empty)`;
+    }
     default:
       return typeLabel;
   }
@@ -83,6 +88,8 @@ function emptyBlockFor(type) {
       return { type, size: "medium" };
     case "divider":
       return { type };
+    case "columns":
+      return { type, columns: [[], []] };
     default:
       return { type };
   }
@@ -120,8 +127,22 @@ function stripIds(items) {
  * through parent state would re-seed dangerouslySetInnerHTML and reset
  * the caret to the start, which is exactly the "typed text comes out
  * reversed" bug this guards against.
+ *
+ * `nested`: set by a "columns" block for each of its own two columns —
+ * every column is edited by its own independent BlockEditor instance,
+ * reusing this whole component rather than a second, parallel
+ * implementation. `nested` suppresses the things that only make sense
+ * once per page: publishing to the "on this page" outline (a column's
+ * blocks are part of the outer canvas's own outline entry, not a second
+ * page), the `block-${index}` DOM id (would collide with the outer
+ * canvas's own ids), and native drag-to-reorder (nesting a second
+ * independent HTML5 drag zone inside a block that's itself a drag source
+ * for the outer canvas's reordering is the same "conflicting drag events"
+ * problem HeroCarouselField's own comment already avoids, one level up —
+ * arrow buttons still work). It also drops "Columns" from the insert
+ * menu, so a column can't contain another columns block.
  */
-export default function BlockEditor({ blocks, onChange, supabase, accentHex = DEFAULT_ACCENT }) {
+export default function BlockEditor({ blocks, onChange, supabase, accentHex = DEFAULT_ACCENT, nested = false }) {
   const [items, setItems] = useState(() => blocks.map(withId));
   const lastPushedRef = useRef(JSON.stringify(blocks));
 
@@ -146,8 +167,11 @@ export default function BlockEditor({ blocks, onChange, supabase, accentHex = DE
   // array itself, so it hydrates consistently.
   usePublishOutline(
     "Content",
-    items.map((b, i) => ({ id: `block-${i}`, label: outlineLabelFor(b) }))
+    items.map((b, i) => ({ id: `block-${i}`, label: outlineLabelFor(b) })),
+    { enabled: !nested }
   );
+
+  const insertableTypes = nested ? BLOCK_TYPES.filter((t) => t.type !== "columns") : BLOCK_TYPES;
 
   function commit(next) {
     setItems(next);
@@ -201,25 +225,31 @@ export default function BlockEditor({ blocks, onChange, supabase, accentHex = DE
 
   return (
     <div>
-      <label className="block font-sans text-xs uppercase tracking-[0.1em] text-steel mb-1">
-        Body
-      </label>
-      <p className="font-sans text-xs text-steel mb-2">
-        This is the actual page — edit it in place. Hover a block for its controls, or the gap
-        above/below it to insert something new.
-      </p>
+      {!nested && (
+        <>
+          <label className="block font-sans text-xs uppercase tracking-[0.1em] text-steel mb-1">
+            Body
+          </label>
+          <p className="font-sans text-xs text-steel mb-2">
+            This is the actual page — edit it in place. Hover a block for its controls, or the gap
+            above/below it to insert something new.
+          </p>
+        </>
+      )}
 
       {items.length === 0 ? (
         <Inserter
           open={openInserterAt === 0}
           onToggle={() => setOpenInserterAt((v) => (v === 0 ? null : 0))}
           onInsert={(type) => insertAt(0, type)}
+          types={insertableTypes}
         />
       ) : (
         <Gap
           open={openInserterAt === 0}
           onToggle={() => setOpenInserterAt((v) => (v === 0 ? null : 0))}
           onInsert={(type) => insertAt(0, type)}
+          types={insertableTypes}
         />
       )}
 
@@ -234,6 +264,7 @@ export default function BlockEditor({ blocks, onChange, supabase, accentHex = DE
               total={items.length}
               accentHex={accentHex}
               isFirstParagraph={isFirstParagraph}
+              nested={nested}
               dragOver={dragOverId === block._id}
               onDragStart={() => {
                 dragId.current = block._id;
@@ -261,6 +292,7 @@ export default function BlockEditor({ blocks, onChange, supabase, accentHex = DE
               open={openInserterAt === index + 1}
               onToggle={() => setOpenInserterAt((v) => (v === index + 1 ? null : index + 1))}
               onInsert={(type) => insertAt(index + 1, type)}
+              types={insertableTypes}
             />
           </div>
         );
@@ -272,7 +304,7 @@ export default function BlockEditor({ blocks, onChange, supabase, accentHex = DE
 // The thin hover line + "+" button that sits in the gap between two
 // blocks (and above the first one) — click it to insert a new block at
 // exactly that position.
-function Gap({ open, onToggle, onInsert }) {
+function Gap({ open, onToggle, onInsert, types = BLOCK_TYPES }) {
   return (
     <div className="relative group h-3 flex items-center">
       <div
@@ -292,14 +324,14 @@ function Gap({ open, onToggle, onInsert }) {
       >
         +
       </button>
-      {open && <InserterMenu onInsert={onInsert} />}
+      {open && <InserterMenu onInsert={onInsert} types={types} />}
     </div>
   );
 }
 
 // Same "+" affordance, but always visible (not hover-only) since there's
 // nothing yet to hover over.
-function Inserter({ open, onToggle, onInsert }) {
+function Inserter({ open, onToggle, onInsert, types = BLOCK_TYPES }) {
   return (
     <div className="relative">
       <button
@@ -310,19 +342,19 @@ function Inserter({ open, onToggle, onInsert }) {
         <span className="text-2xl leading-none block mb-1">+</span>
         <span className="font-sans text-sm">Add your first block</span>
       </button>
-      {open && <InserterMenu onInsert={onInsert} centered />}
+      {open && <InserterMenu onInsert={onInsert} types={types} centered />}
     </div>
   );
 }
 
-function InserterMenu({ onInsert, centered }) {
+function InserterMenu({ onInsert, types = BLOCK_TYPES, centered }) {
   return (
     <div
       className={`absolute z-10 top-full mt-2 bg-paper border border-steel/25 rounded-sm shadow-lg p-1 flex gap-1 ${
         centered ? "left-1/2 -translate-x-1/2" : "left-1/2 -translate-x-1/2"
       }`}
     >
-      {BLOCK_TYPES.map((t) => (
+      {types.map((t) => (
         <button
           key={t.type}
           type="button"
@@ -426,6 +458,7 @@ function BlockCanvasItem({
   total,
   accentHex,
   isFirstParagraph,
+  nested,
   dragOver,
   onDragStart,
   onDragOver,
@@ -455,12 +488,12 @@ function BlockCanvasItem({
 
   return (
     <div
-      id={`block-${index}`}
-      draggable
-      onDragStart={onDragStart}
-      onDragOver={onDragOver}
-      onDragLeave={onDragLeave}
-      onDrop={onDrop}
+      id={nested ? undefined : `block-${index}`}
+      draggable={!nested}
+      onDragStart={nested ? undefined : onDragStart}
+      onDragOver={nested ? undefined : onDragOver}
+      onDragLeave={nested ? undefined : onDragLeave}
+      onDrop={nested ? undefined : onDrop}
       className={`group relative rounded-sm transition-shadow scroll-mt-4 ${
         dragOver ? "outline outline-2 outline-river outline-offset-4" : ""
       }`}
@@ -492,9 +525,11 @@ function BlockCanvasItem({
             <span className="w-px h-4 bg-steel/25 mx-0.5" />
           </>
         )}
-        <ToolbarButton title="Drag to reorder" className="cursor-grab active:cursor-grabbing">
-          ⠿
-        </ToolbarButton>
+        {!nested && (
+          <ToolbarButton title="Drag to reorder" className="cursor-grab active:cursor-grabbing">
+            ⠿
+          </ToolbarButton>
+        )}
         <ToolbarButton onClick={onMoveUp} disabled={index === 0} title="Move up">
           ↑
         </ToolbarButton>
@@ -563,7 +598,41 @@ function BlockCanvasItem({
         {block.type === "video" && <VideoField block={block} onChange={onChange} />}
         {block.type === "embed" && <EmbedField block={block} onChange={onChange} />}
         {block.type === "spacer" && <SpacerField block={block} onChange={onChange} />}
+        {block.type === "columns" && (
+          <ColumnsField block={block} onChange={onChange} supabase={supabase} accentHex={accentHex} />
+        )}
       </div>
+    </div>
+  );
+}
+
+// Two independently-editable sub-canvases side by side, each its own
+// nested BlockEditor instance over its own slice of `block.columns` — see
+// the `nested` doc comment on BlockEditor above for why nesting needs the
+// drag/outline/insert-menu suppression it provides, rather than a
+// separate implementation for what's editing the exact same block shape.
+function ColumnsField({ block, onChange, supabase, accentHex }) {
+  const columns = block.columns && block.columns.length === 2 ? block.columns : [[], []];
+
+  function updateColumn(index, updated) {
+    const next = [...columns];
+    next[index] = updated;
+    onChange({ columns: next });
+  }
+
+  return (
+    <div className="grid sm:grid-cols-2 gap-6 sm:gap-8">
+      {columns.map((colBlocks, i) => (
+        <div key={i} className="border border-dashed border-steel/25 rounded-sm p-3">
+          <BlockEditor
+            blocks={colBlocks}
+            onChange={(updated) => updateColumn(i, updated)}
+            supabase={supabase}
+            accentHex={accentHex}
+            nested
+          />
+        </div>
+      ))}
     </div>
   );
 }
