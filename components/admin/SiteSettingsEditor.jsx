@@ -180,7 +180,13 @@ export default function SiteSettingsEditor({ initialSettings }) {
               Navigation
             </label>
             <p className="font-sans text-xs text-steel mb-3">
-              Shown in the masthead and footer, in this order. Drag ⠿ to reorder.
+              Shown in the masthead and footer, in this order. Drag ⠿ to reorder. A link can point
+              to a page, an external URL, or a section of the homepage (e.g. <code>/#puzzles</code>)
+              — grab the exact link for any section from its "Copy link" control in{" "}
+              <a href="/admin/layout" className="underline underline-offset-4 hover:text-river">
+                Homepage layout
+              </a>
+              .
             </p>
             <div className="space-y-2">
               {navLinks.map((link, index) => (
@@ -217,7 +223,7 @@ export default function SiteSettingsEditor({ initialSettings }) {
                   <input
                     value={link.href}
                     onChange={(e) => updateLink(index, { href: e.target.value })}
-                    placeholder="/archive or https://…"
+                    placeholder="/archive, /#puzzles, or https://…"
                     className="flex-1 min-w-0 font-sans text-sm border border-steel/25 rounded-sm px-2 py-1"
                   />
                   <button

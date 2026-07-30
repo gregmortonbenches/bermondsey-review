@@ -38,7 +38,7 @@ export default async function AdminLayoutPage() {
   // the canvas as pre-rendered elements.
   const sectionContent = {
     featured: (
-      <section className="pt-8">
+      <section id="featured" className="pt-8 scroll-mt-24">
         {featured ? (
           <ArticleCard article={featured} size="featured" />
         ) : (

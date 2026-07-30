@@ -11,7 +11,7 @@ import { categoryFamily } from "@/lib/articles";
  */
 export default function ArticleCarousel({ articles }) {
   return (
-    <section className="py-10">
+    <section id="carousel" className="py-10 scroll-mt-24">
       <div className="flex overflow-x-auto snap-x snap-mandatory gap-0 -mx-4 px-4 sm:mx-0 sm:px-0 pb-4 [scrollbar-width:thin]">
         {articles.map((article, i) => {
           const accent = categoryFamily(article.category);

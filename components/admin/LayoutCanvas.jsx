@@ -171,6 +171,39 @@ function ControlButton({ className = "", ...props }) {
   );
 }
 
+// Every section's id doubles as its anchor — `/#puzzles`, `/#newsletter`,
+// etc. — so it can be linked to directly from a nav item, a footer link,
+// or a button block anywhere on the site (see components/PuzzlesSection.jsx
+// and Newsletter.jsx, which already had ids the masthead's own Puzzles nav
+// link and Subscribe button rely on; this just makes every section
+// linkable, and the link itself copyable without reading source to find it).
+function CopyLinkButton({ anchor }) {
+  const [copied, setCopied] = useState(false);
+
+  async function handleClick() {
+    try {
+      await navigator.clipboard.writeText(`/${anchor}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      window.prompt("Copy this link:", `/${anchor}`);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      title="Copy a link to this section — paste it into a nav link, footer link, or button"
+      className={`h-6 px-2 flex items-center justify-center rounded-sm bg-paper border text-xs shadow-sm whitespace-nowrap ${
+        copied ? "border-river text-river" : "border-steel/25 text-steel/70 hover:text-ink"
+      }`}
+    >
+      {copied ? "Copied!" : "Copy link"}
+    </button>
+  );
+}
+
 function SectionSlot({
   section,
   index,
@@ -216,6 +249,7 @@ function SectionSlot({
             </ControlButton>
           </>
         )}
+        <CopyLinkButton anchor={`#${section.id}`} />
         <ControlButton
           onClick={onToggle}
           title={section.enabled ? "Hide from homepage" : "Show on homepage"}
