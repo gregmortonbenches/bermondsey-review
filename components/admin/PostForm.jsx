@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { createPost, updatePost, deletePost, uploadMedia } from "@/lib/posts";
 import { slugify } from "@/lib/slugify";
+import { categoryFamily } from "@/lib/articles";
 import BlockEditor, { ImageDropzone } from "./BlockEditor";
 import RevisionHistory from "./RevisionHistory";
 import { createRevision } from "@/lib/revisions";
@@ -309,6 +310,11 @@ export default function PostForm({ mode, initialPost }) {
     post.status === "published" ||
     (post.status === "scheduled" && post.scheduled_for && new Date(post.scheduled_for) <= now);
 
+  // Same accent PostRenderer uses, so the block canvas's drop cap, quote
+  // border, and buttons match how the published piece will actually look.
+  const accent = categoryFamily(post.category);
+  const accentHex = accent === "brick" ? "var(--color-brick, #9C6B42)" : "var(--color-river, #2B4C73)";
+
   return (
     <div>
       {/* Sticky action bar — always visible while scrolling, the way a
@@ -508,7 +514,12 @@ export default function PostForm({ mode, initialPost }) {
         {/* Type-specific fields */}
         {post.type === "article" && (
           <div className="mb-6">
-            <BlockEditor blocks={post.body || []} onChange={(b) => set("body", b)} supabase={supabase} />
+            <BlockEditor
+              blocks={post.body || []}
+              onChange={(b) => set("body", b)}
+              supabase={supabase}
+              accentHex={accentHex}
+            />
           </div>
         )}
 

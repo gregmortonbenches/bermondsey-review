@@ -196,20 +196,23 @@ Articles, videos, podcasts, and cartoons are now editable through a real
   can never drift out of sync).
 - `/admin/posts/new` — a type picker (article/video/podcast/cartoon) with
   plain-language descriptions instead of jargon
-- **The editor looks like the finished page, not a form** — the headline
-  and standfirst fields are styled exactly like they'll appear once
-  published, so you're always looking at something close to the real
-  page rather than a stack of generic text boxes
-- **Rich text paragraphs** — select text to bold it, italicise it, or turn
-  it into a link, right in the editor (see `components/admin/RichParagraph.jsx`)
+- **A true visual canvas, not a form describing the content.** The
+  headline, standfirst, and every body block render using the exact
+  same classes as the public page (`components/BlockContent.jsx`) — so
+  editing means clicking directly on a real headline-sized heading, a
+  real drop-capped paragraph, a real coloured button, and typing, rather
+  than filling in a stack of generic text boxes and imagining the
+  result. Hover a block for its controls (drag handle, move, delete —
+  plus bold/italic/link for text); hover the gap above or below any
+  block for a "+" that inserts a new one exactly there. See
+  `components/admin/BlockEditor.jsx`.
 - **Six block types** — paragraph, image, heading, quote, button, and
   divider, so a piece can be more than a wall of paragraphs (a pull quote,
   a call-to-action button linking to a form, a section break) without
-  needing a full page-builder. See `components/admin/BlockEditor.jsx` for
-  editing and `components/PostRenderer.jsx` for how each renders.
-- **Drag-and-drop** — reorder blocks by dragging the ⠿ handle, and drop
-  image files straight from the desktop onto the cover image or an image
-  block instead of hunting for a file picker
+  needing a full page-builder.
+- **Drag-and-drop** — reorder blocks by dragging the ⠿ handle that
+  appears on hover, and drop image files straight from the desktop onto
+  the cover image or an image block instead of hunting for a file picker
   (see `ImageDropzone` in `components/admin/BlockEditor.jsx`)
 - **A sticky action bar** — Save draft / Publish / Preview stay visible
   at the top of the screen no matter how far down you've scrolled

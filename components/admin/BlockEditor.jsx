@@ -1,292 +1,519 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { uploadMedia } from "@/lib/posts";
-import RichParagraph from "./RichParagraph";
 import MediaPicker from "./MediaPicker";
 
-const BLOCK_LABELS = {
-  paragraph: "Paragraph",
-  image: "Image",
-  heading: "Heading",
-  quote: "Quote",
-  divider: "Divider",
-  button: "Button",
-};
+const DEFAULT_ACCENT = "var(--color-river, #2B4C73)";
+
+const BLOCK_TYPES = [
+  { type: "paragraph", label: "Text" },
+  { type: "heading", label: "Heading" },
+  { type: "image", label: "Image" },
+  { type: "quote", label: "Quote" },
+  { type: "button", label: "Button" },
+  { type: "divider", label: "Divider" },
+];
+
+function emptyBlockFor(type) {
+  switch (type) {
+    case "paragraph":
+      return { type, text: "" };
+    case "heading":
+      return { type, text: "" };
+    case "image":
+      return { type, url: "" };
+    case "quote":
+      return { type, text: "", attribution: "" };
+    case "button":
+      return { type, label: "", url: "" };
+    case "divider":
+      return { type };
+    default:
+      return { type };
+  }
+}
+
+function withId(block) {
+  return { ...block, _id: crypto.randomUUID() };
+}
+function stripIds(items) {
+  return items.map(({ _id, ...rest }) => rest);
+}
 
 /**
- * `blocks` is the same array-of-blocks shape stored in posts.body:
+ * `blocks` is the same array-of-blocks shape stored in posts.body/pages.body:
  *   [{ type: "paragraph", text }, { type: "image", url },
  *    { type: "heading", text }, { type: "quote", text, attribution },
  *    { type: "divider" }, { type: "button", label, url }]
- * Paragraphs are edited as rich text (see RichParagraph.jsx); the rest are
- * plain text/URL fields — no formatting needed for a heading or a button
- * label. Blocks can be dragged into a new order, or nudged with the arrow
- * buttons — drag is the quick way, arrows are the reliable fallback.
+ *
+ * This is a true visual canvas, not a form describing the content: every
+ * block renders using the same classes as components/BlockContent.jsx
+ * (the actual public-facing renderer), so what you're editing already
+ * looks like the finished page — headline size, drop cap, quote border,
+ * button colour, all real. Hover a block for its controls (drag handle,
+ * move, delete — plus bold/italic/link for text); hover the gap between
+ * two blocks for the "+" inserter.
+ *
+ * Blocks are keyed by a client-side-only `_id` (stripped before calling
+ * onChange, so it never reaches posts.body/pages.body), not array index —
+ * a contentEditable paragraph re-associated with a *different* block after
+ * a reorder, because React reused its DOM node for "whatever's now at
+ * index 2," would show stale content or scramble mid-edit. `blocks` is
+ * only re-synced from props when it's genuinely different content (e.g.
+ * a revision restore) rather than the parent simply echoing back what
+ * this component just sent it — otherwise every keystroke's round trip
+ * through parent state would re-seed dangerouslySetInnerHTML and reset
+ * the caret to the start, which is exactly the "typed text comes out
+ * reversed" bug this guards against.
  */
-export default function BlockEditor({ blocks, onChange, supabase }) {
-  const dragIndex = useRef(null);
-  const [dragOverIndex, setDragOverIndex] = useState(null);
+export default function BlockEditor({ blocks, onChange, supabase, accentHex = DEFAULT_ACCENT }) {
+  const [items, setItems] = useState(() => blocks.map(withId));
+  const lastPushedRef = useRef(JSON.stringify(blocks));
 
-  function updateBlock(index, updates) {
-    const next = blocks.map((b, i) => (i === index ? { ...b, ...updates } : b));
-    onChange(next);
+  useEffect(() => {
+    const incoming = JSON.stringify(blocks);
+    if (incoming === lastPushedRef.current) return; // our own echo — DOM already reflects this
+    setItems(blocks.map(withId));
+    lastPushedRef.current = incoming;
+  }, [blocks]);
+
+  const dragId = useRef(null);
+  const [dragOverId, setDragOverId] = useState(null);
+  const [openInserterAt, setOpenInserterAt] = useState(null);
+
+  function commit(next) {
+    setItems(next);
+    const stripped = stripIds(next);
+    lastPushedRef.current = JSON.stringify(stripped);
+    onChange(stripped);
   }
 
-  function removeBlock(index) {
-    onChange(blocks.filter((_, i) => i !== index));
+  function updateBlock(id, updates) {
+    commit(items.map((b) => (b._id === id ? { ...b, ...updates } : b)));
   }
-
-  function moveBlock(index, direction) {
+  function removeBlock(id) {
+    commit(items.filter((b) => b._id !== id));
+  }
+  function moveBlock(id, direction) {
+    const index = items.findIndex((b) => b._id === id);
     const target = index + direction;
-    if (target < 0 || target >= blocks.length) return;
-    const next = [...blocks];
+    if (target < 0 || target >= items.length) return;
+    const next = [...items];
     [next[index], next[target]] = [next[target], next[index]];
-    onChange(next);
+    commit(next);
   }
-
-  function reorder(from, to) {
-    if (from === to) return;
-    const next = [...blocks];
+  function reorder(fromId, toId) {
+    if (fromId === toId) return;
+    const from = items.findIndex((b) => b._id === fromId);
+    const to = items.findIndex((b) => b._id === toId);
+    if (from === -1 || to === -1) return;
+    const next = [...items];
     const [moved] = next.splice(from, 1);
     next.splice(to, 0, moved);
-    onChange(next);
+    commit(next);
+  }
+  function insertAt(index, type) {
+    const next = [...items];
+    next.splice(index, 0, withId(emptyBlockFor(type)));
+    commit(next);
+    setOpenInserterAt(null);
   }
 
-  function addParagraph() {
-    onChange([...blocks, { type: "paragraph", text: "" }]);
-  }
-
-  function addImagePlaceholder() {
-    onChange([...blocks, { type: "image", url: "" }]);
-  }
-
-  function addHeading() {
-    onChange([...blocks, { type: "heading", text: "" }]);
-  }
-
-  function addQuote() {
-    onChange([...blocks, { type: "quote", text: "", attribution: "" }]);
-  }
-
-  function addDivider() {
-    onChange([...blocks, { type: "divider" }]);
-  }
-
-  function addButton() {
-    onChange([...blocks, { type: "button", label: "", url: "" }]);
-  }
-
-  async function uploadImageToBlock(index, file) {
+  async function uploadImageToBlock(id, file) {
     if (!file) return;
-    updateBlock(index, { uploading: true });
+    updateBlock(id, { uploading: true });
     try {
       const url = await uploadMedia(supabase, file);
-      updateBlock(index, { url, uploading: false });
+      updateBlock(id, { url, uploading: false });
     } catch (err) {
-      updateBlock(index, { uploading: false });
+      updateBlock(id, { uploading: false });
       alert(`Image upload failed: ${err.message}`);
     }
   }
 
   return (
     <div>
-      <label className="block font-sans text-xs uppercase tracking-[0.1em] text-steel mb-2">
+      <label className="block font-sans text-xs uppercase tracking-[0.1em] text-steel mb-1">
         Body
       </label>
-      <p className="font-sans text-xs text-steel mb-3">
-        Drag the ⠿ handle to reorder. Select text to bold, italicise, or link it.
+      <p className="font-sans text-xs text-steel mb-2">
+        This is the actual page — edit it in place. Hover a block for its controls, or the gap
+        above/below it to insert something new.
       </p>
 
-      {blocks.length === 0 && (
-        <div className="border border-dashed border-steel/30 rounded-sm px-4 py-6 text-center mb-3">
-          <p className="font-body text-steel">Nothing written yet — start with your first paragraph below.</p>
-        </div>
+      {items.length === 0 ? (
+        <Inserter
+          open={openInserterAt === 0}
+          onToggle={() => setOpenInserterAt((v) => (v === 0 ? null : 0))}
+          onInsert={(type) => insertAt(0, type)}
+        />
+      ) : (
+        <Gap
+          open={openInserterAt === 0}
+          onToggle={() => setOpenInserterAt((v) => (v === 0 ? null : 0))}
+          onInsert={(type) => insertAt(0, type)}
+        />
       )}
 
-      <div className="space-y-2">
-        {blocks.map((block, index) => (
-          <div
-            key={index}
-            draggable
-            onDragStart={() => {
-              dragIndex.current = index;
-            }}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDragOverIndex(index);
-            }}
-            onDragLeave={() => setDragOverIndex((v) => (v === index ? null : v))}
-            onDrop={(e) => {
-              e.preventDefault();
-              if (dragIndex.current !== null) reorder(dragIndex.current, index);
-              dragIndex.current = null;
-              setDragOverIndex(null);
-            }}
-            className={`flex gap-2 border rounded-sm p-3 transition-colors ${
-              dragOverIndex === index ? "border-river bg-river/[0.04]" : "border-steel/25"
-            }`}
-          >
-            <div
-              className="shrink-0 flex flex-col items-center pt-1 cursor-grab active:cursor-grabbing text-steel/50 hover:text-steel select-none"
-              title="Drag to reorder"
-            >
-              <span className="text-lg leading-none">⠿</span>
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-sans text-[11px] uppercase tracking-[0.08em] text-steel">
-                  {BLOCK_LABELS[block.type] || block.type}
-                </span>
-                <div className="flex items-center gap-1 font-sans text-xs">
-                  <button
-                    type="button"
-                    onClick={() => moveBlock(index, -1)}
-                    disabled={index === 0}
-                    aria-label="Move up"
-                    title="Move up"
-                    className="w-6 h-6 flex items-center justify-center rounded-sm border border-steel/25 text-steel hover:text-ink hover:border-ink disabled:opacity-30"
-                  >
-                    ↑
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => moveBlock(index, 1)}
-                    disabled={index === blocks.length - 1}
-                    aria-label="Move down"
-                    title="Move down"
-                    className="w-6 h-6 flex items-center justify-center rounded-sm border border-steel/25 text-steel hover:text-ink hover:border-ink disabled:opacity-30"
-                  >
-                    ↓
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => removeBlock(index)}
-                    className="ml-1 px-2 h-6 rounded-sm border border-steel/25 text-steel hover:text-brick hover:border-brick"
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
-
-              {block.type === "paragraph" && (
-                <RichParagraph
-                  html={block.text}
-                  onChange={(text) => updateBlock(index, { text })}
-                  placeholder="Write a paragraph…"
-                />
-              )}
-
-              {block.type === "image" && (
-                <ImageDropzone
-                  url={block.url}
-                  uploading={block.uploading}
-                  onFile={(file) => uploadImageToBlock(index, file)}
-                  onSelectUrl={(url) => updateBlock(index, { url })}
-                  supabase={supabase}
-                />
-              )}
-
-              {block.type === "heading" && (
-                <input
-                  value={block.text || ""}
-                  onChange={(e) => updateBlock(index, { text: e.target.value })}
-                  placeholder="Section heading…"
-                  className="w-full font-display font-700 text-2xl text-ink border border-steel/25 rounded-sm px-3 py-2 outline-none focus:border-river"
-                />
-              )}
-
-              {block.type === "quote" && (
-                <div className="space-y-2">
-                  <textarea
-                    value={block.text || ""}
-                    onChange={(e) => updateBlock(index, { text: e.target.value })}
-                    placeholder="Quote…"
-                    rows={2}
-                    className="w-full font-display italic text-lg text-ink border border-steel/25 rounded-sm px-3 py-2 outline-none focus:border-river resize-y"
-                  />
-                  <input
-                    value={block.attribution || ""}
-                    onChange={(e) => updateBlock(index, { attribution: e.target.value })}
-                    placeholder="Attribution (optional)"
-                    className="w-full font-sans text-sm text-steel border border-steel/25 rounded-sm px-3 py-1.5 outline-none focus:border-river"
-                  />
-                </div>
-              )}
-
-              {block.type === "divider" && (
-                <div className="py-3">
-                  <hr className="border-steel/25" />
-                </div>
-              )}
-
-              {block.type === "button" && (
-                <div className="flex gap-2">
-                  <input
-                    value={block.label || ""}
-                    onChange={(e) => updateBlock(index, { label: e.target.value })}
-                    placeholder="Button text"
-                    className="flex-1 font-sans text-sm border border-steel/25 rounded-sm px-3 py-2 outline-none focus:border-river"
-                  />
-                  <input
-                    value={block.url || ""}
-                    onChange={(e) => updateBlock(index, { url: e.target.value })}
-                    placeholder="/forms/get-in-touch or https://…"
-                    className="flex-1 font-sans text-sm border border-steel/25 rounded-sm px-3 py-2 outline-none focus:border-river"
-                  />
-                </div>
-              )}
-            </div>
+      {items.map((block, index) => {
+        const isFirstParagraph =
+          block.type === "paragraph" && items.slice(0, index).every((b) => b.type !== "paragraph");
+        return (
+          <div key={block._id}>
+            <BlockCanvasItem
+              block={block}
+              index={index}
+              total={items.length}
+              accentHex={accentHex}
+              isFirstParagraph={isFirstParagraph}
+              dragOver={dragOverId === block._id}
+              onDragStart={() => {
+                dragId.current = block._id;
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOverId(block._id);
+              }}
+              onDragLeave={() => setDragOverId((v) => (v === block._id ? null : v))}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (dragId.current !== null) reorder(dragId.current, block._id);
+                dragId.current = null;
+                setDragOverId(null);
+              }}
+              onChange={(updates) => updateBlock(block._id, updates)}
+              onRemove={() => removeBlock(block._id)}
+              onMoveUp={() => moveBlock(block._id, -1)}
+              onMoveDown={() => moveBlock(block._id, 1)}
+              onUploadImage={(file) => uploadImageToBlock(block._id, file)}
+              onSelectImageUrl={(url) => updateBlock(block._id, { url })}
+              supabase={supabase}
+            />
+            <Gap
+              open={openInserterAt === index + 1}
+              onToggle={() => setOpenInserterAt((v) => (v === index + 1 ? null : index + 1))}
+              onInsert={(type) => insertAt(index + 1, type)}
+            />
           </div>
-        ))}
+        );
+      })}
+    </div>
+  );
+}
+
+// The thin hover line + "+" button that sits in the gap between two
+// blocks (and above the first one) — click it to insert a new block at
+// exactly that position.
+function Gap({ open, onToggle, onInsert }) {
+  return (
+    <div className="relative group h-3 flex items-center">
+      <div
+        className={`h-px bg-steel/25 flex-1 transition-opacity ${
+          open ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+        }`}
+      />
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label="Insert block here"
+        className={`absolute left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-paper border flex items-center justify-center text-sm leading-none transition-opacity ${
+          open
+            ? "opacity-100 border-river text-river"
+            : "opacity-0 group-hover:opacity-100 border-steel/30 text-steel hover:border-river hover:text-river"
+        }`}
+      >
+        +
+      </button>
+      {open && <InserterMenu onInsert={onInsert} />}
+    </div>
+  );
+}
+
+// Same "+" affordance, but always visible (not hover-only) since there's
+// nothing yet to hover over.
+function Inserter({ open, onToggle, onInsert }) {
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full border-2 border-dashed border-steel/30 rounded-sm py-10 text-center text-steel hover:border-river hover:text-river transition-colors"
+      >
+        <span className="text-2xl leading-none block mb-1">+</span>
+        <span className="font-sans text-sm">Add your first block</span>
+      </button>
+      {open && <InserterMenu onInsert={onInsert} centered />}
+    </div>
+  );
+}
+
+function InserterMenu({ onInsert, centered }) {
+  return (
+    <div
+      className={`absolute z-10 top-full mt-2 bg-paper border border-steel/25 rounded-sm shadow-lg p-1 flex gap-1 ${
+        centered ? "left-1/2 -translate-x-1/2" : "left-1/2 -translate-x-1/2"
+      }`}
+    >
+      {BLOCK_TYPES.map((t) => (
+        <button
+          key={t.type}
+          type="button"
+          onClick={() => onInsert(t.type)}
+          className="font-sans text-xs text-ink px-2.5 py-2 rounded-sm hover:bg-river/[0.08] whitespace-nowrap"
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ToolbarButton({ className = "", ...props }) {
+  return (
+    <button
+      type="button"
+      className={`w-6 h-6 flex items-center justify-center rounded-sm bg-paper border border-steel/25 text-steel/70 hover:text-ink text-xs disabled:opacity-30 ${className}`}
+      {...props}
+    />
+  );
+}
+
+function BlockCanvasItem({
+  block,
+  index,
+  total,
+  accentHex,
+  isFirstParagraph,
+  dragOver,
+  onDragStart,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+  onChange,
+  onRemove,
+  onMoveUp,
+  onMoveDown,
+  onUploadImage,
+  onSelectImageUrl,
+  supabase,
+}) {
+  const paragraphRef = useRef(null);
+
+  function exec(command, value = null) {
+    paragraphRef.current?.focus();
+    document.execCommand(command, false, value);
+    onChange({ text: paragraphRef.current.innerHTML });
+  }
+  function handleLink() {
+    const url = window.prompt("Link to:");
+    if (url) exec("createLink", url);
+  }
+
+  return (
+    <div
+      draggable
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+      className={`group relative rounded-sm transition-shadow ${
+        dragOver ? "outline outline-2 outline-river outline-offset-4" : ""
+      }`}
+    >
+      <div className="absolute -right-1 -top-1 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+        {block.type === "paragraph" && (
+          <>
+            <ToolbarButton onMouseDown={(e) => e.preventDefault()} onClick={() => exec("bold")} title="Bold" className="font-bold">
+              B
+            </ToolbarButton>
+            <ToolbarButton onMouseDown={(e) => e.preventDefault()} onClick={() => exec("italic")} title="Italic" className="italic">
+              i
+            </ToolbarButton>
+            <ToolbarButton onMouseDown={(e) => e.preventDefault()} onClick={handleLink} title="Add link">
+              🔗
+            </ToolbarButton>
+            <span className="w-px h-4 bg-steel/25 mx-0.5" />
+          </>
+        )}
+        <ToolbarButton title="Drag to reorder" className="cursor-grab active:cursor-grabbing">
+          ⠿
+        </ToolbarButton>
+        <ToolbarButton onClick={onMoveUp} disabled={index === 0} title="Move up">
+          ↑
+        </ToolbarButton>
+        <ToolbarButton onClick={onMoveDown} disabled={index === total - 1} title="Move down">
+          ↓
+        </ToolbarButton>
+        <ToolbarButton onClick={onRemove} title="Delete block" className="hover:text-brick hover:border-brick">
+          ✕
+        </ToolbarButton>
       </div>
 
-      <div className="flex flex-wrap gap-3 mt-3">
-        <button
-          type="button"
-          onClick={addParagraph}
-          className="font-sans text-sm font-600 border border-steel/40 text-ink px-3 py-1.5 rounded-sm hover:border-river hover:text-river transition-colors"
-        >
-          + Add paragraph
-        </button>
-        <button
-          type="button"
-          onClick={addImagePlaceholder}
-          className="font-sans text-sm font-600 border border-steel/40 text-ink px-3 py-1.5 rounded-sm hover:border-river hover:text-river transition-colors"
-        >
-          + Add image
-        </button>
-        <button
-          type="button"
-          onClick={addHeading}
-          className="font-sans text-sm font-600 border border-steel/40 text-ink px-3 py-1.5 rounded-sm hover:border-river hover:text-river transition-colors"
-        >
-          + Add heading
-        </button>
-        <button
-          type="button"
-          onClick={addQuote}
-          className="font-sans text-sm font-600 border border-steel/40 text-ink px-3 py-1.5 rounded-sm hover:border-river hover:text-river transition-colors"
-        >
-          + Add quote
-        </button>
-        <button
-          type="button"
-          onClick={addButton}
-          className="font-sans text-sm font-600 border border-steel/40 text-ink px-3 py-1.5 rounded-sm hover:border-river hover:text-river transition-colors"
-        >
-          + Add button
-        </button>
-        <button
-          type="button"
-          onClick={addDivider}
-          className="font-sans text-sm font-600 border border-steel/40 text-ink px-3 py-1.5 rounded-sm hover:border-river hover:text-river transition-colors"
-        >
-          + Add divider
-        </button>
+      <div className="rounded-sm py-1.5 group-hover:bg-river/[0.03] transition-colors">
+        {block.type === "paragraph" && (
+          <EditableParagraph
+            ref={paragraphRef}
+            html={block.text}
+            onChange={(text) => onChange({ text })}
+            isFirst={isFirstParagraph}
+            accentHex={accentHex}
+          />
+        )}
+        {block.type === "heading" && (
+          <input
+            value={block.text || ""}
+            onChange={(e) => onChange({ text: e.target.value })}
+            placeholder="Section heading…"
+            className="w-full font-display font-700 text-2xl sm:text-3xl text-ink bg-transparent outline-none placeholder:text-steel/40"
+          />
+        )}
+        {block.type === "quote" && (
+          <QuoteField block={block} onChange={onChange} accentHex={accentHex} />
+        )}
+        {block.type === "divider" && <hr className="border-steel/25 my-3" />}
+        {block.type === "button" && <ButtonField block={block} onChange={onChange} accentHex={accentHex} />}
+        {block.type === "image" && (
+          <ImageDropzone
+            url={block.url}
+            uploading={block.uploading}
+            onFile={onUploadImage}
+            onSelectUrl={onSelectImageUrl}
+            supabase={supabase}
+            aspect="aspect-[3/2]"
+          />
+        )}
       </div>
+    </div>
+  );
+}
+
+// contentEditable fights React's usual controlled-input model: feeding
+// `html` back in via dangerouslySetInnerHTML on every keystroke makes
+// React reassign node.innerHTML each time (the string is one character
+// longer than last render), which destroys and recreates the text node
+// and collapses the caret to the start — typed text comes out reversed,
+// one character inserted before the last on every keystroke. So content
+// is set imperatively instead: `skipNextSync` marks a change that
+// originated from this element's own onInput (the DOM already has it,
+// nothing to do), and the effect only writes `innerHTML` for changes
+// that came from somewhere else — initial mount, or an external replace
+// like a revision restore.
+const EditableParagraph = forwardRef(function EditableParagraph({ html, onChange, isFirst, accentHex }, forwardedRef) {
+  const innerRef = useRef(null);
+  const skipNextSync = useRef(false);
+  const isEmpty = !html || html === "<br>";
+
+  useEffect(() => {
+    if (skipNextSync.current) {
+      skipNextSync.current = false;
+      return;
+    }
+    const node = innerRef.current;
+    if (node && node.innerHTML !== (html || "")) {
+      node.innerHTML = html || "";
+    }
+  }, [html]);
+
+  function setRefs(node) {
+    innerRef.current = node;
+    if (typeof forwardedRef === "function") forwardedRef(node);
+    else if (forwardedRef) forwardedRef.current = node;
+  }
+
+  function handleInput(e) {
+    skipNextSync.current = true;
+    onChange(e.currentTarget.innerHTML);
+  }
+
+  return (
+    <div className="relative">
+      {isEmpty && (
+        <span className="absolute top-0 left-0 font-body text-lg text-steel/50 pointer-events-none">
+          Write a paragraph…
+        </span>
+      )}
+      <div
+        ref={setRefs}
+        contentEditable
+        suppressContentEditableWarning
+        onInput={handleInput}
+        className={`font-body text-lg leading-relaxed text-ink outline-none [&_a]:underline [&_a]:underline-offset-2 ${
+          isFirst ? "drop-cap" : ""
+        }`}
+        style={isFirst ? { "--drop-cap-color": accentHex } : undefined}
+      />
+    </div>
+  );
+});
+
+function QuoteField({ block, onChange, accentHex }) {
+  const textRef = useRef(null);
+
+  function autoGrow(el) {
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }
+
+  useEffect(() => {
+    autoGrow(textRef.current);
+  }, [block.text]);
+
+  return (
+    <div className="border-l-4 pl-5 py-1" style={{ borderColor: accentHex }}>
+      <textarea
+        ref={textRef}
+        value={block.text || ""}
+        onChange={(e) => onChange({ text: e.target.value })}
+        placeholder="Quote…"
+        rows={1}
+        className="w-full font-display italic text-xl sm:text-2xl text-ink leading-snug bg-transparent outline-none resize-none overflow-hidden placeholder:text-steel/40"
+      />
+      <input
+        value={block.attribution || ""}
+        onChange={(e) => onChange({ attribution: e.target.value })}
+        placeholder="Attribution (optional)"
+        className="w-full font-sans text-sm text-steel bg-transparent outline-none mt-2 placeholder:text-steel/40"
+      />
+    </div>
+  );
+}
+
+function ButtonField({ block, onChange, accentHex }) {
+  const [editingUrl, setEditingUrl] = useState(false);
+
+  return (
+    <div className="py-1">
+      <div className="inline-block rounded-sm" style={{ backgroundColor: accentHex }}>
+        <input
+          value={block.label || ""}
+          onChange={(e) => onChange({ label: e.target.value })}
+          placeholder="Button text"
+          size={Math.max((block.label || "Button text").length, 8)}
+          className="font-sans text-sm font-600 text-paper bg-transparent outline-none placeholder:text-paper/70 px-5 py-2.5"
+        />
+      </div>
+      <button
+        type="button"
+        onClick={() => setEditingUrl((v) => !v)}
+        className="ml-3 font-sans text-xs text-steel hover:text-river underline underline-offset-4"
+      >
+        {block.url ? "Edit link" : "Add link"}
+      </button>
+      {editingUrl && (
+        <div className="mt-2 max-w-sm">
+          <input
+            autoFocus
+            value={block.url || ""}
+            onChange={(e) => onChange({ url: e.target.value })}
+            onBlur={() => setEditingUrl(false)}
+            placeholder="/forms/get-in-touch or https://…"
+            className="w-full font-sans text-sm border border-steel/25 rounded-sm px-3 py-1.5 outline-none focus:border-river"
+          />
+        </div>
+      )}
     </div>
   );
 }

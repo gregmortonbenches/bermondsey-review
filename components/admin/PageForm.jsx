@@ -9,6 +9,9 @@ import { slugify } from "@/lib/slugify";
 import BlockEditor, { ImageDropzone } from "./BlockEditor";
 
 const AUTOSAVE_DELAY_MS = 1500;
+// Same fixed accent PageRenderer uses — pages aren't categorised the way
+// posts are, so there's no per-page colour to derive.
+const ACCENT_HEX = "var(--color-river, #2B4C73)";
 const emptyPage = {
   title: "",
   slug: "",
@@ -208,7 +211,12 @@ export default function PageForm({ initialPage }) {
           Show in site navigation
         </label>
 
-        <BlockEditor blocks={page.body || []} onChange={(b) => set("body", b)} supabase={supabase} />
+        <BlockEditor
+          blocks={page.body || []}
+          onChange={(b) => set("body", b)}
+          supabase={supabase}
+          accentHex={ACCENT_HEX}
+        />
 
         <div className="mt-6 border-t border-steel/20 pt-4">
           <button
