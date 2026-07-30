@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getPostById } from "@/lib/posts";
 import PostForm from "@/components/admin/PostForm";
+import ThemeVars from "@/components/ThemeVars";
 
 export default async function EditPostPage({ params }) {
   const { id } = await params;
@@ -15,7 +16,7 @@ export default async function EditPostPage({ params }) {
       <div className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12 pt-8">
         <h1 className="font-display font-700 text-2xl text-ink">Edit post</h1>
       </div>
-      <PostForm mode="edit" initialPost={post} />
+      <PostForm mode="edit" initialPost={post} themeVars={<ThemeVars scope=".theme-canvas" />} />
     </main>
   );
 }

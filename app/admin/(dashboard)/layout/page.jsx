@@ -58,7 +58,7 @@ export default async function AdminLayoutPage() {
       sectionContent={sectionContent}
       masthead={<Masthead />}
       footer={<Footer />}
-      themeVars={<ThemeVars />}
+      themeVars={<ThemeVars scope=".theme-canvas" />}
     />
   );
 }

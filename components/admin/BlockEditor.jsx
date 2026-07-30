@@ -5,6 +5,7 @@ import Image from "next/image";
 import { uploadMedia } from "@/lib/posts";
 import { getYouTubeEmbedUrl } from "@/lib/youtube";
 import MediaPicker from "./MediaPicker";
+import { usePublishOutline } from "./EditorOutlineContext";
 
 const DEFAULT_ACCENT = "var(--color-river, #2B4C73)";
 
@@ -20,6 +21,37 @@ const BLOCK_TYPES = [
   { type: "spacer", label: "Spacer" },
   { type: "divider", label: "Divider" },
 ];
+
+// A short, human-readable label for the "on this page" outline — text
+// blocks get their own (stripped-of-markup, truncated) content so the
+// list actually helps you find something, rather than a wall of
+// identical "Text" entries.
+function plainText(html) {
+  return (html || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+function truncate(text, max = 40) {
+  return text.length > max ? `${text.slice(0, max).trimEnd()}…` : text;
+}
+function outlineLabelFor(block) {
+  const typeLabel = BLOCK_TYPES.find((t) => t.type === block.type)?.label || block.type;
+  switch (block.type) {
+    case "paragraph":
+    case "quote": {
+      const text = plainText(block.text);
+      return text ? truncate(text) : `${typeLabel} (empty)`;
+    }
+    case "heading":
+      return block.text ? truncate(block.text) : `${typeLabel} (empty)`;
+    case "button":
+      return block.label ? `Button: ${truncate(block.label, 30)}` : "Button (empty)";
+    case "image":
+      return block.alt ? `Image: ${truncate(block.alt, 30)}` : typeLabel;
+    case "hero-carousel":
+      return `${typeLabel} (${(block.images || []).length})`;
+    default:
+      return typeLabel;
+  }
+}
 
 function emptyBlockFor(type) {
   switch (type) {
@@ -95,6 +127,19 @@ export default function BlockEditor({ blocks, onChange, supabase, accentHex = DE
   const dragId = useRef(null);
   const [dragOverId, setDragOverId] = useState(null);
   const [openInserterAt, setOpenInserterAt] = useState(null);
+
+  // Keyed by render-order index, not `_id` — `_id` comes from
+  // crypto.randomUUID() inside this component's own lazy useState
+  // initializer, which runs once during the server render and again,
+  // independently, during client hydration, so it comes out different
+  // each time; baking it into a real DOM `id` attribute (rather than
+  // just a React `key`, which is never serialized) would mismatch
+  // between server and client HTML. Index is deterministic from the
+  // array itself, so it hydrates consistently.
+  usePublishOutline(
+    "Content",
+    items.map((b, i) => ({ id: `block-${i}`, label: outlineLabelFor(b) }))
+  );
 
   function commit(next) {
     setItems(next);
@@ -326,12 +371,13 @@ function BlockCanvasItem({
 
   return (
     <div
+      id={`block-${index}`}
       draggable
       onDragStart={onDragStart}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
-      className={`group relative rounded-sm transition-shadow ${
+      className={`group relative rounded-sm transition-shadow scroll-mt-4 ${
         dragOver ? "outline outline-2 outline-river outline-offset-4" : ""
       }`}
     >

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { EditorOutlineProvider, useEditorOutline, jumpToElement } from "./EditorOutlineContext";
 
 const SECTIONS = [
   {
@@ -29,6 +30,37 @@ const SECTIONS = [
   },
 ];
 
+// The "on this page" list — whatever canvas is currently mounted inside
+// {children} (BlockEditor for a post/page, LayoutCanvas for the homepage)
+// publishes this via usePublishOutline; nothing shows here for the pages
+// that don't (post list, media library, and so on).
+function OutlinePanel({ outline }) {
+  return (
+    <div className="pt-4 mt-1 border-t border-steel/15 space-y-0.5">
+      <p className="px-3 font-sans text-[11px] uppercase tracking-[0.08em] text-steel mb-1.5">
+        {outline.title}
+      </p>
+      {outline.items.length === 0 ? (
+        <p className="px-3 font-sans text-xs text-steel/70">Nothing here yet</p>
+      ) : (
+        outline.items.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => jumpToElement(item.id)}
+            title={item.hint}
+            className={`block w-full text-left font-sans text-[13px] leading-snug px-3 py-1.5 rounded-sm hover:bg-steel/[0.08] transition-colors truncate ${
+              item.muted ? "text-steel/60 italic" : "text-ink/80 hover:text-ink"
+            }`}
+          >
+            {item.label}
+          </button>
+        ))
+      )}
+    </div>
+  );
+}
+
 function NavLink({ href, label, exact, pathname }) {
   const active = exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
   return (
@@ -44,8 +76,17 @@ function NavLink({ href, label, exact, pathname }) {
 }
 
 export default function AdminShell({ role, children }) {
+  return (
+    <EditorOutlineProvider>
+      <AdminShellInner role={role}>{children}</AdminShellInner>
+    </EditorOutlineProvider>
+  );
+}
+
+function AdminShellInner({ role, children }) {
   const pathname = usePathname();
   const isAdmin = role === "admin";
+  const { outline } = useEditorOutline();
 
   return (
     <div className="flex h-screen bg-paper">
@@ -57,7 +98,7 @@ export default function AdminShell({ role, children }) {
           </p>
         </div>
 
-        <nav className="flex-1 px-2 space-y-5">
+        <nav className="flex-1 px-2 space-y-5 overflow-y-auto">
           {SECTIONS.map((section, i) => {
             const items = section.adminOnly && !isAdmin ? [] : section.items.filter((it) => isAdmin || !it.adminOnly);
             if (items.length === 0) return null;
@@ -69,6 +110,8 @@ export default function AdminShell({ role, children }) {
               </div>
             );
           })}
+
+          {outline && <OutlinePanel outline={outline} />}
         </nav>
 
         <div className="px-2 py-4 border-t border-steel/20 space-y-0.5">

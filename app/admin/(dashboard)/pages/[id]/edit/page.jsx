@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserRole } from "@/lib/profile";
 import { getPageById } from "@/lib/pages";
 import PageForm from "@/components/admin/PageForm";
+import ThemeVars from "@/components/ThemeVars";
 
 export default async function EditPagePage({ params }) {
   const { id } = await params;
@@ -27,7 +28,7 @@ export default async function EditPagePage({ params }) {
       <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-12 pt-8">
         <h1 className="font-display font-700 text-2xl text-ink">Edit page</h1>
       </div>
-      <PageForm initialPage={page} />
+      <PageForm initialPage={page} themeVars={<ThemeVars scope=".theme-canvas" />} />
     </main>
   );
 }

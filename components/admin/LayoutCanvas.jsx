@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { savePageLayout } from "@/lib/layout";
 import { SECTION_REGISTRY } from "@/lib/sections";
+import { usePublishOutline } from "./EditorOutlineContext";
 
 const AUTOSAVE_DELAY_MS = 1200;
 
@@ -31,6 +32,20 @@ export default function LayoutCanvas({ pageKey, initialSections, sectionContent,
   const autosaveTimer = useRef(null);
   const lastSavedRef = useRef(JSON.stringify(initialSections));
   const isFirstRender = useRef(true);
+
+  // Each section's real content (sectionContent[section.type]) already
+  // carries a DOM id matching section.id — the same one CopyLinkButton
+  // hands out as `/#${section.id}` — so the outline can point jumpToElement
+  // straight at it without this canvas needing ids of its own.
+  usePublishOutline(
+    "Homepage sections",
+    sections.map((s) => ({
+      id: s.id,
+      label: SECTION_REGISTRY[s.type]?.label || s.type,
+      hint: s.enabled ? undefined : "Hidden from homepage",
+      muted: !s.enabled,
+    }))
+  );
 
   useEffect(() => {
     if (isFirstRender.current) {
@@ -116,47 +131,54 @@ export default function LayoutCanvas({ pageKey, initialSections, sectionContent,
         nothing is deleted, just switched off.
       </p>
 
-      {themeVars}
-      {masthead}
+      {/* Scoped to .theme-canvas rather than :root (see the scope prop on
+          ThemeVars) — real accent colours/fonts for fidelity, without
+          leaking into the surrounding admin sidebar's own use of the same
+          --color-brick/--color-river variables (its active-link colour,
+          for one). */}
+      <div className="theme-canvas flex flex-col flex-1">
+        {themeVars}
+        {masthead}
 
-      <div className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12 flex-1 w-full">
-        {orderable.map((section, index) => (
-          <SectionSlot
-            key={section.id}
-            section={section}
-            index={index}
-            total={orderable.length}
-            dragOver={dragOverId === section.id}
-            onDragStart={() => {
-              dragId.current = section.id;
-            }}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDragOverId(section.id);
-            }}
-            onDragLeave={() => setDragOverId((v) => (v === section.id ? null : v))}
-            onDrop={(e) => {
-              e.preventDefault();
-              if (dragId.current !== null) reorder(dragId.current, section.id);
-              dragId.current = null;
-              setDragOverId(null);
-            }}
-            onToggle={() => toggleEnabled(section.id)}
-            onMoveUp={() => moveSection(section.id, -1)}
-            onMoveDown={() => moveSection(section.id, 1)}
-          >
-            {sectionContent[section.type]}
+        <div className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12 flex-1 w-full">
+          {orderable.map((section, index) => (
+            <SectionSlot
+              key={section.id}
+              section={section}
+              index={index}
+              total={orderable.length}
+              dragOver={dragOverId === section.id}
+              onDragStart={() => {
+                dragId.current = section.id;
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOverId(section.id);
+              }}
+              onDragLeave={() => setDragOverId((v) => (v === section.id ? null : v))}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (dragId.current !== null) reorder(dragId.current, section.id);
+                dragId.current = null;
+                setDragOverId(null);
+              }}
+              onToggle={() => toggleEnabled(section.id)}
+              onMoveUp={() => moveSection(section.id, -1)}
+              onMoveDown={() => moveSection(section.id, 1)}
+            >
+              {sectionContent[section.type]}
+            </SectionSlot>
+          ))}
+        </div>
+
+        {newsletterSection && (
+          <SectionSlot section={newsletterSection} fixed onToggle={() => toggleEnabled(newsletterSection.id)}>
+            {sectionContent.newsletter}
           </SectionSlot>
-        ))}
+        )}
+
+        {footer}
       </div>
-
-      {newsletterSection && (
-        <SectionSlot section={newsletterSection} fixed onToggle={() => toggleEnabled(newsletterSection.id)}>
-          {sectionContent.newsletter}
-        </SectionSlot>
-      )}
-
-      {footer}
     </div>
   );
 }

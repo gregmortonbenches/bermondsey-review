@@ -29,7 +29,7 @@ function friendlyError(message) {
   return message;
 }
 
-export default function PageForm({ initialPage }) {
+export default function PageForm({ initialPage, themeVars }) {
   const router = useRouter();
   const supabase = createClient();
   const [page, setPage] = useState(initialPage || emptyPage);
@@ -189,7 +189,10 @@ export default function PageForm({ initialPage }) {
         </div>
       </div>
 
-      <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-12 py-8">
+      {/* Scoped to .theme-canvas — see the matching comment in
+          PostForm.jsx and the scope prop on components/ThemeVars.jsx. */}
+      <div className="theme-canvas max-w-content mx-auto px-4 sm:px-6 lg:px-12 py-8">
+        {themeVars}
         {error && (
           <p className="font-sans text-sm text-brick bg-brick/[0.08] rounded-sm px-3 py-2 mb-6">{error}</p>
         )}

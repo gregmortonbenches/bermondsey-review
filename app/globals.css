@@ -35,6 +35,20 @@ body {
   border-bottom: var(--rule);
 }
 
+/* Brief pulse when the admin sidebar's "on this page" outline jumps to a
+   block/section — see jumpToElement in EditorOutlineContext.jsx. */
+.outline-jump-highlight {
+  animation: outline-jump-pulse 1.2s ease-out;
+}
+@keyframes outline-jump-pulse {
+  0% {
+    box-shadow: 0 0 0 4px rgba(43, 76, 115, 0.35);
+  }
+  100% {
+    box-shadow: 0 0 0 4px rgba(43, 76, 115, 0);
+  }
+}
+
 /* visible keyboard focus, per accessibility floor */
 a:focus-visible,
 button:focus-visible {

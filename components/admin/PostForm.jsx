@@ -104,7 +104,7 @@ function fromDatetimeLocalValue(value) {
   return value ? new Date(value).toISOString() : null;
 }
 
-export default function PostForm({ mode, initialPost }) {
+export default function PostForm({ mode, initialPost, themeVars }) {
   const router = useRouter();
   const supabase = createClient();
   const [post, setPost] = useState(initialPost || emptyPost);
@@ -426,7 +426,14 @@ export default function PostForm({ mode, initialPost }) {
         </div>
       </div>
 
-      <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-12 py-8">
+      {/* Scoped to .theme-canvas rather than :root — real accent
+          colours/fonts for fidelity, without leaking into the sticky
+          action bar above (also part of this page) or the surrounding
+          admin sidebar, both of which use the same --color-brick/
+          --color-river variables for their own, fixed-theme purposes.
+          See the scope prop on components/ThemeVars.jsx. */}
+      <div className="theme-canvas max-w-content mx-auto px-4 sm:px-6 lg:px-12 py-8">
+        {themeVars}
         {error && (
           <p className="font-sans text-sm text-brick bg-brick/[0.08] rounded-sm px-3 py-2 mb-6">
             {error}

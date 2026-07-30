@@ -60,6 +60,20 @@ Articles, videos, podcasts, and cartoons are now editable through a real
   `/admin/login` or any `*/preview/frame` route (both live outside that
   route group on purpose), so neither the sign-in screen nor an iframe
   rendering the public site ever picks up admin chrome.
+- **"On this page" — a live outline in the sidebar, Squarespace-style.**
+  Open a post, page, or the homepage layout builder and the sidebar
+  grows a section listing every block/section currently on the canvas,
+  top to bottom, updating as you add, remove, or reorder them; click
+  one to scroll straight to it with a brief highlight pulse. Text
+  blocks show their own (trimmed) content rather than a generic "Text"
+  label, and hidden homepage sections show muted with a "Hidden" hint,
+  so the list doubles as a map of what's actually live. The canvas
+  publishes this up to `AdminShell` via a small React Context
+  (`components/admin/EditorOutlineContext.jsx`) rather than `AdminShell`
+  needing to know anything about blocks or sections itself — it clears
+  again the moment you navigate to a page that isn't a content canvas.
+  See the `usePublishOutline` calls in `components/admin/BlockEditor.jsx`
+  and `components/admin/LayoutCanvas.jsx`.
 - `/admin` — every post, draft and published, with a type badge and status
 - **`/admin/pages` — standalone pages** (About, Contact, whatever isn't
   part of the fortnightly issue cycle), sharing the same block editor as
@@ -95,11 +109,25 @@ Articles, videos, podcasts, and cartoons are now editable through a real
     `components/ThemeVars.jsx` — specifically so this editor wouldn't
     be the kind of feature that changes some things and silently misses
     others.
-  - `ThemeVars` is included only in public-facing pages (the homepage,
-    archive, article, etc.), never in `/admin`'s own dashboard pages —
-    so admin chrome always stays on the fixed default design system, the
+  - `ThemeVars` is included in public-facing pages (the homepage,
+    archive, article, etc.) and, scoped, in the post/page/homepage
+    canvases — never unscoped in `/admin`'s own dashboard chrome — so
+    admin chrome always stays on the fixed default design system, the
     same way Squarespace's own editor UI doesn't reskin itself based on
-    your site's custom theme.
+    your site's custom theme. The post/page/homepage canvases are the
+    exception: they're inside `/admin`, but since they're meant to be a
+    true mirror of the live page (see "A true visual canvas" below),
+    they need the real accent colours and fonts too. `ThemeVars` takes
+    an optional `scope` prop for exactly this — pass a selector like
+    `.theme-canvas` and it writes `--color-brick`/`--color-river`/font
+    variables scoped to that selector instead of `:root`, and skips
+    `custom_css`/`custom_js` entirely (those assume they're running on
+    the real public page, not a sub-tree of the dashboard). Every canvas
+    wraps its content in a `.theme-canvas` div and passes
+    `<ThemeVars scope=".theme-canvas" />` in from its server-rendered
+    parent — without the scope, the same `:root` colours the canvas
+    wants also leak into the surrounding sidebar (its active-link colour
+    reuses `--color-brick`, for one).
   - The custom JS field is real, unsandboxed code that runs for every
     visitor — restricted to admins by RLS, with a clear warning in the
     UI, but worth treating with the same care as editing the repository
