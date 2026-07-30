@@ -366,6 +366,18 @@ alter table site_settings enable row level security;
 alter table forms enable row level security;
 alter table form_submissions enable row level security;
 
+-- crosswords/issues have no policies yet (deliberately) — no page reads
+-- or writes them today (/crossword and /geoguesser are still "coming in
+-- phase 2" placeholders, see app/crossword/page.jsx), so there's no real
+-- access pattern to design policies around yet. RLS-enabled-with-no-
+-- policies locks both tables to service_role only in the meantime,
+-- rather than leaving them world-readable/writable through the public
+-- REST API by default (Supabase's PostgREST layer exposes every table
+-- to the anon/authenticated keys unless RLS says otherwise — an empty
+-- policy list is a deny-all, not a no-op).
+alter table crosswords enable row level security;
+alter table issues enable row level security;
+
 create trigger site_settings_set_updated_at
 before update on site_settings
 for each row execute function set_updated_at();
