@@ -16,6 +16,46 @@ begin
 end;
 $$ language plpgsql;
 
+-- Two roles: "admin" (can publish, schedule, delete, manage layout and
+-- media) and "contributor" (can write and save drafts, but not publish
+-- or delete anything) — enforced below via RLS, not just hidden buttons
+-- in the UI, so a contributor genuinely cannot publish even if they
+-- found a way around the admin interface.
+--
+-- Defined up front, before any table below — every other table's RLS
+-- policies reference `profiles` in an admin check, so it has to exist
+-- first for a top-to-bottom run of this file to succeed.
+--
+-- New editor accounts get a "contributor" profile automatically (see
+-- the trigger below). To make someone an admin, run this once they've
+-- signed in at least once:
+--   update profiles set role = 'admin' where id =
+--     (select id from auth.users where email = 'their@email.com');
+create table profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  role text not null default 'contributor' check (role in ('admin', 'contributor')),
+  created_at timestamptz not null default now()
+);
+
+alter table profiles enable row level security;
+
+create policy "Users can read their own profile"
+on profiles for select
+to authenticated
+using (id = auth.uid());
+
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, role) values (new.id, 'contributor');
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger on_auth_user_created
+after insert on auth.users
+for each row execute function public.handle_new_user();
+
 create type post_type as enum ('article', 'video', 'podcast', 'cartoon');
 create type post_status as enum ('draft', 'scheduled', 'published');
 
@@ -305,42 +345,6 @@ create table form_submissions (
 );
 
 create index form_submissions_form_id_idx on form_submissions (form_id, submitted_at desc);
-
--- Two roles: "admin" (can publish, schedule, delete, manage layout and
--- media) and "contributor" (can write and save drafts, but not publish
--- or delete anything) — enforced below via RLS, not just hidden buttons
--- in the UI, so a contributor genuinely cannot publish even if they
--- found a way around the admin interface.
---
--- New editor accounts get a "contributor" profile automatically (see
--- the trigger below). To make someone an admin, run this once they've
--- signed in at least once:
---   update profiles set role = 'admin' where id =
---     (select id from auth.users where email = 'their@email.com');
-create table profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
-  role text not null default 'contributor' check (role in ('admin', 'contributor')),
-  created_at timestamptz not null default now()
-);
-
-alter table profiles enable row level security;
-
-create policy "Users can read their own profile"
-on profiles for select
-to authenticated
-using (id = auth.uid());
-
-create or replace function public.handle_new_user()
-returns trigger as $$
-begin
-  insert into public.profiles (id, role) values (new.id, 'contributor');
-  return new;
-end;
-$$ language plpgsql security definer;
-
-create trigger on_auth_user_created
-after insert on auth.users
-for each row execute function public.handle_new_user();
 
 create trigger posts_set_updated_at
 before update on posts
