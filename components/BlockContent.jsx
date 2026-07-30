@@ -1,5 +1,6 @@
 import Image from "next/image";
 import DOMPurify from "isomorphic-dompurify";
+import { getYouTubeEmbedUrl } from "@/lib/youtube";
 
 // Paragraph blocks store raw HTML captured from the admin's contentEditable
 // canvas (see components/admin/BlockEditor.jsx) — but "captured" isn't
@@ -30,10 +31,72 @@ function sanitizeHref(url) {
   }
 }
 
+// Embed blocks are the one place this app deliberately renders more than
+// plain formatting — that's the whole point of an embed block — but the
+// same not-fully-trusted-body reasoning above applies even more here, so
+// this is NOT "paste any HTML/script": scripts and inline event handlers
+// are never allowed (that's the actual XSS vector — an embed provider
+// doesn't need script execution for a plain iframe embed), and any
+// <iframe> whose src isn't one of a handful of known embed providers is
+// dropped entirely, so an attacker-controlled iframe can't be used for
+// phishing/clickjacking either. This covers the realistic majority case
+// (YouTube/Vimeo/Maps/Spotify/SoundCloud's own plain-iframe embed codes)
+// at the cost of script-hydrated embeds (e.g. Twitter's default snippet)
+// falling back to a plain link instead of the rich version.
+const EMBED_IFRAME_HOSTS = [
+  "youtube.com",
+  "www.youtube.com",
+  "youtube-nocookie.com",
+  "www.youtube-nocookie.com",
+  "player.vimeo.com",
+  "open.spotify.com",
+  "w.soundcloud.com",
+  "www.google.com",
+  "maps.google.com",
+  "platform.twitter.com",
+  "www.instagram.com",
+];
+let embedHookInstalled = false;
+function ensureEmbedHook() {
+  if (embedHookInstalled) return;
+  embedHookInstalled = true;
+  DOMPurify.addHook("uponSanitizeElement", (node, data) => {
+    if (data.tagName !== "iframe") return;
+    let host = "";
+    try {
+      host = new URL(node.getAttribute("src") || "", "https://example.com").hostname;
+    } catch {
+      host = "";
+    }
+    if (!EMBED_IFRAME_HOSTS.includes(host)) node.remove();
+  });
+}
+const EMBED_ALLOWED_TAGS = ["iframe", "blockquote", "p", "a", "br"];
+const EMBED_ALLOWED_ATTR = [
+  "src",
+  "width",
+  "height",
+  "frameborder",
+  "allow",
+  "allowfullscreen",
+  "scrolling",
+  "title",
+  "href",
+  "target",
+  "rel",
+];
+function sanitizeEmbedHtml(html) {
+  ensureEmbedHook();
+  return DOMPurify.sanitize(html || "", { ALLOWED_TAGS: EMBED_ALLOWED_TAGS, ALLOWED_ATTR: EMBED_ALLOWED_ATTR });
+}
+
+const SPACER_HEIGHTS = { small: "h-6", medium: "h-12", large: "h-24" };
+
 /**
  * Renders the shared block-array shape used by both posts.body and
- * pages.body: paragraph, image, heading, quote, divider, button. See
- * components/admin/BlockEditor.jsx for how these are authored.
+ * pages.body: paragraph, image, heading, quote, divider, button, video,
+ * spacer, hero-carousel, embed. See components/admin/BlockEditor.jsx for
+ * how these are authored.
  *
  * `accentHex` drives the drop-cap letter, quote border, and button
  * background — pass the post's category colour, or a fixed default for
@@ -105,6 +168,49 @@ export default function BlockContent({ blocks, accentHex, emptyText }) {
                 {block.label || "Learn more"}
               </a>
             </div>
+          );
+        }
+        if (block.type === "spacer") {
+          return <div key={i} className={SPACER_HEIGHTS[block.size] || SPACER_HEIGHTS.medium} aria-hidden="true" />;
+        }
+        if (block.type === "video") {
+          const embedUrl = getYouTubeEmbedUrl(block.url);
+          if (!embedUrl) return null;
+          return (
+            <div key={i} className="aspect-video rounded-sm overflow-hidden bg-ink/5">
+              <iframe
+                src={embedUrl}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          );
+        }
+        if (block.type === "hero-carousel") {
+          const images = (block.images || []).filter((img) => img.url);
+          if (images.length === 0) return null;
+          return (
+            <div key={i} className="flex overflow-x-auto snap-x snap-mandatory gap-3 -mx-4 px-4 sm:mx-0 sm:px-0 [scrollbar-width:thin]">
+              {images.map((img, j) => (
+                <div
+                  key={j}
+                  className="relative shrink-0 w-[85%] sm:w-[70%] aspect-video snap-start rounded-sm overflow-hidden"
+                >
+                  <Image src={img.url} alt={img.alt || ""} fill sizes="(max-width: 780px) 85vw, 546px" className="object-cover" />
+                </div>
+              ))}
+            </div>
+          );
+        }
+        if (block.type === "embed") {
+          if (!block.html) return null;
+          return (
+            <div
+              key={i}
+              className="[&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:rounded-sm"
+              dangerouslySetInnerHTML={{ __html: sanitizeEmbedHtml(block.html) }}
+            />
           );
         }
         return null;

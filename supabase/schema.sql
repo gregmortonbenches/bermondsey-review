@@ -29,10 +29,12 @@ create table posts (
   slug text not null unique,
   title text not null,
   dek text,
-  -- Array of content blocks, e.g.
-  -- [{ "type": "paragraph", "text": "..." },
-  --  { "type": "image", "url": "...", "alt": "..." },
-  --  { "type": "embed", "post_id": "..." }]
+  -- Array of content blocks — paragraph, heading, image, quote, button,
+  -- divider, spacer, video (a YouTube URL), hero-carousel (an array of
+  -- images), and embed (sanitized third-party iframe HTML — see the
+  -- sanitizeEmbedHtml comment in components/BlockContent.jsx for why this
+  -- is NOT arbitrary/unsanitized HTML, script tags included). See
+  -- components/admin/BlockEditor.jsx for exactly what each block stores.
   body jsonb not null default '[]'::jsonb,
   cover_image_url text,
   cover_image_alt text,          -- for screen readers — shown wherever the cover image is (the post itself, its card on the homepage/archive)

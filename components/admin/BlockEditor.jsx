@@ -3,6 +3,7 @@
 import { forwardRef, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { uploadMedia } from "@/lib/posts";
+import { getYouTubeEmbedUrl } from "@/lib/youtube";
 import MediaPicker from "./MediaPicker";
 
 const DEFAULT_ACCENT = "var(--color-river, #2B4C73)";
@@ -11,8 +12,12 @@ const BLOCK_TYPES = [
   { type: "paragraph", label: "Text" },
   { type: "heading", label: "Heading" },
   { type: "image", label: "Image" },
+  { type: "hero-carousel", label: "Image carousel" },
+  { type: "video", label: "Video" },
   { type: "quote", label: "Quote" },
   { type: "button", label: "Button" },
+  { type: "embed", label: "Embed" },
+  { type: "spacer", label: "Spacer" },
   { type: "divider", label: "Divider" },
 ];
 
@@ -24,10 +29,18 @@ function emptyBlockFor(type) {
       return { type, text: "" };
     case "image":
       return { type, url: "", alt: "" };
+    case "hero-carousel":
+      return { type, images: [] };
+    case "video":
+      return { type, url: "" };
     case "quote":
       return { type, text: "", attribution: "" };
     case "button":
       return { type, label: "", url: "" };
+    case "embed":
+      return { type, html: "" };
+    case "spacer":
+      return { type, size: "medium" };
     case "divider":
       return { type };
     default:
@@ -394,6 +407,12 @@ function BlockCanvasItem({
             )}
           </div>
         )}
+        {block.type === "hero-carousel" && (
+          <HeroCarouselField block={block} onChange={onChange} supabase={supabase} />
+        )}
+        {block.type === "video" && <VideoField block={block} onChange={onChange} />}
+        {block.type === "embed" && <EmbedField block={block} onChange={onChange} />}
+        {block.type === "spacer" && <SpacerField block={block} onChange={onChange} />}
       </div>
     </div>
   );
@@ -523,6 +542,205 @@ function ButtonField({ block, onChange, accentHex }) {
             className="w-full font-sans text-sm border border-steel/25 rounded-sm px-3 py-1.5 outline-none focus:border-river"
           />
         </div>
+      )}
+    </div>
+  );
+}
+
+function VideoField({ block, onChange }) {
+  const embedUrl = getYouTubeEmbedUrl(block.url);
+  return (
+    <div>
+      <input
+        value={block.url || ""}
+        onChange={(e) => onChange({ url: e.target.value })}
+        placeholder="https://youtube.com/watch?v=…"
+        className="w-full font-sans text-sm border border-steel/25 rounded-sm px-3 py-2 outline-none focus:border-river"
+      />
+      {block.url && (
+        <div className="mt-2 aspect-video rounded-sm overflow-hidden bg-ink/5">
+          {embedUrl ? (
+            <iframe
+              src={embedUrl}
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <p className="font-sans text-sm text-steel p-6">Add a valid YouTube URL to see the player here.</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const SPACER_SIZES = [
+  { value: "small", label: "Small" },
+  { value: "medium", label: "Medium" },
+  { value: "large", label: "Large" },
+];
+const SPACER_HEIGHTS = { small: "h-6", medium: "h-12", large: "h-24" };
+
+function SpacerField({ block, onChange }) {
+  const size = block.size || "medium";
+  return (
+    <div className="flex items-center gap-3">
+      <div className={`flex-1 rounded-sm border border-dashed border-steel/30 ${SPACER_HEIGHTS[size]}`} />
+      <div className="flex gap-1 shrink-0">
+        {SPACER_SIZES.map((s) => (
+          <button
+            key={s.value}
+            type="button"
+            onClick={() => onChange({ size: s.value })}
+            className={`font-sans text-xs px-2 py-1 rounded-sm border transition-colors ${
+              size === s.value ? "border-river text-river bg-river/[0.06]" : "border-steel/25 text-steel hover:text-ink"
+            }`}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function EmbedField({ block, onChange }) {
+  return (
+    <div>
+      <textarea
+        value={block.html || ""}
+        onChange={(e) => onChange({ html: e.target.value })}
+        placeholder="Paste an embed code — a YouTube/Vimeo/Maps/Spotify iframe, for example"
+        rows={4}
+        className="w-full font-mono text-xs border border-steel/25 rounded-sm px-3 py-2 outline-none focus:border-river resize-y"
+      />
+      <p className="font-sans text-xs text-steel mt-1">
+        Scripts aren't allowed here — that's what keeps this safe even when a contributor's draft
+        is previewed before anyone's reviewed it. Plain iframe embeds from YouTube, Vimeo, Google
+        Maps, Spotify, and SoundCloud work; anything else may render stripped down.
+      </p>
+    </div>
+  );
+}
+
+/**
+ * A small multi-image list within a single block — add/remove/reorder,
+ * each with its own alt text. Deliberately arrow-buttons for reordering
+ * rather than drag: the block itself is already a native HTML5 drag
+ * source (for reordering among other blocks), and nesting a second,
+ * independent drag zone inside it is a reliable way to get conflicting
+ * drag events from the browser.
+ */
+function HeroCarouselField({ block, onChange, supabase }) {
+  const images = block.images || [];
+  const [uploading, setUploading] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const inputRef = useRef(null);
+
+  function updateImages(next) {
+    onChange({ images: next });
+  }
+  function removeImage(index) {
+    updateImages(images.filter((_, i) => i !== index));
+  }
+  function moveImage(index, direction) {
+    const target = index + direction;
+    if (target < 0 || target >= images.length) return;
+    const next = [...images];
+    [next[index], next[target]] = [next[target], next[index]];
+    updateImages(next);
+  }
+  function updateImageAlt(index, alt) {
+    updateImages(images.map((img, i) => (i === index ? { ...img, alt } : img)));
+  }
+
+  async function handleUpload(file) {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadMedia(supabase, file);
+      updateImages([...images, { url, alt: "" }]);
+    } catch (err) {
+      alert(`Image upload failed: ${err.message}`);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function handlePickerSelect(url) {
+    setPickerOpen(false);
+    updateImages([...images, { url, alt: "" }]);
+  }
+
+  return (
+    <div>
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {images.map((img, index) => (
+          <div key={index} className="shrink-0 w-32">
+            <div className="relative w-32 aspect-video rounded-sm overflow-hidden bg-steel/[0.08]">
+              <Image src={img.url} alt="" fill sizes="128px" className="object-cover" />
+              <button
+                type="button"
+                onClick={() => removeImage(index)}
+                title="Remove"
+                className="absolute top-1 right-1 w-5 h-5 flex items-center justify-center rounded-sm bg-ink/70 text-paper text-xs"
+              >
+                ✕
+              </button>
+              <div className="absolute bottom-1 left-1 flex gap-0.5">
+                <button
+                  type="button"
+                  onClick={() => moveImage(index, -1)}
+                  disabled={index === 0}
+                  title="Move earlier"
+                  className="w-5 h-5 flex items-center justify-center rounded-sm bg-ink/70 text-paper text-xs disabled:opacity-30"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  onClick={() => moveImage(index, 1)}
+                  disabled={index === images.length - 1}
+                  title="Move later"
+                  className="w-5 h-5 flex items-center justify-center rounded-sm bg-ink/70 text-paper text-xs disabled:opacity-30"
+                >
+                  ›
+                </button>
+              </div>
+            </div>
+            <input
+              value={img.alt || ""}
+              onChange={(e) => updateImageAlt(index, e.target.value)}
+              placeholder="Alt text"
+              className="w-32 font-sans text-[10px] text-steel bg-transparent outline-none mt-1 placeholder:text-steel/40"
+            />
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className="shrink-0 w-32 aspect-video rounded-sm border-2 border-dashed border-steel/30 hover:border-steel/50 flex items-center justify-center text-steel text-xs text-center px-2"
+        >
+          {uploading ? "Uploading…" : "+ Add image"}
+        </button>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => handleUpload(e.target.files?.[0])}
+        />
+      </div>
+      <button
+        type="button"
+        onClick={() => setPickerOpen(true)}
+        className="font-sans text-xs text-river hover:text-ink underline underline-offset-4 mt-1.5"
+      >
+        Or choose from library
+      </button>
+      {pickerOpen && (
+        <MediaPicker supabase={supabase} onSelect={handlePickerSelect} onClose={() => setPickerOpen(false)} />
       )}
     </div>
   );

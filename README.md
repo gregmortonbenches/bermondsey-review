@@ -218,10 +218,33 @@ Articles, videos, podcasts, and cartoons are now editable through a real
   plus bold/italic/link for text); hover the gap above or below any
   block for a "+" that inserts a new one exactly there. See
   `components/admin/BlockEditor.jsx`.
-- **Six block types** — paragraph, image, heading, quote, button, and
-  divider, so a piece can be more than a wall of paragraphs (a pull quote,
-  a call-to-action button linking to a form, a section break) without
-  needing a full page-builder.
+- **Ten block types** — paragraph, heading, image, image carousel, video,
+  quote, button, embed, spacer, and divider, so a piece can be more than
+  a wall of paragraphs (a pull quote, a gallery, an embedded YouTube
+  video, a section break) without needing a full page-builder.
+  - **Video** embeds a YouTube URL (reuses `lib/youtube.js`, same as the
+    top-level video post type — this just makes it available *inside*
+    any post or page too, not only as the whole piece).
+  - **Image carousel** is a small multi-image list within one block —
+    add, remove, and reorder (arrow buttons, not drag — the block
+    itself is already a drag source for reordering among other blocks,
+    and nesting a second drag zone inside it invites conflicting
+    browser drag events).
+  - **Embed** is deliberately *not* a raw-HTML/paste-any-script block.
+    RLS lets any contributor write body content directly via the
+    Supabase client, and that content renders in an admin's browser
+    during preview before anyone's reviewed it — the same reasoning
+    that led to sanitizing paragraph HTML (see `components/
+    BlockContent.jsx`) applies here, more so. Scripts and inline event
+    handlers are always stripped, and any `<iframe>` whose `src` isn't
+    one of a handful of known embed providers (YouTube, Vimeo, Google
+    Maps, Spotify, SoundCloud) is dropped entirely, so an
+    attacker-controlled iframe can't be used for phishing/clickjacking
+    either. That covers plain-iframe embed codes from those providers;
+    script-hydrated embeds (e.g. Twitter's default snippet) fall back to
+    plain text rather than the rich version — a deliberate trade, not an
+    oversight. Truly unrestricted code already exists, admin-only, at
+    `/admin/theme`'s "Advanced: Code injection" section.
 - **Drag-and-drop** — reorder blocks by dragging the ⠿ handle that
   appears on hover, and drop image files straight from the desktop onto
   the cover image or an image block instead of hunting for a file picker
