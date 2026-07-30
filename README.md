@@ -74,6 +74,20 @@ Articles, videos, podcasts, and cartoons are now editable through a real
   again the moment you navigate to a page that isn't a content canvas.
   See the `usePublishOutline` calls in `components/admin/BlockEditor.jsx`
   and `components/admin/LayoutCanvas.jsx`.
+- **"Switch post"/"Switch page" — jump straight to editing another one,**
+  without backing out to the list first. Shows in the sidebar only while
+  a post or page editor (or its "new" screen) is open — not on the
+  homepage layout builder, since there's only one homepage to switch to
+  — listing every post/page with its status (Published/Draft/Scheduled),
+  the one you're on highlighted, and a "+ New" link at the bottom. See
+  `components/admin/PageSwitcher.jsx`. Worth knowing: clicking between two
+  posts (or two pages) navigates between routes that only differ in a
+  dynamic `[id]` segment — verified with a throwaway harness first that
+  Next's App Router genuinely remounts the destination page's Client
+  Components in that case (rather than reusing the old instance with
+  stale `useState`-seeded content), since getting that wrong would mean
+  autosave could silently overwrite the newly-opened post/page with the
+  previous one's content.
 - `/admin` — every post, draft and published, with a type badge and status
 - **`/admin/pages` — standalone pages** (About, Contact, whatever isn't
   part of the fortnightly issue cycle), sharing the same block editor as

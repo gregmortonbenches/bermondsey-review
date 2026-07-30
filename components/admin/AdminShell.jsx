@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { EditorOutlineProvider, useEditorOutline, jumpToElement } from "./EditorOutlineContext";
+import PageSwitcher from "./PageSwitcher";
 
 const SECTIONS = [
   {
@@ -111,6 +112,7 @@ function AdminShellInner({ role, children }) {
             );
           })}
 
+          <PageSwitcher pathname={pathname} />
           {outline && <OutlinePanel outline={outline} />}
         </nav>
 
