@@ -113,7 +113,7 @@ export default function SiteSettingsEditor({ initialSettings }) {
   const statusColor = { saved: "text-river", unsaved: "text-steel", saving: "text-steel", error: "text-brick" };
 
   return (
-    <div className="grid lg:grid-cols-[420px_1fr] h-[calc(100vh-53px)]">
+    <div className="grid lg:grid-cols-[420px_1fr] h-full">
       <div className="border-r border-steel/20 overflow-y-auto p-5">
         <div className="flex items-center justify-between mb-1">
           <h2 className="font-display font-700 text-lg text-ink">Site</h2>

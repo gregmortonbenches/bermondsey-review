@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getSiteSettingsSafe, DEFAULT_SITE_SETTINGS } from "@/lib/theme";
+import { getSiteNavLinks } from "@/lib/pages";
 import MastheadNav from "./MastheadNav";
 
 /**
@@ -61,13 +62,15 @@ function SkylineStrip() {
 // admin section actually controls what every visitor sees here.
 export default async function Masthead() {
   let settings = DEFAULT_SITE_SETTINGS;
+  let navLinks = DEFAULT_SITE_SETTINGS.nav_links;
   try {
     const supabase = await createClient();
     settings = await getSiteSettingsSafe(supabase);
+    const baseLinks = settings.nav_links?.length ? settings.nav_links : DEFAULT_SITE_SETTINGS.nav_links;
+    navLinks = await getSiteNavLinks(supabase, baseLinks);
   } catch {
     settings = DEFAULT_SITE_SETTINGS;
   }
-  const navLinks = settings.nav_links?.length ? settings.nav_links : DEFAULT_SITE_SETTINGS.nav_links;
 
   return (
     <header className="bg-paper">

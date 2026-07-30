@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getPublishedPosts } from "@/lib/posts";
+import { getAllPublishedPages } from "@/lib/pages";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://example.com";
 
@@ -27,5 +28,17 @@ export default async function sitemap() {
     // covers the static routes rather than failing to build.
   }
 
-  return [...staticRoutes, ...postRoutes];
+  let pageRoutes = [];
+  try {
+    const supabase = await createClient();
+    const pages = await getAllPublishedPages(supabase);
+    pageRoutes = pages.map((page) => ({
+      url: `${SITE_URL}/${page.slug}`,
+      lastModified: page.updated_at,
+    }));
+  } catch {
+    // Same fallback as above.
+  }
+
+  return [...staticRoutes, ...postRoutes, ...pageRoutes];
 }

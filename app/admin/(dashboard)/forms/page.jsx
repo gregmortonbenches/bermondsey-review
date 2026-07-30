@@ -10,12 +10,7 @@ export default async function AdminFormsPage() {
   if (role !== "admin") {
     return (
       <div className="min-h-screen bg-paper flex items-center justify-center px-4">
-        <div className="text-center max-w-sm">
-          <h1 className="font-display font-700 text-xl text-ink mb-2">Admins only</h1>
-          <Link href="/admin" className="font-sans text-sm text-river hover:text-ink underline underline-offset-4">
-            ← Back to posts
-          </Link>
-        </div>
+        <p className="font-sans text-sm text-steel">Forms are visible to admins only.</p>
       </div>
     );
   }
@@ -33,17 +28,12 @@ export default async function AdminFormsPage() {
               reader survey.
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <Link href="/admin" className="font-sans text-sm text-steel hover:text-ink">
-              ← Back to posts
-            </Link>
-            <Link
-              href="/admin/forms/new"
-              className="font-sans text-sm font-600 bg-brick text-paper px-4 py-2 rounded-sm hover:bg-ink transition-colors"
-            >
-              New form
-            </Link>
-          </div>
+          <Link
+            href="/admin/forms/new"
+            className="font-sans text-sm font-600 bg-brick text-paper px-4 py-2 rounded-sm hover:bg-ink transition-colors shrink-0"
+          >
+            New form
+          </Link>
         </div>
 
         {forms.length === 0 ? (

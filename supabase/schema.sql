@@ -3,6 +3,19 @@
 
 create extension if not exists "pgcrypto";
 
+-- Keep updated_at current on every edit, including post-publish edits.
+-- Defined up front, before any table/trigger below references it — a
+-- CREATE TRIGGER needs the function to already exist, and this one is
+-- used by several tables (posts, forms, site_settings, page_layouts,
+-- pages) scattered throughout the rest of this file.
+create or replace function set_updated_at()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql;
+
 create type post_type as enum ('article', 'video', 'podcast', 'cartoon');
 create type post_status as enum ('draft', 'scheduled', 'published');
 
@@ -187,6 +200,62 @@ insert into site_settings (id) values (true) on conflict (id) do nothing;
 --     add column if not exists social_links jsonb not null default '{}'::jsonb,
 --     add column if not exists footer_text text;
 
+-- Standalone pages (About, Contact, etc.) — not part of the fortnightly
+-- issue cycle the way posts are, so they get their own table rather than
+-- another `posts.type`. Site-wide structural concern like layout/theme/
+-- redirects, so admin-only (no contributor drafts) — see the RLS below.
+-- `body` is the same block-array shape as posts.body (see lib/posts.js
+-- and components/BlockContent.jsx) so the editor and renderer are shared.
+-- `show_in_nav`: when published and checked, the page is appended to the
+-- site navigation automatically (see lib/pages.js's getNavPages, used by
+-- Masthead and Footer) — the closest thing here to Squarespace's "Pages"
+-- panel doubling as the nav editor.
+create table pages (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null unique,
+  title text not null,
+  body jsonb not null default '[]'::jsonb,
+  meta_description text,
+  og_image_url text,
+  show_in_nav boolean not null default false,
+  published boolean not null default false,
+  updated_at timestamptz not null default now(),
+  created_at timestamptz not null default now()
+);
+
+create index pages_slug_idx on pages (slug);
+
+alter table pages enable row level security;
+
+create trigger pages_set_updated_at
+before update on pages
+for each row execute function set_updated_at();
+
+create policy "Public can read published pages"
+on pages for select
+to anon
+using (published = true);
+
+create policy "Editors can read all pages"
+on pages for select
+to authenticated
+using (true);
+
+create policy "Admins can insert pages"
+on pages for insert
+to authenticated
+with check (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
+
+create policy "Admins can update pages"
+on pages for update
+to authenticated
+using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
+
+create policy "Admins can delete pages"
+on pages for delete
+to authenticated
+using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
+
 -- General-purpose forms — not just the newsletter signup. `fields` is an
 -- ordered JSON array, e.g.
 -- [{"id":"name","type":"text","label":"Your name","required":true},
@@ -250,15 +319,6 @@ $$ language plpgsql security definer;
 create trigger on_auth_user_created
 after insert on auth.users
 for each row execute function public.handle_new_user();
-
--- Keep updated_at current on every edit, including post-publish edits.
-create or replace function set_updated_at()
-returns trigger as $$
-begin
-  new.updated_at = now();
-  return new;
-end;
-$$ language plpgsql;
 
 create trigger posts_set_updated_at
 before update on posts

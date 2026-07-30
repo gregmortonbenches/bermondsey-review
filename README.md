@@ -52,7 +52,24 @@ Articles, videos, podcasts, and cartoons are now editable through a real
 
 ### What you get
 
+- **A persistent sidebar** — Posts, Pages, and Media for everyone;
+  Forms, Analytics, Redirects, Design, Site, and Homepage layout for
+  admins — instead of a growing row of buttons across the top. Lives in
+  `app/admin/(dashboard)/layout.jsx` + `components/admin/AdminShell.jsx`,
+  applied to every dashboard page but deliberately *not* to
+  `/admin/login` or any `*/preview/frame` route (both live outside that
+  route group on purpose), so neither the sign-in screen nor an iframe
+  rendering the public site ever picks up admin chrome.
 - `/admin` — every post, draft and published, with a type badge and status
+- **`/admin/pages` — standalone pages** (About, Contact, whatever isn't
+  part of the fortnightly issue cycle), sharing the same block editor as
+  posts. Site-structure concern like layout/theme/redirects, so
+  admin-only. Check "Show in navigation" and a published page is
+  appended to the masthead/footer nav automatically (see
+  `getSiteNavLinks` in `lib/pages.js`) — live at the root, e.g.
+  `/about`, via `app/[slug]/page.jsx`. A reserved-slug check stops a
+  page from claiming an address the site itself already uses
+  (`/archive`, `/admin`, etc.).
 - **`/admin/forms` — a general-purpose form builder**, not just the
   newsletter signup. Build a form with any mix of short text, long
   text, email, dropdown, and checkbox fields — drag to reorder them the

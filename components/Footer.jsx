@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getSiteSettingsSafe, DEFAULT_SITE_SETTINGS } from "@/lib/theme";
+import { getSiteNavLinks } from "@/lib/pages";
 
 function TwitterIcon() {
   return (
@@ -37,13 +38,15 @@ const SOCIAL_ICONS = { twitter: TwitterIcon, instagram: InstagramIcon, facebook:
 // there's one source of truth, not two places to update.
 export default async function Footer() {
   let settings = DEFAULT_SITE_SETTINGS;
+  let navLinks = DEFAULT_SITE_SETTINGS.nav_links;
   try {
     const supabase = await createClient();
     settings = await getSiteSettingsSafe(supabase);
+    const baseLinks = settings.nav_links?.length ? settings.nav_links : DEFAULT_SITE_SETTINGS.nav_links;
+    navLinks = await getSiteNavLinks(supabase, baseLinks);
   } catch {
     settings = DEFAULT_SITE_SETTINGS;
   }
-  const navLinks = settings.nav_links?.length ? settings.nav_links : DEFAULT_SITE_SETTINGS.nav_links;
   const socialLinks = Object.entries(settings.social_links || {}).filter(([, url]) => url);
 
   return (

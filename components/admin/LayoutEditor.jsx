@@ -89,7 +89,7 @@ export default function LayoutEditor({ pageKey, initialSections }) {
   };
 
   return (
-    <div className="grid lg:grid-cols-[380px_1fr] h-[calc(100vh-53px)]">
+    <div className="grid lg:grid-cols-[380px_1fr] h-full">
       {/* Section list — drag to reorder, toggle to show/hide */}
       <div className="border-r border-steel/20 overflow-y-auto p-5">
         <div className="flex items-center justify-between mb-1">

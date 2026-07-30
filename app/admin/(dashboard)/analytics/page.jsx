@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserRole } from "@/lib/profile";
 import { getViewStats } from "@/lib/analytics";
@@ -10,12 +9,7 @@ export default async function AdminAnalyticsPage() {
   if (role !== "admin") {
     return (
       <div className="min-h-screen bg-paper flex items-center justify-center px-4">
-        <div className="text-center max-w-sm">
-          <h1 className="font-display font-700 text-xl text-ink mb-2">Admins only</h1>
-          <Link href="/admin" className="font-sans text-sm text-river hover:text-ink underline underline-offset-4">
-            ← Back to posts
-          </Link>
-        </div>
+        <p className="font-sans text-sm text-steel">Analytics are visible to admins only.</p>
       </div>
     );
   }
@@ -32,12 +26,6 @@ export default async function AdminAnalyticsPage() {
 
   return (
     <main className="min-h-screen bg-paper">
-      <div className="border-b border-steel/20 px-5 py-3">
-        <Link href="/admin" className="font-sans text-sm text-steel hover:text-ink">
-          ← Back to posts
-        </Link>
-      </div>
-
       <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-12 py-8">
         <h1 className="font-display font-700 text-3xl text-ink">Analytics</h1>
         <p className="font-sans text-sm text-steel mt-1">

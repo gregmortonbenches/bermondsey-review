@@ -40,76 +40,12 @@ export default async function AdminPage() {
                 : "Click \"New post\" to start writing — your changes save themselves as you go. As a contributor you can write and save drafts; an admin will need to publish them."}
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/admin/media"
-              className="font-sans text-sm font-600 border border-steel/40 text-ink px-4 py-2 rounded-sm hover:border-river hover:text-river transition-colors"
-            >
-              Media library
-            </Link>
-            {isAdmin && (
-              <Link
-                href="/admin/analytics"
-                className="font-sans text-sm font-600 border border-steel/40 text-ink px-4 py-2 rounded-sm hover:border-river hover:text-river transition-colors"
-              >
-                Analytics
-              </Link>
-            )}
-            {isAdmin && (
-              <Link
-                href="/admin/redirects"
-                className="font-sans text-sm font-600 border border-steel/40 text-ink px-4 py-2 rounded-sm hover:border-river hover:text-river transition-colors"
-              >
-                Redirects
-              </Link>
-            )}
-            {isAdmin && (
-              <Link
-                href="/admin/forms"
-                className="font-sans text-sm font-600 border border-steel/40 text-ink px-4 py-2 rounded-sm hover:border-river hover:text-river transition-colors"
-              >
-                Forms
-              </Link>
-            )}
-            {isAdmin && (
-              <Link
-                href="/admin/site"
-                className="font-sans text-sm font-600 border border-steel/40 text-ink px-4 py-2 rounded-sm hover:border-river hover:text-river transition-colors"
-              >
-                Site
-              </Link>
-            )}
-            {isAdmin && (
-              <Link
-                href="/admin/theme"
-                className="font-sans text-sm font-600 border border-steel/40 text-ink px-4 py-2 rounded-sm hover:border-river hover:text-river transition-colors"
-              >
-                Design
-              </Link>
-            )}
-            {isAdmin && (
-              <Link
-                href="/admin/layout"
-                className="font-sans text-sm font-600 border border-steel/40 text-ink px-4 py-2 rounded-sm hover:border-river hover:text-river transition-colors"
-              >
-                Edit homepage layout
-              </Link>
-            )}
-            <Link
-              href="/admin/posts/new"
-              className="font-sans text-sm font-600 bg-brick text-paper px-4 py-2 rounded-sm hover:bg-ink transition-colors"
-            >
-              New post
-            </Link>
-            <form action="/admin/logout" method="post">
-              <button
-                type="submit"
-                className="font-sans text-sm text-steel hover:text-ink underline underline-offset-4"
-              >
-                Sign out
-              </button>
-            </form>
-          </div>
+          <Link
+            href="/admin/posts/new"
+            className="font-sans text-sm font-600 bg-brick text-paper px-4 py-2 rounded-sm hover:bg-ink transition-colors shrink-0"
+          >
+            New post
+          </Link>
         </div>
 
         {posts.length === 0 ? (
