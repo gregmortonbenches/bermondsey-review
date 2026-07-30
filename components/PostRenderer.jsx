@@ -1,6 +1,20 @@
 import Image from "next/image";
+import DOMPurify from "isomorphic-dompurify";
 import { categoryFamily } from "@/lib/articles";
 import { getYouTubeEmbedUrl } from "@/lib/youtube";
+
+// Paragraph blocks store raw HTML captured from the admin's contentEditable
+// editor (see RichParagraph.jsx) — but "captured" isn't "written": RLS lets
+// any authenticated contributor save a draft's body directly via the
+// Supabase client, bypassing that editor's execCommand-only surface
+// entirely, and this same HTML is what an admin's browser executes when
+// previewing the draft before publishing. So this is sanitized right here,
+// at the one place it's turned into markup for a browser — not just
+// trusted because it came from "the editor."
+const ALLOWED_TAGS = ["strong", "em", "a", "b", "i", "br"];
+function sanitizeBlockHtml(html) {
+  return DOMPurify.sanitize(html || "", { ALLOWED_TAGS, ALLOWED_ATTR: ["href", "target", "rel"] });
+}
 
 export default function PostRenderer({ post }) {
   const accent = categoryFamily(post.category);
@@ -75,7 +89,7 @@ export default function PostRenderer({ post }) {
                     isFirst ? "drop-cap" : ""
                   }`}
                   style={isFirst ? { "--drop-cap-color": accentHex } : undefined}
-                  dangerouslySetInnerHTML={{ __html: block.text || "" }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeBlockHtml(block.text) }}
                 />
               );
             }

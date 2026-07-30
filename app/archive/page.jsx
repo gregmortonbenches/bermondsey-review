@@ -2,17 +2,26 @@ import Masthead from "@/components/Masthead";
 import ArticleCard from "@/components/ArticleCard";
 import PageViewTracker from "@/components/PageViewTracker";
 import ThemeVars from "@/components/ThemeVars";
-import { articles } from "@/lib/articles";
+import { createClient } from "@/lib/supabase/server";
+import { getPublishedPosts } from "@/lib/posts";
 
 const CATEGORIES = ["All", "Bermondsey", "Books", "Film", "Culture", "Cartoon"];
 
 // Reads ?category= from the URL so the pill filter below is a real link,
-// not client-side state — keeps this page a plain server component for now.
-export default function ArchivePage({ searchParams }) {
+// not client-side state — keeps this page a plain server component.
+export default async function ArchivePage({ searchParams }) {
   const activeCategory = searchParams?.category || "All";
-  const sorted = [...articles].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  let posts = [];
+  try {
+    const supabase = await createClient();
+    posts = await getPublishedPosts(supabase);
+  } catch {
+    posts = [];
+  }
+
   const filtered =
-    activeCategory === "All" ? sorted : sorted.filter((a) => a.category === activeCategory);
+    activeCategory === "All" ? posts : posts.filter((p) => p.category === activeCategory);
 
   return (
     <main className="bg-paper min-h-screen">

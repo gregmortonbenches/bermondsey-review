@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import CoverArt from "./CoverArt";
 import { categoryFamily } from "@/lib/articles";
 
@@ -22,7 +23,19 @@ export default function ArticleCarousel({ articles }) {
                 i !== articles.length - 1 ? "border-r border-steel/25" : ""
               }`}
             >
-              <CoverArt category={article.category} className="aspect-[4/5] rounded-sm" />
+              {article.cover_image_url ? (
+                <div className="relative overflow-hidden rounded-sm aspect-[4/5]">
+                  <Image
+                    src={article.cover_image_url}
+                    alt=""
+                    fill
+                    sizes="(max-width: 640px) 68vw, 27vw"
+                    className="object-cover"
+                  />
+                </div>
+              ) : (
+                <CoverArt category={article.category} className="aspect-[4/5] rounded-sm" />
+              )}
               <p className={`font-sans text-[11px] tracking-[0.12em] uppercase mt-3 ${accent === "brick" ? "text-brick" : "text-river"}`}>
                 {article.category}
               </p>

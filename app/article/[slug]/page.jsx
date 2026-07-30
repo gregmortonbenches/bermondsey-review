@@ -1,59 +1,50 @@
 import { notFound } from "next/navigation";
 import Masthead from "@/components/Masthead";
-import CoverArt from "@/components/CoverArt";
 import Newsletter from "@/components/Newsletter";
 import PageViewTracker from "@/components/PageViewTracker";
 import ThemeVars from "@/components/ThemeVars";
-import { articles, getArticleBySlug, categoryFamily } from "@/lib/articles";
+import PostRenderer from "@/components/PostRenderer";
+import { createClient } from "@/lib/supabase/server";
+import { getPublishedPosts, getPublishedPostBySlug } from "@/lib/posts";
 
-export function generateStaticParams() {
-  return articles.map((a) => ({ slug: a.slug }));
+export async function generateStaticParams() {
+  try {
+    const supabase = await createClient();
+    const posts = await getPublishedPosts(supabase);
+    return posts.map((p) => ({ slug: p.slug }));
+  } catch {
+    return [];
+  }
 }
 
-export function generateMetadata({ params }) {
-  const article = getArticleBySlug(params.slug);
-  if (!article) return {};
-  return { title: `${article.title} — The Bermondsey Review`, description: article.dek };
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
+  const supabase = await createClient();
+  const post = await getPublishedPostBySlug(supabase, slug);
+  if (!post) return {};
+
+  const description = post.meta_description || post.dek || undefined;
+  const image = post.og_image_url || post.cover_image_url || undefined;
+
+  return {
+    title: `${post.title || "Untitled"} — The Bermondsey Review`,
+    description,
+    openGraph: { title: post.title, description, images: image ? [image] : undefined },
+  };
 }
 
-export default function ArticlePage({ params }) {
-  const article = getArticleBySlug(params.slug);
-  if (!article) notFound();
-  const accent = categoryFamily(article.category);
-  const accentHex =
-    accent === "brick" ? "var(--color-brick, #9C6B42)" : "var(--color-river, #2B4C73)";
+export default async function ArticlePage({ params }) {
+  const { slug } = await params;
+  const supabase = await createClient();
+  const post = await getPublishedPostBySlug(supabase, slug);
+  if (!post) notFound();
 
   return (
     <main className="bg-paper min-h-screen">
       <ThemeVars />
-      <PageViewTracker path={`/article/${article.slug}`} />
+      <PageViewTracker path={`/article/${post.slug}`} />
       <Masthead />
-
-      <article className="max-w-content mx-auto px-4 sm:px-6 lg:px-12 py-10">
-        <p className={`font-sans text-xs tracking-[0.14em] uppercase mb-3 ${accent === "brick" ? "text-brick" : "text-river"}`}>
-          {article.category}
-        </p>
-        <h1 className="font-display font-700 text-4xl sm:text-5xl text-ink leading-[1.05]">
-          {article.title}
-        </h1>
-        <p className="font-body text-lg sm:text-xl text-steel mt-4">{article.dek}</p>
-        <p className="font-sans text-sm text-steel mt-4">{article.author}</p>
-
-        <CoverArt category={article.category} className="aspect-[16/9] mt-8 rounded-sm" />
-
-        <div className="mt-10 space-y-5">
-          {article.body.map((paragraph, i) => (
-            <p
-              key={i}
-              className={`font-body text-lg leading-relaxed text-ink ${i === 0 ? "drop-cap" : ""}`}
-              style={i === 0 ? { "--drop-cap-color": accentHex } : undefined}
-            >
-              {paragraph}
-            </p>
-          ))}
-        </div>
-      </article>
-
+      <PostRenderer post={post} />
       <Newsletter />
     </main>
   );
