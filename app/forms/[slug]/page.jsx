@@ -4,7 +4,7 @@ import Footer from "@/components/Footer";
 import ThemeVars from "@/components/ThemeVars";
 import PageViewTracker from "@/components/PageViewTracker";
 import PublicForm from "@/components/PublicForm";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/public";
 import { getPublishedFormBySlug } from "@/lib/forms";
 
 export default async function PublicFormPage({ params }) {

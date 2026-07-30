@@ -5,7 +5,7 @@ import Newsletter from "@/components/Newsletter";
 import PageViewTracker from "@/components/PageViewTracker";
 import ThemeVars from "@/components/ThemeVars";
 import PostRenderer from "@/components/PostRenderer";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/public";
 import { getPublishedPosts, getPublishedPostBySlug } from "@/lib/posts";
 import { getSiteSettingsSafe } from "@/lib/theme";
 

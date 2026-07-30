@@ -5,7 +5,7 @@ import PuzzlesSection from "@/components/PuzzlesSection";
 import ArticleCarousel from "@/components/ArticleCarousel";
 import Newsletter from "@/components/Newsletter";
 import ThemeVars from "@/components/ThemeVars";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/public";
 import { getPageLayoutSafe, DEFAULT_HOME_SECTIONS } from "@/lib/layout";
 import { getPublishedPosts } from "@/lib/posts";
 

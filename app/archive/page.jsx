@@ -3,7 +3,7 @@ import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
 import PageViewTracker from "@/components/PageViewTracker";
 import ThemeVars from "@/components/ThemeVars";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/public";
 import { getPublishedPosts } from "@/lib/posts";
 
 const CATEGORIES = ["All", "Bermondsey", "Books", "Film", "Culture", "Cartoon"];
