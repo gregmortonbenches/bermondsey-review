@@ -1,5 +1,5 @@
 import Image from "next/image";
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from "sanitize-html";
 import { getYouTubeEmbedUrl } from "@/lib/youtube";
 import { blockStyleClasses } from "@/lib/blockStyle";
 import { carouselWidthVars } from "@/lib/carouselLayout";
@@ -15,7 +15,7 @@ import { carouselWidthVars } from "@/lib/carouselLayout";
 // editor."
 const ALLOWED_TAGS = ["strong", "em", "a", "b", "i", "br"];
 function sanitizeBlockHtml(html) {
-  return DOMPurify.sanitize(html || "", { ALLOWED_TAGS, ALLOWED_ATTR: ["href", "target", "rel"] });
+  return sanitizeHtml(html || "", { allowedTags: ALLOWED_TAGS, allowedAttributes: { a: ["href", "target", "rel"] } });
 }
 
 // Button blocks store a plain URL string, not markup, but it still comes
@@ -58,38 +58,29 @@ const EMBED_IFRAME_HOSTS = [
   "platform.twitter.com",
   "www.instagram.com",
 ];
-let embedHookInstalled = false;
-function ensureEmbedHook() {
-  if (embedHookInstalled) return;
-  embedHookInstalled = true;
-  DOMPurify.addHook("uponSanitizeElement", (node, data) => {
-    if (data.tagName !== "iframe") return;
-    let host = "";
-    try {
-      host = new URL(node.getAttribute("src") || "", "https://example.com").hostname;
-    } catch {
-      host = "";
-    }
-    if (!EMBED_IFRAME_HOSTS.includes(host)) node.remove();
-  });
-}
 const EMBED_ALLOWED_TAGS = ["iframe", "blockquote", "p", "a", "br"];
-const EMBED_ALLOWED_ATTR = [
-  "src",
-  "width",
-  "height",
-  "frameborder",
-  "allow",
-  "allowfullscreen",
-  "scrolling",
-  "title",
-  "href",
-  "target",
-  "rel",
-];
 function sanitizeEmbedHtml(html) {
-  ensureEmbedHook();
-  return DOMPurify.sanitize(html || "", { ALLOWED_TAGS: EMBED_ALLOWED_TAGS, ALLOWED_ATTR: EMBED_ALLOWED_ATTR });
+  return sanitizeHtml(html || "", {
+    allowedTags: EMBED_ALLOWED_TAGS,
+    allowedAttributes: {
+      iframe: ["src", "width", "height", "frameborder", "allow", "allowfullscreen", "scrolling", "title"],
+      a: ["href", "target", "rel"],
+    },
+    // sanitize-html's `allowedIframeHostnames` only strips the offending
+    // `src` attribute, leaving an empty <iframe></iframe> behind —
+    // exclusiveFilter drops the whole element instead, matching what the
+    // old DOMPurify hook did (node.remove()).
+    exclusiveFilter(frame) {
+      if (frame.tag !== "iframe") return false;
+      let host = "";
+      try {
+        host = new URL(frame.attribs.src || "", "https://example.com").hostname;
+      } catch {
+        host = "";
+      }
+      return !EMBED_IFRAME_HOSTS.includes(host);
+    },
+  });
 }
 
 const SPACER_HEIGHTS = { small: "h-6", medium: "h-12", large: "h-24" };
