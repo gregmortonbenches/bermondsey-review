@@ -6,6 +6,14 @@ import { uploadMedia } from "@/lib/posts";
 import { getYouTubeEmbedUrl } from "@/lib/youtube";
 import MediaPicker from "./MediaPicker";
 import { usePublishOutline } from "./EditorOutlineContext";
+import {
+  BACKGROUND_OPTIONS,
+  PADDING_OPTIONS,
+  ALIGN_OPTIONS,
+  ALIGNABLE_BLOCK_TYPES,
+  UNSTYLABLE_BLOCK_TYPES,
+  blockStyleClasses,
+} from "@/lib/blockStyle";
 
 const DEFAULT_ACCENT = "var(--color-river, #2B4C73)";
 
@@ -328,6 +336,80 @@ function InserterMenu({ onInsert, centered }) {
   );
 }
 
+// Background/padding/alignment for one block — the same options list
+// components/BlockContent.jsx uses to render the live page, via the
+// shared lib/blockStyle.js, so what's picked here is exactly what ships.
+// No outside-click dismissal, same as Gap's InserterMenu below — toggled
+// by its own toolbar button instead.
+function StylePanel({ style, alignable, onChange }) {
+  const current = { background: "none", padding: "none", align: "left", ...style };
+
+  function set(key, value) {
+    onChange({ ...current, [key]: value });
+  }
+
+  return (
+    <div className="absolute z-20 right-0 top-6 bg-paper border border-steel/25 rounded-sm shadow-lg p-3 w-60 space-y-3">
+      <div>
+        <p className="font-sans text-[10px] uppercase tracking-[0.08em] text-steel mb-1.5">Background</p>
+        <div className="flex gap-1.5">
+          {BACKGROUND_OPTIONS.map((opt) => (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => set("background", opt.id)}
+              title={opt.label}
+              className={`w-7 h-7 rounded-sm border flex items-center justify-center text-steel/50 text-xs ${
+                opt.class || "bg-paper"
+              } ${current.background === opt.id ? "border-river ring-1 ring-river" : "border-steel/25"}`}
+            >
+              {opt.id === "none" && "✕"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <p className="font-sans text-[10px] uppercase tracking-[0.08em] text-steel mb-1.5">Padding</p>
+        <div className="flex gap-1">
+          {PADDING_OPTIONS.map((opt) => (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => set("padding", opt.id)}
+              className={`flex-1 font-sans text-xs px-2 py-1 rounded-sm border transition-colors ${
+                current.padding === opt.id ? "border-river text-river bg-river/[0.06]" : "border-steel/25 text-steel hover:text-ink"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {alignable && (
+        <div>
+          <p className="font-sans text-[10px] uppercase tracking-[0.08em] text-steel mb-1.5">Alignment</p>
+          <div className="flex gap-1">
+            {ALIGN_OPTIONS.map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => set("align", opt.id)}
+                className={`flex-1 font-sans text-xs px-2 py-1 rounded-sm border transition-colors ${
+                  current.align === opt.id ? "border-river text-river bg-river/[0.06]" : "border-steel/25 text-steel hover:text-ink"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ToolbarButton({ className = "", ...props }) {
   return (
     <button
@@ -358,6 +440,8 @@ function BlockCanvasItem({
   supabase,
 }) {
   const paragraphRef = useRef(null);
+  const [styleOpen, setStyleOpen] = useState(false);
+  const styleable = !UNSTYLABLE_BLOCK_TYPES.includes(block.type);
 
   function exec(command, value = null) {
     paragraphRef.current?.focus();
@@ -396,6 +480,18 @@ function BlockCanvasItem({
             <span className="w-px h-4 bg-steel/25 mx-0.5" />
           </>
         )}
+        {styleable && (
+          <>
+            <ToolbarButton
+              onClick={() => setStyleOpen((v) => !v)}
+              title="Background, padding, alignment"
+              className={styleOpen ? "border-river text-river" : ""}
+            >
+              🎨
+            </ToolbarButton>
+            <span className="w-px h-4 bg-steel/25 mx-0.5" />
+          </>
+        )}
         <ToolbarButton title="Drag to reorder" className="cursor-grab active:cursor-grabbing">
           ⠿
         </ToolbarButton>
@@ -410,7 +506,15 @@ function BlockCanvasItem({
         </ToolbarButton>
       </div>
 
-      <div className="rounded-sm py-1.5 group-hover:bg-river/[0.03] transition-colors">
+      {styleOpen && styleable && (
+        <StylePanel
+          style={block.style}
+          alignable={ALIGNABLE_BLOCK_TYPES.includes(block.type)}
+          onChange={(style) => onChange({ style })}
+        />
+      )}
+
+      <div className={`rounded-sm py-1.5 group-hover:bg-river/[0.03] transition-colors ${blockStyleClasses(block.style)}`}>
         {block.type === "paragraph" && (
           <EditableParagraph
             ref={paragraphRef}

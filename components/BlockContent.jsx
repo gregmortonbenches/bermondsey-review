@@ -1,6 +1,7 @@
 import Image from "next/image";
 import DOMPurify from "isomorphic-dompurify";
 import { getYouTubeEmbedUrl } from "@/lib/youtube";
+import { blockStyleClasses, UNSTYLABLE_BLOCK_TYPES } from "@/lib/blockStyle";
 
 // Paragraph blocks store raw HTML captured from the admin's contentEditable
 // canvas (see components/admin/BlockEditor.jsx) — but "captured" isn't
@@ -92,6 +93,103 @@ function sanitizeEmbedHtml(html) {
 
 const SPACER_HEIGHTS = { small: "h-6", medium: "h-12", large: "h-24" };
 
+// Returns the actual per-type markup for one block, unkeyed — the caller
+// wraps it in a keyed container that carries the block's optional
+// background/padding/alignment style (see blockStyleClasses in
+// lib/blockStyle.js). Returns null for blocks with nothing to show (an
+// empty video URL, an empty embed, a carousel with no images yet), so the
+// caller can skip rendering a wrapper for them too.
+function renderBlockBody(block, i, list, accentHex) {
+  if (block.type === "paragraph") {
+    const isFirst = i === 0 || list.slice(0, i).every((b) => b.type !== "paragraph");
+    return (
+      <p
+        className={`font-body text-lg leading-relaxed text-ink [&_a]:underline [&_a]:underline-offset-2 ${
+          isFirst ? "drop-cap" : ""
+        }`}
+        style={isFirst ? { "--drop-cap-color": accentHex } : undefined}
+        dangerouslySetInnerHTML={{ __html: sanitizeBlockHtml(block.text) }}
+      />
+    );
+  }
+  if (block.type === "image" && block.url) {
+    return (
+      <div className="relative w-full aspect-[3/2] rounded-sm overflow-hidden">
+        <Image src={block.url} alt={block.alt || ""} fill sizes="(max-width: 780px) 100vw, 780px" className="object-cover" />
+      </div>
+    );
+  }
+  if (block.type === "heading") {
+    return <h2 className="font-display font-700 text-2xl sm:text-3xl text-ink pt-4">{block.text}</h2>;
+  }
+  if (block.type === "quote") {
+    return (
+      <blockquote className="border-l-4 pl-5 py-1" style={{ borderColor: accentHex }}>
+        <p className="font-display italic text-xl sm:text-2xl text-ink leading-snug">{block.text}</p>
+        {block.attribution && (
+          <cite className="block font-sans text-sm text-steel mt-2 not-italic">— {block.attribution}</cite>
+        )}
+      </blockquote>
+    );
+  }
+  if (block.type === "divider") {
+    return <hr className="border-steel/25 my-4" />;
+  }
+  if (block.type === "button") {
+    return (
+      <div>
+        <a
+          href={sanitizeHref(block.url)}
+          className="inline-block font-sans text-sm font-600 text-paper px-5 py-2.5 rounded-sm hover:bg-ink transition-colors"
+          style={{ backgroundColor: accentHex }}
+        >
+          {block.label || "Learn more"}
+        </a>
+      </div>
+    );
+  }
+  if (block.type === "spacer") {
+    return <div className={SPACER_HEIGHTS[block.size] || SPACER_HEIGHTS.medium} aria-hidden="true" />;
+  }
+  if (block.type === "video") {
+    const embedUrl = getYouTubeEmbedUrl(block.url);
+    if (!embedUrl) return null;
+    return (
+      <div className="aspect-video rounded-sm overflow-hidden bg-ink/5">
+        <iframe
+          src={embedUrl}
+          className="w-full h-full"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
+    );
+  }
+  if (block.type === "hero-carousel") {
+    const images = (block.images || []).filter((img) => img.url);
+    if (images.length === 0) return null;
+    return (
+      <div className="flex overflow-x-auto snap-x snap-mandatory gap-3 -mx-4 px-4 sm:mx-0 sm:px-0 [scrollbar-width:thin]">
+        {images.map((img, j) => (
+          <div key={j} className="relative shrink-0 w-[85%] sm:w-[70%] aspect-video snap-start rounded-sm overflow-hidden">
+            <Image src={img.url} alt={img.alt || ""} fill sizes="(max-width: 780px) 85vw, 546px" className="object-cover" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  if (block.type === "embed") {
+    if (!block.html) return null;
+    return (
+      <div
+        className="[&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:rounded-sm"
+        dangerouslySetInnerHTML={{ __html: sanitizeEmbedHtml(block.html) }}
+      />
+    );
+  }
+  return null;
+}
+
 /**
  * Renders the shared block-array shape used by both posts.body and
  * pages.body: paragraph, image, heading, quote, divider, button, video,
@@ -111,109 +209,20 @@ export default function BlockContent({ blocks, accentHex, emptyText }) {
         <p className="font-body text-steel italic">{emptyText}</p>
       )}
       {list.map((block, i) => {
-        if (block.type === "paragraph") {
-          const isFirst = i === 0 || list.slice(0, i).every((b) => b.type !== "paragraph");
-          return (
-            <p
-              key={i}
-              className={`font-body text-lg leading-relaxed text-ink [&_a]:underline [&_a]:underline-offset-2 ${
-                isFirst ? "drop-cap" : ""
-              }`}
-              style={isFirst ? { "--drop-cap-color": accentHex } : undefined}
-              dangerouslySetInnerHTML={{ __html: sanitizeBlockHtml(block.text) }}
-            />
-          );
+        const body = renderBlockBody(block, i, list, accentHex);
+        if (body === null) return null;
+        // Spacer/divider are spacing/rule elements, not content — no
+        // background/padding container around them (see UNSTYLABLE_BLOCK_TYPES
+        // in lib/blockStyle.js, which the editor's style panel also checks
+        // so there's nothing to set here in the first place).
+        if (UNSTYLABLE_BLOCK_TYPES.includes(block.type)) {
+          return <div key={i}>{body}</div>;
         }
-        if (block.type === "image" && block.url) {
-          return (
-            <div key={i} className="relative w-full aspect-[3/2] rounded-sm overflow-hidden">
-              <Image
-                src={block.url}
-                alt={block.alt || ""}
-                fill
-                sizes="(max-width: 780px) 100vw, 780px"
-                className="object-cover"
-              />
-            </div>
-          );
-        }
-        if (block.type === "heading") {
-          return (
-            <h2 key={i} className="font-display font-700 text-2xl sm:text-3xl text-ink pt-4">
-              {block.text}
-            </h2>
-          );
-        }
-        if (block.type === "quote") {
-          return (
-            <blockquote key={i} className="border-l-4 pl-5 py-1" style={{ borderColor: accentHex }}>
-              <p className="font-display italic text-xl sm:text-2xl text-ink leading-snug">{block.text}</p>
-              {block.attribution && (
-                <cite className="block font-sans text-sm text-steel mt-2 not-italic">— {block.attribution}</cite>
-              )}
-            </blockquote>
-          );
-        }
-        if (block.type === "divider") {
-          return <hr key={i} className="border-steel/25 my-4" />;
-        }
-        if (block.type === "button") {
-          return (
-            <div key={i}>
-              <a
-                href={sanitizeHref(block.url)}
-                className="inline-block font-sans text-sm font-600 text-paper px-5 py-2.5 rounded-sm hover:bg-ink transition-colors"
-                style={{ backgroundColor: accentHex }}
-              >
-                {block.label || "Learn more"}
-              </a>
-            </div>
-          );
-        }
-        if (block.type === "spacer") {
-          return <div key={i} className={SPACER_HEIGHTS[block.size] || SPACER_HEIGHTS.medium} aria-hidden="true" />;
-        }
-        if (block.type === "video") {
-          const embedUrl = getYouTubeEmbedUrl(block.url);
-          if (!embedUrl) return null;
-          return (
-            <div key={i} className="aspect-video rounded-sm overflow-hidden bg-ink/5">
-              <iframe
-                src={embedUrl}
-                className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-          );
-        }
-        if (block.type === "hero-carousel") {
-          const images = (block.images || []).filter((img) => img.url);
-          if (images.length === 0) return null;
-          return (
-            <div key={i} className="flex overflow-x-auto snap-x snap-mandatory gap-3 -mx-4 px-4 sm:mx-0 sm:px-0 [scrollbar-width:thin]">
-              {images.map((img, j) => (
-                <div
-                  key={j}
-                  className="relative shrink-0 w-[85%] sm:w-[70%] aspect-video snap-start rounded-sm overflow-hidden"
-                >
-                  <Image src={img.url} alt={img.alt || ""} fill sizes="(max-width: 780px) 85vw, 546px" className="object-cover" />
-                </div>
-              ))}
-            </div>
-          );
-        }
-        if (block.type === "embed") {
-          if (!block.html) return null;
-          return (
-            <div
-              key={i}
-              className="[&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:rounded-sm"
-              dangerouslySetInnerHTML={{ __html: sanitizeEmbedHtml(block.html) }}
-            />
-          );
-        }
-        return null;
+        return (
+          <div key={i} className={blockStyleClasses(block.style)}>
+            {body}
+          </div>
+        );
       })}
     </div>
   );

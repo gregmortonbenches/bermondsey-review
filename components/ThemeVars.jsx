@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getSiteSettingsSafe, DEFAULT_SITE_SETTINGS } from "@/lib/theme";
+import { hexToRgbChannels } from "@/lib/color";
 
 /**
  * Renders a <style> tag setting --color-brick/--color-river (and
@@ -7,6 +8,15 @@ import { getSiteSettingsSafe, DEFAULT_SITE_SETTINGS } from "@/lib/theme";
  * see tailwind.config.js for the fallback chain), loads Google Fonts
  * for any non-default font choice, appends any custom CSS, and injects
  * any custom JS.
+ *
+ * Also sets --color-brick-rgb/--color-river-rgb — the same colours as
+ * space-separated RGB channel numbers rather than hex — because Tailwind
+ * can only apply an opacity modifier (`bg-brick/[0.1]`) to a colour it
+ * can decompose into channels; a colour defined as a raw hex-valued CSS
+ * variable can't be blended with an arbitrary alpha at build time, so
+ * every `/`-modified brick/river utility across the app would otherwise
+ * silently generate no CSS at all. See hexToRgbChannels in lib/color.js
+ * and the `brick`/`river` colour definitions in tailwind.config.js.
  *
  * Deliberately used only inside public-facing pages (HomePageBody,
  * archive, article, etc.) — never inside /admin's own dashboard pages,
@@ -57,6 +67,8 @@ export default async function ThemeVars({ scope } = {}) {
     ${selector} {
       --color-brick: ${settings.brick_color};
       --color-river: ${settings.river_color};
+      --color-brick-rgb: ${hexToRgbChannels(settings.brick_color)};
+      --color-river-rgb: ${hexToRgbChannels(settings.river_color)};
       ${settings.display_font !== DEFAULT_SITE_SETTINGS.display_font ? `--font-display: '${settings.display_font}', Georgia, serif;` : ""}
       ${settings.body_font !== DEFAULT_SITE_SETTINGS.body_font ? `--font-body: '${settings.body_font}', Georgia, serif;` : ""}
     }

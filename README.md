@@ -287,6 +287,37 @@ Articles, videos, podcasts, and cartoons are now editable through a real
     plain text rather than the rich version — a deliberate trade, not an
     oversight. Truly unrestricted code already exists, admin-only, at
     `/admin/theme`'s "Advanced: Code injection" section.
+- **Per-block style** — a 🎨 button on every block except spacer/divider
+  opens a small panel for a background tint, padding, and (on paragraph,
+  heading, quote, and button blocks) left/center/right alignment — enough
+  to make a pull-quote or a call-to-action button stand out in its own
+  tinted box without needing a whole new block type per look. Background
+  is a fixed set of light tints (none, river, brick, grey) rather than a
+  raw colour picker, same reasoning as `/admin/theme`'s restricted
+  palette: no way to end up with unreadable text-on-background. The tints
+  are the site's actual `--color-brick`/`--color-river` theme colours at
+  low opacity, not hardcoded hex — pick a new accent colour in
+  `/admin/theme` and every block using a tint follows automatically. See
+  `lib/blockStyle.js` (the shared option list + class logic) and its use
+  in both `components/admin/BlockEditor.jsx` (the canvas) and
+  `components/BlockContent.jsx` (the live page) — same "true visual
+  canvas" principle as everything else here: what you pick is what ships.
+  - Building this surfaced a real, pre-existing bug: Tailwind can only
+    apply an opacity modifier (`bg-brick/[0.1]`) to a colour it can
+    decompose into RGB channels, and brick/river were defined as raw
+    hex-valued CSS variable strings — undecomposable — so every
+    `/`-modified brick/river utility across the *entire* admin UI (the
+    sidebar's active-link tint, status badges, and more — 17 files' worth)
+    was silently generating no CSS at all, not just in this new feature.
+    Fixed by having `components/ThemeVars.jsx` also write
+    `--color-brick-rgb`/`--color-river-rgb` (the same colours as
+    space-separated RGB channel numbers — see `lib/color.js`) and
+    redefining `brick`/`river` in `tailwind.config.js` as
+    `rgb(var(--color-brick-rgb, ...) / <alpha-value>)`, Tailwind's
+    documented pattern for opacity-modifiable CSS-variable colours. Caught
+    by comparing a screenshot against the class names actually being
+    applied, not just trusting that a correctly-named Tailwind class
+    means the CSS exists.
 - **Drag-and-drop** — reorder blocks by dragging the ⠿ handle that
   appears on hover, and drop image files straight from the desktop onto
   the cover image or an image block instead of hunting for a file picker
