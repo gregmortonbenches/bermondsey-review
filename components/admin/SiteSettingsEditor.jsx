@@ -36,6 +36,7 @@ export default function SiteSettingsEditor({ initialSettings }) {
   const [navLinks, setNavLinks] = useState(() => toEditableLinks(initialSettings?.nav_links));
   const [logoUploading, setLogoUploading] = useState(false);
   const [saveState, setSaveState] = useState("saved");
+  const [error, setError] = useState(null);
 
   const dragIndex = useRef(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
@@ -76,7 +77,7 @@ export default function SiteSettingsEditor({ initialSettings }) {
       const url = await uploadMedia(supabase, file);
       set("logo_url", url);
     } catch (err) {
-      alert(`Logo upload failed: ${err.message}`);
+      setError(`Logo upload failed: ${err.message}`);
     } finally {
       setLogoUploading(false);
     }
@@ -122,6 +123,10 @@ export default function SiteSettingsEditor({ initialSettings }) {
         <p className="font-sans text-xs text-steel mb-5">
           Your site's identity, navigation, and footer — shown on every public page.
         </p>
+
+        {error && (
+          <p className="font-sans text-sm text-brick bg-brick/[0.08] rounded-sm px-3 py-2 mb-6">{error}</p>
+        )}
 
         <div className="space-y-6">
           <div>

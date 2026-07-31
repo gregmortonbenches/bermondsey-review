@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { listMedia, deleteMediaItem } from "@/lib/media";
 import { uploadMedia } from "@/lib/posts";
 import { getCurrentUserRole } from "@/lib/profile";
+import ConfirmDialog from "./ConfirmDialog";
 
 export default function MediaLibraryManager() {
   const supabase = createClient();
@@ -13,6 +14,7 @@ export default function MediaLibraryManager() {
   const [error, setError] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [confirmDeleteItem, setConfirmDeleteItem] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
   function refresh() {
@@ -41,10 +43,7 @@ export default function MediaLibraryManager() {
   }
 
   async function handleDelete(item) {
-    const sure = window.confirm(
-      `Delete this image for good? If it's still used anywhere on the site, that image will break.`
-    );
-    if (!sure) return;
+    setConfirmDeleteItem(null);
     setDeletingId(item.id);
     try {
       await deleteMediaItem(supabase, item);
@@ -100,7 +99,7 @@ export default function MediaLibraryManager() {
             {isAdmin && (
               <button
                 type="button"
-                onClick={() => handleDelete(item)}
+                onClick={() => setConfirmDeleteItem(item)}
                 disabled={deletingId === item.id}
                 className="absolute inset-0 bg-ink/0 group-hover:bg-ink/50 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100"
               >
@@ -112,6 +111,14 @@ export default function MediaLibraryManager() {
           </div>
         ))}
       </div>
+
+      <ConfirmDialog
+        open={!!confirmDeleteItem}
+        title="Delete this image?"
+        message="If it's still used anywhere on the site, that image will break — this can't be undone."
+        onConfirm={() => handleDelete(confirmDeleteItem)}
+        onCancel={() => setConfirmDeleteItem(null)}
+      />
     </div>
   );
 }

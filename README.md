@@ -92,7 +92,16 @@ Articles, videos, podcasts, and cartoons are now editable through a real
   paragraph toolbar's "add link" action specifically — replacing it with
   a normal popover would blur the paragraph's contentEditable and lose
   the text selection `execCommand("createLink")` depends on, a real
-  behavioural risk rather than a purely cosmetic one.
+  behavioural risk rather than a purely cosmetic one. The same sweep now
+  covers the rest of the admin: deleting a form (`FormBuilder.jsx`), an
+  image (`MediaLibraryManager.jsx`), or a redirect (`RedirectsManager.jsx`)
+  all go through `ConfirmDialog` too, each with its own specific,
+  consequence-stating message (a redirect's warns that the old path will
+  just 404 once it's gone) rather than a single generic "Are you sure?".
+  Failed uploads/saves — the logo in `SiteSettingsEditor.jsx`, plus the
+  create/delete calls in the other three — show the same inline
+  `bg-brick/[0.08]` error banner already used on the post/page editors,
+  instead of `alert()`.
 - **"On this page" — a live outline in the sidebar, Squarespace-style.**
   Open a post, page, or the homepage layout builder and the sidebar
   grows a section listing every block/section currently on the canvas,

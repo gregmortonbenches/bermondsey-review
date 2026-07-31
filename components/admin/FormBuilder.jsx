@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { createForm, updateForm, deleteForm, FIELD_TYPES } from "@/lib/forms";
 import { slugify } from "@/lib/slugify";
+import ConfirmDialog from "./ConfirmDialog";
 
 const AUTOSAVE_DELAY_MS = 1500;
 const emptyForm = { title: "", description: "", slug: "", fields: [], published: false };
@@ -25,6 +26,8 @@ export default function FormBuilder({ mode, initialForm }) {
   const [form, setForm] = useState(initialForm || emptyForm);
   const [saveState, setSaveState] = useState("idle");
   const [deleting, setDeleting] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [error, setError] = useState(null);
   const autosaveTimer = useRef(null);
   const lastSavedRef = useRef(JSON.stringify(initialForm || null));
   const isFirstRender = useRef(true);
@@ -109,14 +112,14 @@ export default function FormBuilder({ mode, initialForm }) {
 
   async function handleDelete() {
     if (!form.id) return;
-    if (!window.confirm(`Delete "${form.title || "this form"}" and all its responses? This can't be undone.`)) return;
+    setConfirmDeleteOpen(false);
     setDeleting(true);
     try {
       await deleteForm(supabase, form.id);
       router.push("/admin/forms");
     } catch (err) {
       setDeleting(false);
-      alert(`Couldn't delete this: ${err.message}`);
+      setError(`Couldn't delete this: ${err.message}`);
     }
   }
 
@@ -125,6 +128,9 @@ export default function FormBuilder({ mode, initialForm }) {
 
   return (
     <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-12 py-8">
+      {error && (
+        <p className="font-sans text-sm text-brick bg-brick/[0.08] rounded-sm px-3 py-2 mb-6">{error}</p>
+      )}
       <div className="flex items-center gap-3 mb-6">
         <span className={`font-sans text-xs ${statusColor[saveState]}`}>{statusCopy[saveState]}</span>
         <div className="flex items-center gap-2 ml-auto">
@@ -252,7 +258,7 @@ export default function FormBuilder({ mode, initialForm }) {
         <div className="pt-6 mt-6 border-t border-steel/20">
           <button
             type="button"
-            onClick={handleDelete}
+            onClick={() => setConfirmDeleteOpen(true)}
             disabled={deleting}
             className="font-sans text-xs text-steel hover:text-brick underline underline-offset-4 disabled:opacity-60"
           >
@@ -260,6 +266,14 @@ export default function FormBuilder({ mode, initialForm }) {
           </button>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        title="Delete this form?"
+        message={`"${form.title || "This form"}" and all its responses will be gone for good — this can't be undone.`}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDeleteOpen(false)}
+      />
     </div>
   );
 }

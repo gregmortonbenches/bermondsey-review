@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { listRedirects, createRedirect, deleteRedirect } from "@/lib/redirects";
+import ConfirmDialog from "./ConfirmDialog";
 
 export default function RedirectsManager() {
   const supabase = createClient();
@@ -11,6 +12,7 @@ export default function RedirectsManager() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [saving, setSaving] = useState(false);
+  const [confirmDeleteRedirect, setConfirmDeleteRedirect] = useState(null);
 
   function refresh() {
     listRedirects(supabase)
@@ -39,8 +41,7 @@ export default function RedirectsManager() {
   }
 
   async function handleDelete(id) {
-    const sure = window.confirm("Remove this redirect? Anyone visiting the old URL will just get a 404.");
-    if (!sure) return;
+    setConfirmDeleteRedirect(null);
     try {
       await deleteRedirect(supabase, id);
       setRedirects((prev) => prev.filter((r) => r.id !== id));
@@ -113,7 +114,7 @@ export default function RedirectsManager() {
             </p>
             <button
               type="button"
-              onClick={() => handleDelete(r.id)}
+              onClick={() => setConfirmDeleteRedirect(r)}
               className="font-sans text-xs text-steel hover:text-brick underline underline-offset-4 shrink-0"
             >
               Remove
@@ -121,6 +122,19 @@ export default function RedirectsManager() {
           </div>
         ))}
       </div>
+
+      <ConfirmDialog
+        open={!!confirmDeleteRedirect}
+        title="Remove this redirect?"
+        message={
+          confirmDeleteRedirect
+            ? `Anyone visiting ${confirmDeleteRedirect.from_path} will just get a 404 after this.`
+            : ""
+        }
+        confirmLabel="Remove"
+        onConfirm={() => handleDelete(confirmDeleteRedirect.id)}
+        onCancel={() => setConfirmDeleteRedirect(null)}
+      />
     </div>
   );
 }
