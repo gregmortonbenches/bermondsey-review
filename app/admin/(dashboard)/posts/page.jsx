@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getAllPostsForAdmin, getPostStatusInfo } from "@/lib/posts";
 import { getCurrentUserRole } from "@/lib/profile";
+import EmptyState from "@/components/admin/EmptyState";
 
 const TYPE_LABELS = {
   article: "Article",
@@ -42,9 +43,12 @@ export default async function PostsListPage() {
         </div>
 
         {posts.length === 0 ? (
-          <p className="font-body text-steel py-12 text-center">
-            Nothing here yet — click "New post" to write the first one.
-          </p>
+          <EmptyState
+            title="No posts yet"
+            message="Every article, video, podcast, and cartoon you write shows up here."
+            actionLabel="New post"
+            actionHref="/admin/posts/new"
+          />
         ) : (
           <div className="border-t border-steel/20">
             {posts.map((post) => {

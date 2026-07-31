@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { listRedirects, createRedirect, deleteRedirect } from "@/lib/redirects";
 import ConfirmDialog from "./ConfirmDialog";
+import EmptyState from "./EmptyState";
 
 export default function RedirectsManager() {
   const supabase = createClient();
@@ -98,7 +99,10 @@ export default function RedirectsManager() {
 
       {redirects === null && <p className="font-sans text-sm text-steel">Loading…</p>}
       {redirects?.length === 0 && (
-        <p className="font-sans text-sm text-steel">No redirects yet.</p>
+        <EmptyState
+          title="No redirects yet"
+          message="Rename a post's URL in the editor and one appears here automatically — or add one manually above for an old external link."
+        />
       )}
 
       <div className="space-y-2">

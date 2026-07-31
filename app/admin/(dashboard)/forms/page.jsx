@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserRole } from "@/lib/profile";
 import { listFormsForAdmin } from "@/lib/forms";
+import EmptyState from "@/components/admin/EmptyState";
 
 export default async function AdminFormsPage() {
   const supabase = await createClient();
@@ -37,9 +38,12 @@ export default async function AdminFormsPage() {
         </div>
 
         {forms.length === 0 ? (
-          <p className="font-body text-steel py-12 text-center">
-            No forms yet — click "New form" to build one.
-          </p>
+          <EmptyState
+            title="No forms yet"
+            message="Build one beyond the newsletter signup — a contact form, a callout for tips, a reader survey."
+            actionLabel="New form"
+            actionHref="/admin/forms/new"
+          />
         ) : (
           <div className="border-t border-steel/20">
             {forms.map((form) => (

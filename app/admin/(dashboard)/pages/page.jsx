@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserRole } from "@/lib/profile";
 import { listPagesForAdmin } from "@/lib/pages";
+import EmptyState from "@/components/admin/EmptyState";
 
 export default async function AdminPagesPage() {
   const supabase = await createClient();
@@ -38,9 +39,12 @@ export default async function AdminPagesPage() {
         </div>
 
         {pages.length === 0 ? (
-          <p className="font-body text-steel py-12 text-center">
-            No pages yet — click "New page" to create one.
-          </p>
+          <EmptyState
+            title="No pages yet"
+            message="Standalone pages like About or Contact — anything outside the fortnightly issue cycle — show up here."
+            actionLabel="New page"
+            actionHref="/admin/pages/new"
+          />
         ) : (
           <div className="border-t border-steel/20">
             {pages.map((page) => (

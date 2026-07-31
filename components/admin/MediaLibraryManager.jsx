@@ -7,6 +7,7 @@ import { listMedia, deleteMediaItem } from "@/lib/media";
 import { uploadMedia } from "@/lib/posts";
 import { getCurrentUserRole } from "@/lib/profile";
 import ConfirmDialog from "./ConfirmDialog";
+import EmptyState from "./EmptyState";
 
 export default function MediaLibraryManager() {
   const supabase = createClient();
@@ -85,9 +86,11 @@ export default function MediaLibraryManager() {
       {items === null && <p className="font-sans text-sm text-steel mt-8">Loading…</p>}
 
       {items?.length === 0 && (
-        <p className="font-sans text-sm text-steel mt-12 text-center">
-          Nothing uploaded yet — upload an image above, or add one from within an article.
-        </p>
+        <EmptyState
+          title="Nothing uploaded yet"
+          message="Upload an image above, or add one from within an article — either way, it'll show up here for reuse."
+          className="mt-8"
+        />
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 mt-6">

@@ -124,6 +124,24 @@ Articles, videos, podcasts, and cartoons are now editable through a real
   second drag handle nested inside the outer canvas's own, for a list
   that's almost always one or two blocks long, wasn't worth the added
   chrome, though nothing about `@dnd-kit` stops it if that changes later.
+- **A real 404 page, and richer "nothing here yet" states.** A broken or
+  outdated link used to hit Next's bare default 404 — unstyled, no
+  masthead, reads as the site being broken rather than one link being
+  wrong. `app/not-found.jsx` (the public site) keeps the real
+  masthead/footer/theme and points back to the front page or the
+  archive; `app/admin/(dashboard)/not-found.jsx` handles the admin
+  equivalent (an edit/preview URL whose post, page, or form id no longer
+  exists) inside the normal sidebar chrome rather than breaking out of
+  it. Both are plain Next special files — `notFound()` calls (a bad
+  article/page/form slug) and genuinely unmatched URLs land here
+  automatically, nothing at the call sites changed. Separately,
+  `components/admin/EmptyState.jsx` replaces the single line of grey
+  text several list screens showed for "you have none of these yet"
+  (Posts, Pages, Forms, the dashboard's recent-posts widget, Media,
+  Redirects) with a dashed box, a real heading, and — on the screens
+  where creating one means navigating to another route — the same "New
+  X" action as a button right there, rather than only as prose pointing
+  at a button elsewhere on the page.
 - **"On this page" — a live outline in the sidebar, Squarespace-style.**
   Open a post, page, or the homepage layout builder and the sidebar
   grows a section listing every block/section currently on the canvas,

@@ -4,6 +4,7 @@ import { getAllPostsForAdmin, getPostStatusInfo } from "@/lib/posts";
 import { listPagesForAdmin } from "@/lib/pages";
 import { getCurrentUserRole } from "@/lib/profile";
 import { getSiteSettingsSafe } from "@/lib/theme";
+import EmptyState from "@/components/admin/EmptyState";
 
 function StatCard({ label, value }) {
   return (
@@ -80,9 +81,12 @@ export default async function DashboardPage() {
             </Link>
           </div>
           {recent.length === 0 ? (
-            <p className="font-body text-steel py-8 text-center border-t border-steel/20">
-              Nothing here yet — click "New post" to write the first one.
-            </p>
+            <EmptyState
+              title="No posts yet"
+              message="Every article, video, podcast, and cartoon you write shows up here."
+              actionLabel="New post"
+              actionHref="/admin/posts/new"
+            />
           ) : (
             <div className="border-t border-steel/20">
               {recent.map((post) => {
