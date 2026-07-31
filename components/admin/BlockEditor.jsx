@@ -7,6 +7,7 @@ import { getYouTubeEmbedUrl } from "@/lib/youtube";
 import MediaPicker from "./MediaPicker";
 import CarouselCountControl from "./CarouselCountControl";
 import { usePublishOutline } from "./EditorOutlineContext";
+import { GripIcon, ChevronUpIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CloseIcon, TrashIcon, LinkIcon, PaletteIcon } from "./icons";
 import {
   BACKGROUND_OPTIONS,
   PADDING_OPTIONS,
@@ -221,13 +222,12 @@ export default function BlockEditor({ blocks, onChange, supabase, accentHex = DE
 
   async function uploadImageToBlock(id, file) {
     if (!file) return;
-    updateBlock(id, { uploading: true });
+    updateBlock(id, { uploading: true, uploadError: undefined });
     try {
       const url = await uploadMedia(supabase, file);
       updateBlock(id, { url, uploading: false });
     } catch (err) {
-      updateBlock(id, { uploading: false });
-      alert(`Image upload failed: ${err.message}`);
+      updateBlock(id, { uploading: false, uploadError: `Upload failed: ${err.message}` });
     }
   }
 
@@ -409,7 +409,7 @@ function StylePanel({ style, alignable, containerStyleable, onChange }) {
                     opt.class || "bg-paper"
                   } ${current.background === opt.id ? "border-river ring-1 ring-river" : "border-steel/25"}`}
                 >
-                  {opt.id === "none" && "✕"}
+                  {opt.id === "none" && <CloseIcon className="w-3 h-3" />}
                 </button>
               ))}
             </div>
@@ -542,7 +542,7 @@ function BlockCanvasItem({
               i
             </ToolbarButton>
             <ToolbarButton onMouseDown={(e) => e.preventDefault()} onClick={handleLink} title="Add link">
-              🔗
+              <LinkIcon />
             </ToolbarButton>
             <span className="w-px h-4 bg-steel/25 mx-0.5" />
           </>
@@ -552,22 +552,22 @@ function BlockCanvasItem({
           title="Background, padding, alignment, visibility"
           className={styleOpen ? "border-river text-river" : ""}
         >
-          🎨
+          <PaletteIcon />
         </ToolbarButton>
         <span className="w-px h-4 bg-steel/25 mx-0.5" />
         {!nested && (
           <ToolbarButton title="Drag to reorder" className="cursor-grab active:cursor-grabbing">
-            ⠿
+            <GripIcon />
           </ToolbarButton>
         )}
         <ToolbarButton onClick={onMoveUp} disabled={index === 0} title="Move up">
-          ↑
+          <ChevronUpIcon />
         </ToolbarButton>
         <ToolbarButton onClick={onMoveDown} disabled={index === total - 1} title="Move down">
-          ↓
+          <ChevronDownIcon />
         </ToolbarButton>
         <ToolbarButton onClick={onRemove} title="Delete block" className="hover:text-brick hover:border-brick">
-          ✕
+          <TrashIcon />
         </ToolbarButton>
       </div>
 
@@ -623,6 +623,7 @@ function BlockCanvasItem({
                 className="w-full font-sans text-xs text-steel bg-transparent outline-none mt-1.5 placeholder:text-steel/40"
               />
             )}
+            {block.uploadError && <p className="font-sans text-xs text-brick mt-1.5">{block.uploadError}</p>}
           </div>
         )}
         {block.type === "hero-carousel" && (
@@ -887,6 +888,7 @@ function EmbedField({ block, onChange }) {
 function HeroCarouselField({ block, onChange, supabase }) {
   const images = block.images || [];
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const inputRef = useRef(null);
 
@@ -910,11 +912,12 @@ function HeroCarouselField({ block, onChange, supabase }) {
   async function handleUpload(file) {
     if (!file) return;
     setUploading(true);
+    setUploadError(null);
     try {
       const url = await uploadMedia(supabase, file);
       updateImages([...images, { url, alt: "" }]);
     } catch (err) {
-      alert(`Image upload failed: ${err.message}`);
+      setUploadError(`Upload failed: ${err.message}`);
     } finally {
       setUploading(false);
     }
@@ -936,9 +939,9 @@ function HeroCarouselField({ block, onChange, supabase }) {
                 type="button"
                 onClick={() => removeImage(index)}
                 title="Remove"
-                className="absolute top-1 right-1 w-5 h-5 flex items-center justify-center rounded-sm bg-ink/70 text-paper text-xs"
+                className="absolute top-1 right-1 w-5 h-5 flex items-center justify-center rounded-sm bg-ink/70 text-paper"
               >
-                ✕
+                <CloseIcon className="w-3 h-3" />
               </button>
               <div className="absolute bottom-1 left-1 flex gap-0.5">
                 <button
@@ -946,18 +949,18 @@ function HeroCarouselField({ block, onChange, supabase }) {
                   onClick={() => moveImage(index, -1)}
                   disabled={index === 0}
                   title="Move earlier"
-                  className="w-5 h-5 flex items-center justify-center rounded-sm bg-ink/70 text-paper text-xs disabled:opacity-30"
+                  className="w-5 h-5 flex items-center justify-center rounded-sm bg-ink/70 text-paper disabled:opacity-30"
                 >
-                  ‹
+                  <ChevronLeftIcon className="w-3 h-3" />
                 </button>
                 <button
                   type="button"
                   onClick={() => moveImage(index, 1)}
                   disabled={index === images.length - 1}
                   title="Move later"
-                  className="w-5 h-5 flex items-center justify-center rounded-sm bg-ink/70 text-paper text-xs disabled:opacity-30"
+                  className="w-5 h-5 flex items-center justify-center rounded-sm bg-ink/70 text-paper disabled:opacity-30"
                 >
-                  ›
+                  <ChevronRightIcon className="w-3 h-3" />
                 </button>
               </div>
             </div>
@@ -994,6 +997,7 @@ function HeroCarouselField({ block, onChange, supabase }) {
       {pickerOpen && (
         <MediaPicker supabase={supabase} onSelect={handlePickerSelect} onClose={() => setPickerOpen(false)} />
       )}
+      {uploadError && <p className="font-sans text-xs text-brick mt-1.5">{uploadError}</p>}
 
       <div className="mt-3 pt-3 border-t border-steel/15 flex flex-wrap gap-4">
         <CarouselCountControl

@@ -7,6 +7,8 @@ import { createPage, updatePage, deletePage, RESERVED_SLUGS } from "@/lib/pages"
 import { uploadMedia } from "@/lib/posts";
 import { slugify } from "@/lib/slugify";
 import BlockEditor, { ImageDropzone } from "./BlockEditor";
+import ConfirmDialog from "./ConfirmDialog";
+import { ChevronRightIcon } from "./icons";
 
 const AUTOSAVE_DELAY_MS = 1500;
 // Same fixed accent PageRenderer uses — pages aren't categorised the way
@@ -35,6 +37,7 @@ export default function PageForm({ initialPage, themeVars }) {
   const [page, setPage] = useState(initialPage || emptyPage);
   const [error, setError] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [seoOpen, setSeoOpen] = useState(false);
 
   const [saveState, setSaveState] = useState("idle");
@@ -118,14 +121,14 @@ export default function PageForm({ initialPage, themeVars }) {
 
   async function handleDelete() {
     if (!page.id) return;
-    if (!window.confirm(`Delete "${page.title || "this page"}" for good? This can't be undone.`)) return;
+    setConfirmDeleteOpen(false);
     setDeleting(true);
     try {
       await deletePage(supabase, page.id);
       router.push("/admin/pages");
     } catch (err) {
       setDeleting(false);
-      alert(`Couldn't delete this: ${err.message}`);
+      setError(`Couldn't delete this: ${friendlyError(err.message)}`);
     }
   }
 
@@ -227,7 +230,7 @@ export default function PageForm({ initialPage, themeVars }) {
             onClick={() => setSeoOpen((v) => !v)}
             className="font-sans text-sm font-600 text-steel hover:text-ink flex items-center gap-1.5"
           >
-            <span className={`transition-transform ${seoOpen ? "rotate-90" : ""}`}>›</span>
+            <ChevronRightIcon className={`w-3.5 h-3.5 transition-transform ${seoOpen ? "rotate-90" : ""}`} />
             SEO &amp; sharing
           </button>
 
@@ -289,7 +292,7 @@ export default function PageForm({ initialPage, themeVars }) {
           <div className="pt-6 mt-6 border-t border-steel/20">
             <button
               type="button"
-              onClick={handleDelete}
+              onClick={() => setConfirmDeleteOpen(true)}
               disabled={deleting}
               className="font-sans text-xs text-steel hover:text-brick underline underline-offset-4 disabled:opacity-60"
             >
@@ -298,6 +301,14 @@ export default function PageForm({ initialPage, themeVars }) {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        title="Delete this page?"
+        message={`"${page.title || "This page"}" will be gone for good — this can't be undone.`}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDeleteOpen(false)}
+      />
     </div>
   );
 }

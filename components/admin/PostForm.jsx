@@ -8,6 +8,8 @@ import { slugify } from "@/lib/slugify";
 import { categoryFamily } from "@/lib/articles";
 import BlockEditor, { ImageDropzone } from "./BlockEditor";
 import RevisionHistory from "./RevisionHistory";
+import ConfirmDialog from "./ConfirmDialog";
+import { CloseIcon, ChevronRightIcon } from "./icons";
 import { createRevision } from "@/lib/revisions";
 import { getCurrentUserRole } from "@/lib/profile";
 
@@ -111,6 +113,7 @@ export default function PostForm({ mode, initialPost, themeVars }) {
   const [error, setError] = useState(null);
   const [coverUploading, setCoverUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [seoOpen, setSeoOpen] = useState(false);
   const [role, setRole] = useState(null); // "admin" | "contributor" | null (loading)
@@ -191,7 +194,7 @@ export default function PostForm({ mode, initialPost, themeVars }) {
       const url = await uploadMedia(supabase, file);
       set("cover_image_url", url);
     } catch (err) {
-      alert(`Cover image upload failed: ${err.message}`);
+      setError(`Cover image upload failed: ${friendlyError(err.message)}`);
     } finally {
       setCoverUploading(false);
     }
@@ -277,17 +280,14 @@ export default function PostForm({ mode, initialPost, themeVars }) {
 
   async function handleDelete() {
     if (!post.id) return;
-    const sure = window.confirm(
-      `Delete "${post.title || "this post"}" for good? This can't be undone.`
-    );
-    if (!sure) return;
+    setConfirmDeleteOpen(false);
     setDeleting(true);
     try {
       await deletePost(supabase, post.id);
       router.push("/admin/posts");
     } catch (err) {
       setDeleting(false);
-      alert(`Couldn't delete this: ${err.message}`);
+      setError(`Couldn't delete this: ${friendlyError(err.message)}`);
     }
   }
 
@@ -364,7 +364,7 @@ export default function PostForm({ mode, initialPost, themeVars }) {
                   title="Clear schedule"
                   className="text-steel hover:text-brick"
                 >
-                  ✕
+                  <CloseIcon />
                 </button>
               )}
             </label>
@@ -570,7 +570,7 @@ export default function PostForm({ mode, initialPost, themeVars }) {
             onClick={() => setSeoOpen((v) => !v)}
             className="font-sans text-sm font-600 text-steel hover:text-ink flex items-center gap-1.5"
           >
-            <span className={`transition-transform ${seoOpen ? "rotate-90" : ""}`}>›</span>
+            <ChevronRightIcon className={`w-3.5 h-3.5 transition-transform ${seoOpen ? "rotate-90" : ""}`} />
             SEO &amp; sharing
           </button>
 
@@ -649,7 +649,7 @@ export default function PostForm({ mode, initialPost, themeVars }) {
           <div className="pt-6 mt-6 border-t border-steel/20">
             <button
               type="button"
-              onClick={handleDelete}
+              onClick={() => setConfirmDeleteOpen(true)}
               disabled={deleting}
               className="font-sans text-xs text-steel hover:text-brick underline underline-offset-4 disabled:opacity-60"
             >
@@ -667,6 +667,14 @@ export default function PostForm({ mode, initialPost, themeVars }) {
           onClose={() => setShowHistory(false)}
         />
       )}
+
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        title="Delete this post?"
+        message={`"${post.title || "This post"}" will be gone for good — this can't be undone.`}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDeleteOpen(false)}
+      />
     </div>
   );
 }

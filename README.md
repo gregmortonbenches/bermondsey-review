@@ -72,6 +72,24 @@ Articles, videos, podcasts, and cartoons are now editable through a real
   Published/Draft/Scheduled badge once, shared by both the list and the
   dashboard's recent-posts widget so they can't drift apart on what
   counts as which status.
+- **A consistent icon set and in-app dialogs for the block/layout
+  canvases.** The toolbar glyphs (⠿ ↑ ↓ ✕ 🔗 🎨 ⚙) were unicode/emoji
+  characters, which render differently — or not at all — depending on
+  the OS and browser's emoji font, the kind of thing that quietly reads
+  as unfinished. `components/admin/icons.jsx` is a small shared set of
+  line icons (grip, chevrons, close, trash, link, palette, gear) in the
+  same stroke style as the post-type icons already in `PostForm.jsx`,
+  used by both `BlockEditor.jsx` and `LayoutCanvas.jsx` so the two
+  canvases' toolbars match. Deleting a post or page now goes through
+  `components/admin/ConfirmDialog.jsx` — an in-app modal — instead of
+  `window.confirm()`, which breaks the illusion of an app the moment it
+  pops up, styled by the OS rather than the site; image-upload failures
+  in the block/hero-carousel editors show inline instead of a blocking
+  `alert()`, for the same reason. `window.prompt()` stayed for the
+  paragraph toolbar's "add link" action specifically — replacing it with
+  a normal popover would blur the paragraph's contentEditable and lose
+  the text selection `execCommand("createLink")` depends on, a real
+  behavioural risk rather than a purely cosmetic one.
 - **"On this page" — a live outline in the sidebar, Squarespace-style.**
   Open a post, page, or the homepage layout builder and the sidebar
   grows a section listing every block/section currently on the canvas,

@@ -8,6 +8,7 @@ import { usePublishOutline } from "./EditorOutlineContext";
 import ArticleCarousel from "@/components/ArticleCarousel";
 import CarouselCountControl from "./CarouselCountControl";
 import { MOBILE_ITEM_COUNT_OPTIONS, DESKTOP_ITEM_COUNT_OPTIONS } from "@/lib/carouselLayout";
+import { GripIcon, ChevronUpIcon, ChevronDownIcon, GearIcon } from "./icons";
 
 const AUTOSAVE_DELAY_MS = 1200;
 
@@ -285,13 +286,13 @@ function SectionSlot({
         {!fixed && (
           <>
             <ControlButton title="Drag to reorder" className="cursor-grab active:cursor-grabbing">
-              ⠿
+              <GripIcon />
             </ControlButton>
             <ControlButton onClick={onMoveUp} disabled={index === 0} title="Move up">
-              ↑
+              <ChevronUpIcon />
             </ControlButton>
             <ControlButton onClick={onMoveDown} disabled={index === total - 1} title="Move down">
-              ↓
+              <ChevronDownIcon />
             </ControlButton>
           </>
         )}
@@ -301,7 +302,7 @@ function SectionSlot({
             title="How many articles show at once, mobile vs desktop"
             className={settingsOpen ? "border-river text-river" : ""}
           >
-            ⚙
+            <GearIcon />
           </ControlButton>
         )}
         <CopyLinkButton anchor={`#${section.id}`} />
