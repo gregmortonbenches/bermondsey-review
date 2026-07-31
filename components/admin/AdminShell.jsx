@@ -7,13 +7,18 @@ import PageSwitcher from "./PageSwitcher";
 
 const SECTIONS = [
   {
+    items: [{ href: "/admin", label: "Dashboard", exact: true }],
+  },
+  {
+    label: "Content",
     items: [
-      { href: "/admin", label: "Posts", exact: true },
+      { href: "/admin/posts", label: "Posts" },
       { href: "/admin/pages", label: "Pages", adminOnly: true },
       { href: "/admin/media", label: "Media" },
     ],
   },
   {
+    label: "Engagement",
     adminOnly: true,
     items: [
       { href: "/admin/forms", label: "Forms", adminOnly: true },
@@ -22,6 +27,7 @@ const SECTIONS = [
     ],
   },
   {
+    label: "Design & settings",
     adminOnly: true,
     items: [
       { href: "/admin/theme", label: "Design", adminOnly: true },
@@ -92,12 +98,12 @@ function AdminShellInner({ role, children }) {
   return (
     <div className="flex h-screen bg-paper">
       <aside className="w-56 shrink-0 h-screen overflow-y-auto border-r border-steel/20 flex flex-col">
-        <div className="px-4 py-5">
+        <Link href="/admin" className="block px-4 py-5 hover:bg-steel/[0.04] transition-colors">
           <p className="font-display font-700 text-lg text-ink">The Bermondsey Review</p>
           <p className="font-sans text-[11px] uppercase tracking-[0.08em] text-steel mt-0.5">
             {isAdmin ? "Admin" : "Contributor"}
           </p>
-        </div>
+        </Link>
 
         <nav className="flex-1 px-2 space-y-5 overflow-y-auto">
           {SECTIONS.map((section, i) => {
@@ -105,6 +111,9 @@ function AdminShellInner({ role, children }) {
             if (items.length === 0) return null;
             return (
               <div key={i} className="space-y-0.5">
+                {section.label && (
+                  <p className="px-3 font-sans text-[10px] uppercase tracking-[0.08em] text-steel/70 mb-1.5">{section.label}</p>
+                )}
                 {items.map((item) => (
                   <NavLink key={item.href} {...item} pathname={pathname} />
                 ))}

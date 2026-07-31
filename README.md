@@ -59,7 +59,19 @@ Articles, videos, podcasts, and cartoons are now editable through a real
   applied to every dashboard page but deliberately *not* to
   `/admin/login` or any `*/preview/frame` route (both live outside that
   route group on purpose), so neither the sign-in screen nor an iframe
-  rendering the public site ever picks up admin chrome.
+  rendering the public site ever picks up admin chrome. Nav items are
+  grouped under small "Content" / "Engagement" / "Design & settings"
+  labels, and clicking the site name at the top always goes home — so
+  there's a clear sense of where any given page sits, not just a flat
+  list of links.
+- **A real dashboard at `/admin`** — logging in lands on an overview
+  (post/draft/scheduled counts, a page count for admins, quick actions
+  for New post/New page/View site, and the 5 most recently edited posts)
+  rather than straight on the post list. The post list itself moved to
+  `/admin/posts`; `getPostStatusInfo` in `lib/posts.js` computes the
+  Published/Draft/Scheduled badge once, shared by both the list and the
+  dashboard's recent-posts widget so they can't drift apart on what
+  counts as which status.
 - **"On this page" — a live outline in the sidebar, Squarespace-style.**
   Open a post, page, or the homepage layout builder and the sidebar
   grows a section listing every block/section currently on the canvas,

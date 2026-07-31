@@ -284,7 +284,7 @@ export default function PostForm({ mode, initialPost, themeVars }) {
     setDeleting(true);
     try {
       await deletePost(supabase, post.id);
-      router.push("/admin");
+      router.push("/admin/posts");
     } catch (err) {
       setDeleting(false);
       alert(`Couldn't delete this: ${err.message}`);
