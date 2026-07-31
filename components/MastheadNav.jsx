@@ -36,7 +36,7 @@ export default function MastheadNav({ logoUrl, siteTitle, siteTagline, links }) 
             </div>
           ) : (
             <div className="min-w-0">
-              <h1 className="font-display font-700 text-[1.7rem] sm:text-[2.75rem] leading-none tracking-tight text-ink truncate">
+              <h1 className="font-display font-700 text-xl sm:text-[2.75rem] leading-tight sm:leading-none tracking-tight text-ink">
                 {siteTitle}
               </h1>
               {siteTagline && (
