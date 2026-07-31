@@ -8,6 +8,10 @@ import MediaPicker from "./MediaPicker";
 import CarouselCountControl from "./CarouselCountControl";
 import { usePublishOutline } from "./EditorOutlineContext";
 import { GripIcon, ChevronUpIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CloseIcon, TrashIcon, LinkIcon, PaletteIcon } from "./icons";
+import { useReorderSensors } from "./dnd";
+import { DndContext, closestCenter } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy, arrayMove, useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   BACKGROUND_OPTIONS,
   PADDING_OPTIONS,
@@ -139,11 +143,11 @@ function stripIds(items) {
  * once per page: publishing to the "on this page" outline (a column's
  * blocks are part of the outer canvas's own outline entry, not a second
  * page), the `block-${index}` DOM id (would collide with the outer
- * canvas's own ids), and native drag-to-reorder (nesting a second
- * independent HTML5 drag zone inside a block that's itself a drag source
- * for the outer canvas's reordering is the same "conflicting drag events"
- * problem HeroCarouselField's own comment already avoids, one level up —
- * arrow buttons still work). It also drops "Columns" from the insert
+ * canvas's own ids), and drag-to-reorder (kept to arrow buttons only —
+ * a column's own DndContext would work fine nested inside the outer
+ * canvas's, but a second drag handle on top of the outer canvas's own
+ * reordering, for a list that's almost always one or two items long,
+ * isn't worth the added chrome). It also drops "Columns" from the insert
  * menu, so a column can't contain another columns block.
  */
 export default function BlockEditor({ blocks, onChange, supabase, accentHex = DEFAULT_ACCENT, nested = false }) {
@@ -157,8 +161,7 @@ export default function BlockEditor({ blocks, onChange, supabase, accentHex = DE
     lastPushedRef.current = incoming;
   }, [blocks]);
 
-  const dragId = useRef(null);
-  const [dragOverId, setDragOverId] = useState(null);
+  const reorderSensors = useReorderSensors();
   const [openInserterAt, setOpenInserterAt] = useState(null);
 
   // Keyed by render-order index, not `_id` — `_id` comes from
@@ -203,15 +206,13 @@ export default function BlockEditor({ blocks, onChange, supabase, accentHex = DE
     [next[index], next[target]] = [next[target], next[index]];
     commit(next);
   }
-  function reorder(fromId, toId) {
-    if (fromId === toId) return;
-    const from = items.findIndex((b) => b._id === fromId);
-    const to = items.findIndex((b) => b._id === toId);
+  function handleBlockDragEnd(event) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const from = items.findIndex((b) => b._id === active.id);
+    const to = items.findIndex((b) => b._id === over.id);
     if (from === -1 || to === -1) return;
-    const next = [...items];
-    const [moved] = next.splice(from, 1);
-    next.splice(to, 0, moved);
-    commit(next);
+    commit(arrayMove(items, from, to));
   }
   function insertAt(index, type) {
     const next = [...items];
@@ -261,50 +262,50 @@ export default function BlockEditor({ blocks, onChange, supabase, accentHex = DE
         />
       )}
 
-      {items.map((block, index) => {
-        const isFirstParagraph =
-          block.type === "paragraph" && items.slice(0, index).every((b) => b.type !== "paragraph");
+      {(() => {
+        // Nested (a "columns" block's own two columns) never drags — see
+        // the class doc comment above for why — so it renders the plain
+        // item directly rather than SortableBlockCanvasItem, which calls
+        // useSortable and would break outside a SortableContext.
+        const ItemComponent = nested ? BlockCanvasItem : SortableBlockCanvasItem;
+        const rendered = items.map((block, index) => {
+          const isFirstParagraph =
+            block.type === "paragraph" && items.slice(0, index).every((b) => b.type !== "paragraph");
+          return (
+            <div key={block._id}>
+              <ItemComponent
+                block={block}
+                index={index}
+                total={items.length}
+                accentHex={accentHex}
+                isFirstParagraph={isFirstParagraph}
+                nested={nested}
+                onChange={(updates) => updateBlock(block._id, updates)}
+                onRemove={() => removeBlock(block._id)}
+                onMoveUp={() => moveBlock(block._id, -1)}
+                onMoveDown={() => moveBlock(block._id, 1)}
+                onUploadImage={(file) => uploadImageToBlock(block._id, file)}
+                onSelectImageUrl={(url) => updateBlock(block._id, { url })}
+                supabase={supabase}
+              />
+              <Gap
+                open={openInserterAt === index + 1}
+                onToggle={() => setOpenInserterAt((v) => (v === index + 1 ? null : index + 1))}
+                onInsert={(type) => insertAt(index + 1, type)}
+                types={insertableTypes}
+              />
+            </div>
+          );
+        });
+        if (nested) return rendered;
         return (
-          <div key={block._id}>
-            <BlockCanvasItem
-              block={block}
-              index={index}
-              total={items.length}
-              accentHex={accentHex}
-              isFirstParagraph={isFirstParagraph}
-              nested={nested}
-              dragOver={dragOverId === block._id}
-              onDragStart={() => {
-                dragId.current = block._id;
-              }}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragOverId(block._id);
-              }}
-              onDragLeave={() => setDragOverId((v) => (v === block._id ? null : v))}
-              onDrop={(e) => {
-                e.preventDefault();
-                if (dragId.current !== null) reorder(dragId.current, block._id);
-                dragId.current = null;
-                setDragOverId(null);
-              }}
-              onChange={(updates) => updateBlock(block._id, updates)}
-              onRemove={() => removeBlock(block._id)}
-              onMoveUp={() => moveBlock(block._id, -1)}
-              onMoveDown={() => moveBlock(block._id, 1)}
-              onUploadImage={(file) => uploadImageToBlock(block._id, file)}
-              onSelectImageUrl={(url) => updateBlock(block._id, { url })}
-              supabase={supabase}
-            />
-            <Gap
-              open={openInserterAt === index + 1}
-              onToggle={() => setOpenInserterAt((v) => (v === index + 1 ? null : index + 1))}
-              onInsert={(type) => insertAt(index + 1, type)}
-              types={insertableTypes}
-            />
-          </div>
+          <DndContext id="block-editor" sensors={reorderSensors} collisionDetection={closestCenter} onDragEnd={handleBlockDragEnd}>
+            <SortableContext items={items.map((b) => b._id)} strategy={verticalListSortingStrategy}>
+              {rendered}
+            </SortableContext>
+          </DndContext>
         );
-      })}
+      })()}
     </div>
   );
 }
@@ -486,6 +487,30 @@ function ToolbarButton({ className = "", ...props }) {
   );
 }
 
+// Wraps BlockCanvasItem with dnd-kit's sortable behaviour. Split out for
+// the same reason as LayoutCanvas's SortableSectionSlot: useSortable can
+// only be called for a block that's genuinely inside a SortableContext,
+// and nested (a "columns" block's own columns) never is — see the class
+// doc comment on BlockEditor.
+function SortableBlockCanvasItem(props) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: props.block._id,
+  });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+  return (
+    <BlockCanvasItem
+      {...props}
+      setNodeRef={setNodeRef}
+      style={style}
+      dragHandleProps={{ ...attributes, ...listeners }}
+      isDragging={isDragging}
+    />
+  );
+}
+
 function BlockCanvasItem({
   block,
   index,
@@ -493,11 +518,10 @@ function BlockCanvasItem({
   accentHex,
   isFirstParagraph,
   nested,
-  dragOver,
-  onDragStart,
-  onDragOver,
-  onDragLeave,
-  onDrop,
+  setNodeRef,
+  style,
+  dragHandleProps,
+  isDragging,
   onChange,
   onRemove,
   onMoveUp,
@@ -523,13 +547,10 @@ function BlockCanvasItem({
   return (
     <div
       id={nested ? undefined : `block-${index}`}
-      draggable={!nested}
-      onDragStart={nested ? undefined : onDragStart}
-      onDragOver={nested ? undefined : onDragOver}
-      onDragLeave={nested ? undefined : onDragLeave}
-      onDrop={nested ? undefined : onDrop}
+      ref={nested ? undefined : setNodeRef}
+      style={nested ? undefined : style}
       className={`group relative rounded-sm transition-shadow scroll-mt-4 ${
-        dragOver ? "outline outline-2 outline-river outline-offset-4" : ""
+        isDragging ? "outline outline-2 outline-river outline-offset-4 z-10 bg-paper" : ""
       }`}
     >
       <div className="absolute -right-1 -top-1 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
@@ -556,7 +577,7 @@ function BlockCanvasItem({
         </ToolbarButton>
         <span className="w-px h-4 bg-steel/25 mx-0.5" />
         {!nested && (
-          <ToolbarButton title="Drag to reorder" className="cursor-grab active:cursor-grabbing">
+          <ToolbarButton {...dragHandleProps} title="Drag to reorder" className="cursor-grab active:cursor-grabbing touch-none">
             <GripIcon />
           </ToolbarButton>
         )}

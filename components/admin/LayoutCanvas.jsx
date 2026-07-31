@@ -10,6 +10,10 @@ import PuzzlesSection, { PUZZLE_DEFAULTS } from "@/components/PuzzlesSection";
 import CarouselCountControl from "./CarouselCountControl";
 import { MOBILE_ITEM_COUNT_OPTIONS, DESKTOP_ITEM_COUNT_OPTIONS } from "@/lib/carouselLayout";
 import { GripIcon, ChevronUpIcon, ChevronDownIcon, GearIcon } from "./icons";
+import { useReorderSensors } from "./dnd";
+import { DndContext, closestCenter } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy, arrayMove, useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 const AUTOSAVE_DELAY_MS = 1200;
 
@@ -39,8 +43,7 @@ export default function LayoutCanvas({ pageKey, initialSections, sectionContent,
   const [sections, setSections] = useState(initialSections);
   const [saveState, setSaveState] = useState("saved");
 
-  const dragId = useRef(null);
-  const [dragOverId, setDragOverId] = useState(null);
+  const reorderSensors = useReorderSensors();
   const autosaveTimer = useRef(null);
   const lastSavedRef = useRef(JSON.stringify(initialSections));
   const isFirstRender = useRef(true);
@@ -100,16 +103,14 @@ export default function LayoutCanvas({ pageKey, initialSections, sectionContent,
       return next;
     });
   }
-  function reorder(fromId, toId) {
-    if (fromId === toId) return;
+  function handleSectionDragEnd(event) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
     setSections((prev) => {
-      const from = prev.findIndex((s) => s.id === fromId);
-      const to = prev.findIndex((s) => s.id === toId);
+      const from = prev.findIndex((s) => s.id === active.id);
+      const to = prev.findIndex((s) => s.id === over.id);
       if (from === -1 || to === -1) return prev;
-      const next = [...prev];
-      const [moved] = next.splice(from, 1);
-      next.splice(to, 0, moved);
-      return next;
+      return arrayMove(prev, from, to);
     });
   }
 
@@ -172,45 +173,34 @@ export default function LayoutCanvas({ pageKey, initialSections, sectionContent,
         {masthead}
 
         <div className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12 flex-1 w-full">
-          {orderable.map((section, index) => (
-            <SectionSlot
-              key={section.id}
-              section={section}
-              index={index}
-              total={orderable.length}
-              dragOver={dragOverId === section.id}
-              onDragStart={() => {
-                dragId.current = section.id;
-              }}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragOverId(section.id);
-              }}
-              onDragLeave={() => setDragOverId((v) => (v === section.id ? null : v))}
-              onDrop={(e) => {
-                e.preventDefault();
-                if (dragId.current !== null) reorder(dragId.current, section.id);
-                dragId.current = null;
-                setDragOverId(null);
-              }}
-              onToggle={() => toggleEnabled(section.id)}
-              onMoveUp={() => moveSection(section.id, -1)}
-              onMoveDown={() => moveSection(section.id, 1)}
-              onUpdateSection={(updates) => updateSection(section.id, updates)}
-            >
-              {section.type === "carousel" ? (
-                <ArticleCarousel
-                  articles={carouselArticles}
-                  mobileCount={section.mobileCount}
-                  desktopCount={section.desktopCount}
-                />
-              ) : section.type === "puzzles" ? (
-                <PuzzlesSection overrides={{ crossword: section.crossword, geoguesser: section.geoguesser }} />
-              ) : (
-                sectionContent[section.type]
-              )}
-            </SectionSlot>
-          ))}
+          <DndContext id={`layout-sections-${pageKey}`} sensors={reorderSensors} collisionDetection={closestCenter} onDragEnd={handleSectionDragEnd}>
+            <SortableContext items={orderable.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+              {orderable.map((section, index) => (
+                <SortableSectionSlot
+                  key={section.id}
+                  section={section}
+                  index={index}
+                  total={orderable.length}
+                  onToggle={() => toggleEnabled(section.id)}
+                  onMoveUp={() => moveSection(section.id, -1)}
+                  onMoveDown={() => moveSection(section.id, 1)}
+                  onUpdateSection={(updates) => updateSection(section.id, updates)}
+                >
+                  {section.type === "carousel" ? (
+                    <ArticleCarousel
+                      articles={carouselArticles}
+                      mobileCount={section.mobileCount}
+                      desktopCount={section.desktopCount}
+                    />
+                  ) : section.type === "puzzles" ? (
+                    <PuzzlesSection overrides={{ crossword: section.crossword, geoguesser: section.geoguesser }} />
+                  ) : (
+                    sectionContent[section.type]
+                  )}
+                </SortableSectionSlot>
+              ))}
+            </SortableContext>
+          </DndContext>
         </div>
 
         {newsletterSection && (
@@ -268,15 +258,39 @@ function CopyLinkButton({ anchor }) {
   );
 }
 
+// Wraps SectionSlot with dnd-kit's sortable behaviour — split out from
+// SectionSlot itself because useSortable can only be called for a section
+// that's actually inside the SortableContext below, and the fixed
+// (non-reorderable) newsletter slot is rendered outside it entirely; a
+// single component that sometimes calls the hook and sometimes doesn't
+// would break the rules of hooks.
+function SortableSectionSlot(props) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: props.section.id,
+  });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+  return (
+    <SectionSlot
+      {...props}
+      setNodeRef={setNodeRef}
+      style={style}
+      dragHandleProps={{ ...attributes, ...listeners }}
+      isDragging={isDragging}
+    />
+  );
+}
+
 function SectionSlot({
   section,
   index,
   total,
-  dragOver,
-  onDragStart,
-  onDragOver,
-  onDragLeave,
-  onDrop,
+  setNodeRef,
+  style,
+  dragHandleProps,
+  isDragging,
   onToggle,
   onMoveUp,
   onMoveDown,
@@ -292,22 +306,23 @@ function SectionSlot({
 
   return (
     <div
-      draggable={!fixed}
-      onDragStart={fixed ? undefined : onDragStart}
-      onDragOver={fixed ? undefined : onDragOver}
-      onDragLeave={fixed ? undefined : onDragLeave}
-      onDrop={fixed ? undefined : onDrop}
+      ref={setNodeRef}
+      style={style}
       className={`group relative transition-shadow ${
-        dragOver ? "outline outline-2 outline-river outline-offset-4" : ""
+        isDragging ? "outline outline-2 outline-river outline-offset-4 z-10 bg-paper" : ""
       }`}
     >
-      <div className="absolute right-2 top-2 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute right-2 top-2 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
         <span className="font-sans text-[10px] uppercase tracking-[0.06em] text-steel bg-paper border border-steel/25 rounded-sm px-1.5 py-1 mr-1 shadow-sm">
           {meta.label}
         </span>
         {!fixed && (
           <>
-            <ControlButton title="Drag to reorder" className="cursor-grab active:cursor-grabbing">
+            <ControlButton
+              {...dragHandleProps}
+              title="Drag to reorder"
+              className="cursor-grab active:cursor-grabbing touch-none"
+            >
               <GripIcon />
             </ControlButton>
             <ControlButton onClick={onMoveUp} disabled={index === 0} title="Move up">

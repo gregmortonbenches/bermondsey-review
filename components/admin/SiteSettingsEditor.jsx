@@ -6,6 +6,11 @@ import { saveSiteSettings, DEFAULT_SITE_SETTINGS } from "@/lib/theme";
 import { uploadMedia } from "@/lib/posts";
 import { ImageDropzone } from "./BlockEditor";
 import DevicePreview from "./DevicePreview";
+import { GripIcon, CloseIcon } from "./icons";
+import { useReorderSensors } from "./dnd";
+import { DndContext, closestCenter } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy, arrayMove, useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 const AUTOSAVE_DELAY_MS = 1200;
 const SOCIAL_PLATFORMS = [
@@ -38,8 +43,7 @@ export default function SiteSettingsEditor({ initialSettings }) {
   const [saveState, setSaveState] = useState("saved");
   const [error, setError] = useState(null);
 
-  const dragIndex = useRef(null);
-  const [dragOverIndex, setDragOverIndex] = useState(null);
+  const reorderSensors = useReorderSensors();
   const autosaveTimer = useRef(null);
   const lastSavedRef = useRef(JSON.stringify({ ...initialSettings, nav_links: toStoredLinks(toEditableLinks(initialSettings?.nav_links)) }));
   const isFirstRender = useRef(true);
@@ -60,13 +64,14 @@ export default function SiteSettingsEditor({ initialSettings }) {
   function addLink() {
     setNavLinks((links) => [...links, newLink()]);
   }
-  function reorderLinks(from, to) {
-    if (from === to) return;
+  function handleLinkDragEnd(event) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
     setNavLinks((links) => {
-      const next = [...links];
-      const [moved] = next.splice(from, 1);
-      next.splice(to, 0, moved);
-      return next;
+      const from = links.findIndex((l) => l.id === active.id);
+      const to = links.findIndex((l) => l.id === over.id);
+      if (from === -1 || to === -1) return links;
+      return arrayMove(links, from, to);
     });
   }
 
@@ -185,7 +190,7 @@ export default function SiteSettingsEditor({ initialSettings }) {
               Navigation
             </label>
             <p className="font-sans text-xs text-steel mb-3">
-              Shown in the masthead and footer, in this order. Drag ⠿ to reorder. A link can point
+              Shown in the masthead and footer, in this order. Drag to reorder. A link can point
               to a page, an external URL, or a section of the homepage (e.g. <code>/#puzzles</code>)
               — grab the exact link for any section from its "Copy link" control in{" "}
               <a href="/admin/layout" className="underline underline-offset-4 hover:text-river">
@@ -193,55 +198,20 @@ export default function SiteSettingsEditor({ initialSettings }) {
               </a>
               .
             </p>
-            <div className="space-y-2">
-              {navLinks.map((link, index) => (
-                <div
-                  key={link.id}
-                  draggable
-                  onDragStart={() => {
-                    dragIndex.current = index;
-                  }}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setDragOverIndex(index);
-                  }}
-                  onDragLeave={() => setDragOverIndex((v) => (v === index ? null : v))}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    if (dragIndex.current !== null) reorderLinks(dragIndex.current, index);
-                    dragIndex.current = null;
-                    setDragOverIndex(null);
-                  }}
-                  className={`flex items-center gap-2 rounded-sm border p-2 transition-colors ${
-                    dragOverIndex === index ? "border-river bg-river/[0.04]" : "border-steel/25"
-                  }`}
-                >
-                  <span className="shrink-0 cursor-grab active:cursor-grabbing text-steel/50 hover:text-steel select-none">
-                    ⠿
-                  </span>
-                  <input
-                    value={link.label}
-                    onChange={(e) => updateLink(index, { label: e.target.value })}
-                    placeholder="Label"
-                    className="w-1/3 font-sans text-sm border border-steel/25 rounded-sm px-2 py-1"
-                  />
-                  <input
-                    value={link.href}
-                    onChange={(e) => updateLink(index, { href: e.target.value })}
-                    placeholder="/archive, /#puzzles, or https://…"
-                    className="flex-1 min-w-0 font-sans text-sm border border-steel/25 rounded-sm px-2 py-1"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeLink(index)}
-                    className="shrink-0 w-6 h-6 flex items-center justify-center rounded-sm border border-steel/25 text-steel hover:text-brick hover:border-brick"
-                    aria-label="Remove link"
-                  >
-                    ✕
-                  </button>
+            <DndContext id="site-nav-links" sensors={reorderSensors} collisionDetection={closestCenter} onDragEnd={handleLinkDragEnd}>
+              <SortableContext items={navLinks.map((l) => l.id)} strategy={verticalListSortingStrategy}>
+                <div className="space-y-2">
+                  {navLinks.map((link, index) => (
+                    <NavLinkRow
+                      key={link.id}
+                      link={link}
+                      onChange={(updates) => updateLink(index, updates)}
+                      onRemove={() => removeLink(index)}
+                    />
+                  ))}
                 </div>
-              ))}
-            </div>
+              </SortableContext>
+            </DndContext>
             <button
               type="button"
               onClick={addLink}
@@ -289,6 +259,54 @@ export default function SiteSettingsEditor({ initialSettings }) {
       </div>
 
       <DevicePreview src="/admin/layout/preview/frame" heightClass="h-full" />
+    </div>
+  );
+}
+
+function NavLinkRow({ link, onChange, onRemove }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: link.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-2 rounded-sm border p-2 bg-paper transition-colors ${
+        isDragging ? "border-river bg-river/[0.04] shadow-lg z-10 relative" : "border-steel/25"
+      }`}
+    >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="shrink-0 w-6 h-6 flex items-center justify-center rounded-sm text-steel/50 hover:text-steel cursor-grab active:cursor-grabbing touch-none"
+        aria-label="Drag to reorder"
+      >
+        <GripIcon />
+      </button>
+      <input
+        value={link.label}
+        onChange={(e) => onChange({ label: e.target.value })}
+        placeholder="Label"
+        className="w-1/3 font-sans text-sm border border-steel/25 rounded-sm px-2 py-1"
+      />
+      <input
+        value={link.href}
+        onChange={(e) => onChange({ href: e.target.value })}
+        placeholder="/archive, /#puzzles, or https://…"
+        className="flex-1 min-w-0 font-sans text-sm border border-steel/25 rounded-sm px-2 py-1"
+      />
+      <button
+        type="button"
+        onClick={onRemove}
+        className="shrink-0 w-6 h-6 flex items-center justify-center rounded-sm border border-steel/25 text-steel hover:text-brick hover:border-brick"
+        aria-label="Remove link"
+      >
+        <CloseIcon />
+      </button>
     </div>
   );
 }

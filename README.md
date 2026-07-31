@@ -102,6 +102,28 @@ Articles, videos, podcasts, and cartoons are now editable through a real
   create/delete calls in the other three — show the same inline
   `bg-brick/[0.08]` error banner already used on the post/page editors,
   instead of `alert()`.
+- **Real drag-and-drop, not the native HTML5 kind.** Reordering nav
+  links (`SiteSettingsEditor.jsx`), post/page blocks (`BlockEditor.jsx`),
+  and homepage sections (`LayoutCanvas.jsx`) used the browser's built-in
+  `draggable` attribute, which has no animation — the list just snaps to
+  its new order on drop — and no keyboard support at all. All three now
+  use [`@dnd-kit`](https://dndkit.com), wired up through a shared
+  `components/admin/dnd.jsx` (sensor config: a small pointer-movement
+  threshold so clicking the handle doesn't register as a drag, plus a
+  keyboard sensor that makes every one of these lists reorderable with
+  Space/arrow keys/Space, not just a mouse). The drag handle — previously
+  just a decorative grip icon, since the *whole row* was the native drag
+  source — is now the only thing you can actually grab, which as a side
+  effect stops a text selection inside a block from ever being mistaken
+  for a drag. One real bug caught along the way: `LayoutCanvas`'s section
+  controls only appeared on `:hover`, unlike `BlockEditor`'s (which also
+  had `:focus-within`) — harmless with a mouse, but it meant a
+  keyboard-focused drag handle could be operated while invisible, so
+  `:focus-within` was added there too. A `columns` block's own two
+  columns still reorder with the up/down arrows only, not drag — a
+  second drag handle nested inside the outer canvas's own, for a list
+  that's almost always one or two blocks long, wasn't worth the added
+  chrome, though nothing about `@dnd-kit` stops it if that changes later.
 - **"On this page" — a live outline in the sidebar, Squarespace-style.**
   Open a post, page, or the homepage layout builder and the sidebar
   grows a section listing every block/section currently on the canvas,
