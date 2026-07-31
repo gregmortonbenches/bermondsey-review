@@ -163,7 +163,10 @@ create table issues (
 -- The carousel entry may also carry optional mobileCount/desktopCount —
 -- how many articles show per view; unset keeps its default peek-width
 -- look (see lib/carouselLayout.js, shared with the hero-carousel block's
--- own version of the same setting).
+-- own version of the same setting). The puzzles entry may carry optional
+-- crossword/geoguesser objects — each { title, description, cta } —
+-- overriding that card's copy; a missing field falls back to the coded-in
+-- default (see PUZZLE_DEFAULTS in components/PuzzlesSection.jsx).
 create table page_layouts (
   id uuid primary key default gen_random_uuid(),
   page_key text not null unique,   -- "home" for now; more pages can reuse this table later

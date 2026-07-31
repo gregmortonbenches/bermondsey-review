@@ -6,7 +6,6 @@ import Masthead from "@/components/Masthead";
 import Footer from "@/components/Footer";
 import ThemeVars from "@/components/ThemeVars";
 import ArticleCard from "@/components/ArticleCard";
-import PuzzlesSection from "@/components/PuzzlesSection";
 import Newsletter from "@/components/Newsletter";
 import LayoutCanvas from "@/components/admin/LayoutCanvas";
 
@@ -34,10 +33,10 @@ export default async function AdminLayoutPage() {
   // Real content for each section type, rendered server-side (these are
   // Server Components — LayoutCanvas, a Client Component, can't import
   // and render them itself, only place ones it's handed) and passed to
-  // the canvas as pre-rendered elements. The carousel section is the
-  // exception — see LayoutCanvas's own doc comment for why it gets the
-  // raw article data (`carouselArticles`) instead, so its mobile/desktop
-  // item-count settings can preview live.
+  // the canvas as pre-rendered elements. Carousel and puzzles are the
+  // exceptions — see LayoutCanvas's own doc comment for why they're
+  // rendered live by the canvas itself instead, so their settings
+  // (carousel item counts, puzzle card text) preview instantly.
   const sectionContent = {
     featured: (
       <section id="featured" className="pt-8 scroll-mt-24">
@@ -48,7 +47,6 @@ export default async function AdminLayoutPage() {
         )}
       </section>
     ),
-    puzzles: <PuzzlesSection />,
     newsletter: <Newsletter />,
   };
 

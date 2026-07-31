@@ -6,6 +6,7 @@ import { savePageLayout } from "@/lib/layout";
 import { SECTION_REGISTRY } from "@/lib/sections";
 import { usePublishOutline } from "./EditorOutlineContext";
 import ArticleCarousel from "@/components/ArticleCarousel";
+import PuzzlesSection, { PUZZLE_DEFAULTS } from "@/components/PuzzlesSection";
 import CarouselCountControl from "./CarouselCountControl";
 import { MOBILE_ITEM_COUNT_OPTIONS, DESKTOP_ITEM_COUNT_OPTIONS } from "@/lib/carouselLayout";
 import { GripIcon, ChevronUpIcon, ChevronDownIcon, GearIcon } from "./icons";
@@ -24,13 +25,14 @@ const AUTOSAVE_DELAY_MS = 1200;
  * Components, so they're rendered by the server page (app/admin/(dashboard)/
  * layout/page.jsx) and passed in here as already-rendered elements — a
  * Client Component can't import and render a Server Component itself, but
- * it can place one it was handed. The carousel section is the one
- * exception: ArticleCarousel has no server-only dependencies (just
- * `articles`, fetched once server-side and handed down as plain data via
- * `carouselArticles`), so it's rendered directly, here, with this
- * section's own live mobileCount/desktopCount from state — the settings
- * panel on that section needs to preview instantly as you change it,
- * which a pre-rendered opaque element handed down as a prop can't do.
+ * it can place one it was handed. Carousel and puzzles are the exceptions:
+ * ArticleCarousel and PuzzlesSection both have no server-only dependencies
+ * (just plain props — `articles` fetched once server-side and handed down
+ * via `carouselArticles`; puzzle card text living directly on the section
+ * object), so both are rendered directly, here, from this section's own
+ * live state — their settings panels (item counts, card copy) need to
+ * preview instantly as you type/click, which a pre-rendered opaque
+ * element handed down as a prop can't do.
  */
 export default function LayoutCanvas({ pageKey, initialSections, sectionContent, carouselArticles, masthead, footer, themeVars }) {
   const supabase = createClient();
@@ -202,6 +204,8 @@ export default function LayoutCanvas({ pageKey, initialSections, sectionContent,
                   mobileCount={section.mobileCount}
                   desktopCount={section.desktopCount}
                 />
+              ) : section.type === "puzzles" ? (
+                <PuzzlesSection overrides={{ crossword: section.crossword, geoguesser: section.geoguesser }} />
               ) : (
                 sectionContent[section.type]
               )}
@@ -282,7 +286,9 @@ function SectionSlot({
 }) {
   const meta = SECTION_REGISTRY[section.type] || { label: section.type };
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const hasSettings = section.type === "carousel";
+  const hasSettings = section.type === "carousel" || section.type === "puzzles";
+  const settingsTitle =
+    section.type === "carousel" ? "How many articles show at once, mobile vs desktop" : "Edit the crossword/Guess the Spot card text";
 
   return (
     <div
@@ -315,7 +321,7 @@ function SectionSlot({
         {hasSettings && (
           <ControlButton
             onClick={() => setSettingsOpen((v) => !v)}
-            title="How many articles show at once, mobile vs desktop"
+            title={settingsTitle}
             className={settingsOpen ? "border-river text-river" : ""}
           >
             <GearIcon />
@@ -331,7 +337,7 @@ function SectionSlot({
         </ControlButton>
       </div>
 
-      {settingsOpen && hasSettings && (
+      {settingsOpen && hasSettings && section.type === "carousel" && (
         <div className="absolute right-2 top-10 z-20 bg-paper border border-steel/25 rounded-sm shadow-lg p-3 w-64 space-y-3">
           <CarouselCountControl
             label="Articles visible on mobile"
@@ -348,6 +354,23 @@ function SectionSlot({
         </div>
       )}
 
+      {settingsOpen && hasSettings && section.type === "puzzles" && (
+        <div className="absolute right-2 top-10 z-20 bg-paper border border-steel/25 rounded-sm shadow-lg p-3 w-72 space-y-4 max-h-[70vh] overflow-y-auto">
+          <PuzzleCardFields
+            label="The Crossword card"
+            values={section.crossword}
+            defaults={PUZZLE_DEFAULTS.crossword}
+            onChange={(crossword) => onUpdateSection({ crossword })}
+          />
+          <PuzzleCardFields
+            label="Guess the Spot card"
+            values={section.geoguesser}
+            defaults={PUZZLE_DEFAULTS.geoguesser}
+            onChange={(geoguesser) => onUpdateSection({ geoguesser })}
+          />
+        </div>
+      )}
+
       {!section.enabled && (
         <div className="absolute left-2 top-2 z-10 font-sans text-[10px] uppercase tracking-[0.06em] text-paper bg-ink/70 rounded-sm px-2 py-1">
           Hidden from homepage
@@ -355,6 +378,40 @@ function SectionSlot({
       )}
 
       <div className={section.enabled ? "" : "opacity-40"}>{children}</div>
+    </div>
+  );
+}
+
+// Title/description/CTA for one Puzzles & Games card. Placeholders show
+// the actual default copy (from PUZZLE_DEFAULTS) rather than a generic
+// "Title" hint, so it's obvious what ships if a field is left blank —
+// same reasoning as CarouselCountControl's "Auto" option elsewhere on
+// this canvas.
+function PuzzleCardFields({ label, values, defaults, onChange }) {
+  return (
+    <div>
+      <p className="font-sans text-[10px] uppercase tracking-[0.08em] text-steel mb-1.5">{label}</p>
+      <div className="space-y-1.5">
+        <input
+          value={values?.title || ""}
+          onChange={(e) => onChange({ ...values, title: e.target.value })}
+          placeholder={defaults.title}
+          className="w-full font-sans text-xs border border-steel/25 rounded-sm px-2 py-1.5 outline-none focus:border-river placeholder:text-steel/50"
+        />
+        <textarea
+          value={values?.description || ""}
+          onChange={(e) => onChange({ ...values, description: e.target.value })}
+          placeholder={defaults.description}
+          rows={2}
+          className="w-full font-sans text-xs border border-steel/25 rounded-sm px-2 py-1.5 outline-none focus:border-river placeholder:text-steel/50 resize-none"
+        />
+        <input
+          value={values?.cta || ""}
+          onChange={(e) => onChange({ ...values, cta: e.target.value })}
+          placeholder={defaults.cta}
+          className="w-full font-sans text-xs border border-steel/25 rounded-sm px-2 py-1.5 outline-none focus:border-river placeholder:text-steel/50"
+        />
+      </div>
     </div>
   );
 }

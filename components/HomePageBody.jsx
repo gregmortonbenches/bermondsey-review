@@ -41,7 +41,12 @@ export default async function HomePageBody() {
           </section>
         );
       case "puzzles":
-        return <PuzzlesSection key={section.id} />;
+        return (
+          <PuzzlesSection
+            key={section.id}
+            overrides={{ crossword: section.crossword, geoguesser: section.geoguesser }}
+          />
+        );
       case "carousel":
         return (
           <ArticleCarousel

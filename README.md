@@ -292,6 +292,19 @@ Articles, videos, podcasts, and cartoons are now editable through a real
     **Preview** button in the top bar (opens `/admin/layout/preview` in
     a new tab) is the real thing, full navigation intact, for actually
     clicking around as a visitor would.
+  - **The Puzzles & Games cards' text is editable from here too**, via
+    the same ⚙ settings gear the carousel's item-count controls use —
+    title, description, and CTA per card, stored on the "puzzles"
+    section object itself (`PuzzlesSection`'s `overrides` prop) rather
+    than a separate settings page, since that's where you're already
+    looking when you notice a card's copy needs changing. A blank field
+    falls back to the coded-in default (`PUZZLE_DEFAULTS` in
+    `components/PuzzlesSection.jsx`), shown as the field's placeholder so
+    it's obvious what ships if you leave it alone. Like the carousel
+    settings, `PuzzlesSection` has no server-only dependencies, so the
+    canvas renders it live from state instead of a pre-rendered prop —
+    typing updates the preview instantly, no save-and-reload needed to
+    see it.
 - `/admin/posts/new` — a type picker (article/video/podcast/cartoon) with
   plain-language descriptions instead of jargon
 - **A true visual canvas, not a form describing the content.** The

@@ -64,30 +64,44 @@ const GAMES = [
   },
 ];
 
-export default function PuzzlesSection() {
+// The default title/description/cta per game, keyed by slug — exported
+// so the layout builder's settings panel can show them as placeholders
+// (making it obvious what ships if a field is left blank) without
+// duplicating the copy.
+export const PUZZLE_DEFAULTS = Object.fromEntries(GAMES.map((g) => [g.slug, { title: g.title, description: g.description, cta: g.cta }]));
+
+// `overrides` (from the homepage layout's "puzzles" section — see
+// lib/layout.js and components/admin/LayoutCanvas.jsx) lets an admin
+// customise each card's title/description/cta without touching code; a
+// missing or blank field falls back to the default above, so an
+// unconfigured site looks exactly as it always has.
+export default function PuzzlesSection({ overrides }) {
   return (
     <section id="puzzles" className="py-14 hairline-b scroll-mt-24">
       <div className="text-center mb-8">
         <h2 className="font-display font-700 text-3xl sm:text-4xl text-ink">Puzzles &amp; Games</h2>
       </div>
       <div className="grid sm:grid-cols-2 gap-6">
-        {GAMES.map(({ slug, title, description, cta, bg, Illustration }) => (
-          <Link
-            key={slug}
-            href={`/${slug}`}
-            className="group flex flex-col items-center justify-between text-center rounded-md p-6 min-h-[280px] transition-transform hover:-translate-y-1"
-            style={{ backgroundColor: bg }}
-          >
-            <div>
-              <h3 className="font-display font-700 text-2xl text-ink">{title}</h3>
-              <p className="font-body text-ink/80 mt-2 max-w-[26ch] mx-auto">{description}</p>
-            </div>
-            <Illustration />
-            <span className="font-sans text-sm font-600 text-ink underline-offset-4 group-hover:underline">
-              {cta} »
-            </span>
-          </Link>
-        ))}
+        {GAMES.map(({ slug, title, description, cta, bg, Illustration }) => {
+          const override = overrides?.[slug];
+          return (
+            <Link
+              key={slug}
+              href={`/${slug}`}
+              className="group flex flex-col items-center justify-between text-center rounded-md p-6 min-h-[280px] transition-transform hover:-translate-y-1"
+              style={{ backgroundColor: bg }}
+            >
+              <div>
+                <h3 className="font-display font-700 text-2xl text-ink">{override?.title || title}</h3>
+                <p className="font-body text-ink/80 mt-2 max-w-[26ch] mx-auto">{override?.description || description}</p>
+              </div>
+              <Illustration />
+              <span className="font-sans text-sm font-600 text-ink underline-offset-4 group-hover:underline">
+                {override?.cta || cta} »
+              </span>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );
