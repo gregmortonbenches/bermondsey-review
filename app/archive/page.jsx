@@ -30,7 +30,10 @@ export default async function ArchivePage({ searchParams }) {
       <ThemeVars />
       <PageViewTracker path="/archive" />
       <Masthead />
-      <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-12 py-8 flex-1">
+      {/* w-full: a direct flex-col child with mx-auto shrink-to-fits its
+          content instead of filling the available width without this —
+          see the matching comment in components/HomePageBody.jsx. */}
+      <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-12 py-8 flex-1 w-full">
         <h2 className="font-display font-700 text-3xl sm:text-4xl text-ink">Archive</h2>
         <p className="font-body text-steel mt-2">
           Every issue of the Review, newest first.

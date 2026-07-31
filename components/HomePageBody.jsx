@@ -60,7 +60,14 @@ export default async function HomePageBody() {
     <main className="bg-paper min-h-screen flex flex-col">
       <ThemeVars />
       <Masthead />
-      <div className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12 flex-1">
+      {/* w-full matters here, not just cosmetic: this div is a direct
+          child of <main>'s flex-col, and `mx-auto` sets auto margins on
+          the cross axis — which disables `align-items: stretch` per the
+          flexbox spec, so without an explicit width the browser falls
+          back to shrink-to-fit sizing based on the content instead of
+          filling the available width, silently rendering everything
+          inside narrower than the masthead/footer above and below it. */}
+      <div className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12 flex-1 w-full">
         {mainSections.map(renderSection)}
       </div>
       {newsletterOn && <Newsletter />}
