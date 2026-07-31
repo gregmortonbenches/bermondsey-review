@@ -276,11 +276,22 @@ Articles, videos, podcasts, and cartoons are now editable through a real
   purpose — it always renders full-bleed at the very bottom regardless
   of its position in the list (see `components/HomePageBody.jsx`), so
   offering a drag handle that silently did nothing would be worse than
-  not offering one. A separate "Preview on mobile/tablet" link covers
-  the device-size check the old split-pane used to handle inline — same
-  pattern as the post/page editors' own Preview links. Autosaves to the
-  same real `page_layouts` table as before. See
-  `components/admin/LayoutCanvas.jsx`.
+  not offering one. Autosaves to the same real `page_layouts` table as
+  before. See `components/admin/LayoutCanvas.jsx`.
+  - **Edit mode vs. Preview.** Since this canvas is the real Masthead,
+    real `PuzzlesSection`, real article cards — actual production
+    components, not editor stand-ins — every link on it is a real
+    `<a href>` (nav items, the puzzle cards, the newsletter's own
+    "Subscribe" anchor). Left alone, clicking any of them does exactly
+    what it does on the live site: navigates away from the layout
+    builder entirely, mid-edit. A single capture-phase click handler on
+    the canvas (`suppressCanvasNavigation`) intercepts and blocks
+    anything routed through an `<a>` tag, while leaving the admin's own
+    controls — drag handle, move, hide/show, the carousel settings gear
+    — untouched, since those are all `<button>`s, never anchors. The
+    **Preview** button in the top bar (opens `/admin/layout/preview` in
+    a new tab) is the real thing, full navigation intact, for actually
+    clicking around as a visitor would.
 - `/admin/posts/new` — a type picker (article/video/podcast/cartoon) with
   plain-language descriptions instead of jargon
 - **A true visual canvas, not a form describing the content.** The

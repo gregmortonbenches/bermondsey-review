@@ -114,6 +114,20 @@ export default function LayoutCanvas({ pageKey, initialSections, sectionContent,
   const statusCopy = { saved: "✓ Saved", unsaved: "Unsaved changes…", saving: "Saving…", error: "Couldn't save" };
   const statusColor = { saved: "text-river", unsaved: "text-steel", saving: "text-steel", error: "text-brick" };
 
+  // This canvas renders the actual Masthead/Footer/PuzzlesSection/etc. —
+  // real production components with real <a href> links (nav items, the
+  // puzzle cards, article links, the newsletter's "Subscribe" anchor),
+  // not editor-specific stand-ins. Without this, clicking any of them
+  // does exactly what it does on the live site: navigates away from the
+  // layout builder entirely. Caught in the capture phase so it runs
+  // before the link's own navigation, and scoped to just anchor clicks
+  // so the admin's own drag/move/hide/settings controls — all <button>s,
+  // never <a>s — are completely unaffected. Real navigation still works
+  // from the "Preview" link below, which opens the actual page.
+  function suppressCanvasNavigation(e) {
+    if (e.target.closest("a")) e.preventDefault();
+  }
+
   // Newsletter always renders last on the real homepage regardless of its
   // position here — it's full-bleed, outside the constrained-width column
   // the other sections share (see components/HomePageBody.jsx) — so it's
@@ -132,16 +146,18 @@ export default function LayoutCanvas({ pageKey, initialSections, sectionContent,
             href="/admin/layout/preview"
             target="_blank"
             rel="noreferrer"
-            className="ml-auto font-sans text-sm text-river hover:text-ink underline underline-offset-4"
+            className="ml-auto font-sans text-sm font-600 bg-river text-paper px-3 py-1.5 rounded-sm hover:bg-ink transition-colors whitespace-nowrap"
           >
-            Preview on mobile/tablet ↗
+            Preview ↗
           </a>
         </div>
       </div>
 
       <p className="font-sans text-xs text-steel text-center py-2.5 bg-river/[0.04] border-b border-steel/10">
-        This is the actual homepage. Hover a section for its controls, or untick one to hide it —
-        nothing is deleted, just switched off.
+        This is the actual homepage, in <strong className="text-ink">edit mode</strong> — hover a
+        section for its controls, untick one to hide it (nothing is deleted, just switched off),
+        and links here won't navigate away. To click around it as a real visitor would, use{" "}
+        <strong className="text-ink">Preview</strong> above.
       </p>
 
       {/* Scoped to .theme-canvas rather than :root (see the scope prop on
@@ -149,7 +165,7 @@ export default function LayoutCanvas({ pageKey, initialSections, sectionContent,
           leaking into the surrounding admin sidebar's own use of the same
           --color-brick/--color-river variables (its active-link colour,
           for one). */}
-      <div className="theme-canvas flex flex-col flex-1">
+      <div className="theme-canvas flex flex-col flex-1" onClickCapture={suppressCanvasNavigation}>
         {themeVars}
         {masthead}
 
