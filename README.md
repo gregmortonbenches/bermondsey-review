@@ -142,6 +142,32 @@ Articles, videos, podcasts, and cartoons are now editable through a real
   reimplementing the same fallback logic. Resets automatically whenever
   the cover image itself is replaced, since a new photo's subject is
   essentially never in the same spot as the old one's.
+- **A dedicated Cartoons section, New Yorker–style.** Cartoons used to be
+  a post `type` mixed into the same flow as everything else — eligible
+  for the homepage's Featured slot, the Article Carousel, and the
+  Archive listing, sitting next to headline-and-dek rows built for
+  text-first pieces. `components/CartoonsSection.jsx` is a new homepage
+  section (`lib/sections.js`) showing cartoons large, in their own row,
+  near the bottom of the page — `HomePageBody.jsx` and the admin's
+  `app/admin/(dashboard)/layout/page.jsx` both split `type === "cartoon"`
+  posts out before computing Featured/Carousel, so a cartoon can't also
+  turn up in either; `app/archive/page.jsx` excludes them from the
+  archive listing outright (and its category-pill filter dropped the
+  "Cartoon" pill, which never actually matched anything — cartoons are a
+  post *type*, not a *category*, so that filter compared the wrong
+  field). Each cartoon keeps its own full page — the same `PostRenderer`
+  every other post uses — and gets a small share button (copies a direct
+  link to that page) right on its homepage card, the New Yorker's own
+  pattern for a cartoon shown on a listing page. The masthead's
+  "Cartoons" nav link now points at `/#cartoons` instead of the archive
+  category filter that never worked. Worth knowing: a site whose
+  homepage layout was already saved before this section existed won't
+  have a "cartoons" entry in its stored `page_layouts` row —
+  `lib/layout.js`'s `withCartoonsSection` injects one (enabled, right
+  before Newsletter) automatically rather than requiring a manual fix
+  through the layout builder; the equivalent nav link, though, lives in
+  `site_settings` and *is* just admin-editable data, so an already-saved
+  custom nav list needs its "Cartoons" href updated by hand in `/admin/site`.
 - **A real 404 page, and richer "nothing here yet" states.** A broken or
   outdated link used to hit Next's bare default 404 — unstyled, no
   masthead, reads as the site being broken rather than one link being

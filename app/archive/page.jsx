@@ -6,7 +6,7 @@ import ThemeVars from "@/components/ThemeVars";
 import { createClient } from "@/lib/supabase/public";
 import { getPublishedPosts } from "@/lib/posts";
 
-const CATEGORIES = ["All", "Bermondsey", "Books", "Film", "Culture", "Cartoon"];
+const CATEGORIES = ["All", "Bermondsey", "Books", "Film", "Culture"];
 
 // Reads ?category= from the URL so the pill filter below is a real link,
 // not client-side state — keeps this page a plain server component.
@@ -17,7 +17,9 @@ export default async function ArchivePage({ searchParams }) {
   let posts = [];
   try {
     const supabase = await createClient();
-    posts = await getPublishedPosts(supabase);
+    // Cartoons get their own homepage section (components/CartoonsSection.jsx)
+    // rather than showing up in the archive list.
+    posts = (await getPublishedPosts(supabase)).filter((p) => p.type !== "cartoon");
   } catch {
     posts = [];
   }

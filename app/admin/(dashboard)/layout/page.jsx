@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import ThemeVars from "@/components/ThemeVars";
 import ArticleCard from "@/components/ArticleCard";
 import Newsletter from "@/components/Newsletter";
+import CartoonsSection from "@/components/CartoonsSection";
 import LayoutCanvas from "@/components/admin/LayoutCanvas";
 
 export default async function AdminLayoutPage() {
@@ -28,7 +29,9 @@ export default async function AdminLayoutPage() {
     getPageLayout(supabase, "home"),
     getPublishedPosts(supabase).catch(() => []),
   ]);
-  const [featured, ...rest] = posts;
+  const cartoons = posts.filter((p) => p.type === "cartoon");
+  const articlePosts = posts.filter((p) => p.type !== "cartoon");
+  const [featured, ...rest] = articlePosts;
 
   // Real content for each section type, rendered server-side (these are
   // Server Components — LayoutCanvas, a Client Component, can't import
@@ -48,6 +51,7 @@ export default async function AdminLayoutPage() {
       </section>
     ),
     newsletter: <Newsletter />,
+    cartoons: <CartoonsSection cartoons={cartoons} />,
   };
 
   return (

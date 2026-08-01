@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
 import PuzzlesSection from "@/components/PuzzlesSection";
 import ArticleCarousel from "@/components/ArticleCarousel";
+import CartoonsSection from "@/components/CartoonsSection";
 import Newsletter from "@/components/Newsletter";
 import ThemeVars from "@/components/ThemeVars";
 import { createClient } from "@/lib/supabase/public";
@@ -22,7 +23,11 @@ export default async function HomePageBody() {
     layout = DEFAULT_HOME_SECTIONS;
   }
 
-  const [featured, ...rest] = posts;
+  // Cartoons get their own section (see CartoonsSection.jsx) rather than
+  // competing for the Featured slot or turning up in the Carousel.
+  const cartoons = posts.filter((p) => p.type === "cartoon");
+  const articlePosts = posts.filter((p) => p.type !== "cartoon");
+  const [featured, ...rest] = articlePosts;
 
   const enabled = layout.filter((s) => s.enabled);
   const newsletterOn = enabled.some((s) => s.type === "newsletter");
@@ -56,6 +61,8 @@ export default async function HomePageBody() {
             desktopCount={section.desktopCount}
           />
         );
+      case "cartoons":
+        return <CartoonsSection key={section.id} cartoons={cartoons} />;
       default:
         return null;
     }
