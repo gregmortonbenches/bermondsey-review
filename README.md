@@ -9,7 +9,9 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
 - `app/page.jsx` — homepage (featured article, "from this issue" extras, article list, newsletter band)
 - `app/archive/page.jsx` — full archive, reverse-chronological, filterable by category
 - `app/article/[slug]/page.jsx` — individual article page
-- `app/crossword`, `app/geoguesser` — stub pages, built out in phase 2
+- `app/crossword` — still a stub page, not built yet
+- `app/geoguesser` — "Guess the Spot," a real game now — see the entry
+  further down under "What you get"
 - `components/Masthead.jsx` — header: centred serif wordmark, then a centred nav row under its own hairline
 - `components/CoverArt.jsx` — placeholder line-illustration "covers" per category, swap for real images later
 - `lib/articles.js` — mock article data, shaped to match the future `articles` table so swapping in real data is mostly a search-and-replace
@@ -187,6 +189,44 @@ Articles, videos, podcasts, and cartoons are now editable through a real
   most of static rendering's caching benefit while making the admin
   feel like it's actually in control of the live site, rather than every
   edit needing "wait for the next deploy" as an unstated caveat.
+- **"Guess the Spot" is a real game now**, not the "coming in phase 2"
+  placeholder it shipped as. One round at a time, like the crossword —
+  a photo, an optional hint, and a real interactive map
+  ([Leaflet](https://leafletjs.com) + OpenStreetMap tiles, no API key or
+  paid map provider needed) to click a guess on. Publishing a new round
+  in `/admin/geoguesser` automatically supersedes the last one —
+  `lib/geoguesser.js`'s `getCurrentRound` just takes the most recently
+  created row, so there's no separate "is this the current one" flag to
+  manage, the same reasoning as the crossword's own `issues` table
+  linking to whichever `crosswords` row is current.
+  - `supabase/schema.sql`'s new `geoguesser_rounds` table stores the
+    photo, an optional hint and location name (revealed only after a
+    guess), and the correct `lat`/`lng`. **Existing installs need to run
+    the new `create table`/RLS block by hand** — see the comment right
+    above the table in schema.sql.
+  - The correct coordinates never reach the browser on page load —
+    `app/geoguesser/page.jsx` only ever passes the photo/hint down to
+    `components/GeoguesserGame.jsx`; a guess is scored by posting to
+    `app/api/geoguesser/guess/route.js`, which resolves the answer
+    server-side and returns just the distance and the reveal. Not
+    airtight (the `geoguesser_rounds` table is still openly readable via
+    Supabase's REST API, same as `redirects`/`forms`/etc.), but it
+    stops the actually-likely case — a casual view-source — for a free
+    community puzzle where that's the realistic bar, not a determined
+    attacker.
+  - `components/GeoMap.jsx` is the one Leaflet wrapper shared by both
+    the public game (click to guess) and the admin's round editor
+    (click to set the answer) — coloured-dot markers (river for a
+    guess, brick for the correct spot) instead of Leaflet's default pin
+    icon, which references relative image paths that break once
+    bundled; dynamically imported with `ssr: false` everywhere it's
+    used, since Leaflet needs a real DOM.
+  - `/admin/geoguesser` follows the same list-then-edit pattern as
+    Forms — `components/admin/GeoguesserRoundForm.jsx` autosaves like
+    every other editor in this admin, with the same delete-through-
+    `ConfirmDialog` pattern, and won't let you save without both a photo
+    and a correct spot set (`correct_lat`/`correct_lng` are `not null`
+    columns).
 - **A real 404 page, and richer "nothing here yet" states.** A broken or
   outdated link used to hit Next's bare default 404 — unstyled, no
   masthead, reads as the site being broken rather than one link being

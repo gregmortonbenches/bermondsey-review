@@ -159,6 +159,33 @@ create table issues (
   created_at timestamptz not null default now()
 );
 
+-- "Guess the Spot": one photo, one correct location, played on a map.
+-- One puzzle at a time, like the crossword — the most recently created
+-- row is "the current round" (see getCurrentRound in lib/geoguesser.js),
+-- so publishing a new one supersedes the last automatically rather than
+-- needing a separate "is this the current one" flag. Older rows stay
+-- around as history rather than being deleted, same as everything else
+-- in this admin. correct_lat/correct_lng are never sent to the public
+-- page directly — a visitor's guess is scored server-side (see
+-- app/api/geoguesser/guess/route.js), so the answer never sits in the
+-- page's own HTML/JS for anyone to view-source.
+create table geoguesser_rounds (
+  id uuid primary key default gen_random_uuid(),
+  photo_url text not null,
+  photo_alt text,
+  location_name text,        -- revealed after a guess, e.g. "Shad Thames"
+  hint text,                 -- optional, shown before guessing
+  correct_lat numeric not null,
+  correct_lng numeric not null,
+  created_at timestamptz not null default now()
+);
+
+-- Existing installs: this is a brand new table, so there's no `alter
+-- table` needed — just run this `create table geoguesser_rounds (...)`
+-- block above, plus `alter table geoguesser_rounds enable row level
+-- security;` and the four `create policy ... on geoguesser_rounds`
+-- statements further down this file, in the Supabase SQL editor.
+
 -- Drives the visual page-layout builder: which sections appear on a
 -- page, in what order, and whether each is switched on. `sections` is
 -- an ordered JSON array, e.g.
@@ -393,16 +420,17 @@ alter table page_views enable row level security;
 alter table site_settings enable row level security;
 alter table forms enable row level security;
 alter table form_submissions enable row level security;
+alter table geoguesser_rounds enable row level security;
 
 -- crosswords/issues have no policies yet (deliberately) — no page reads
--- or writes them today (/crossword and /geoguesser are still "coming in
--- phase 2" placeholders, see app/crossword/page.jsx), so there's no real
--- access pattern to design policies around yet. RLS-enabled-with-no-
--- policies locks both tables to service_role only in the meantime,
--- rather than leaving them world-readable/writable through the public
--- REST API by default (Supabase's PostgREST layer exposes every table
--- to the anon/authenticated keys unless RLS says otherwise — an empty
--- policy list is a deny-all, not a no-op).
+-- or writes them today (/crossword is still a "coming in phase 2"
+-- placeholder, see app/crossword/page.jsx), so there's no real access
+-- pattern to design policies around yet. RLS-enabled-with-no-policies
+-- locks both tables to service_role only in the meantime, rather than
+-- leaving them world-readable/writable through the public REST API by
+-- default (Supabase's PostgREST layer exposes every table to the
+-- anon/authenticated keys unless RLS says otherwise — an empty policy
+-- list is a deny-all, not a no-op).
 alter table crosswords enable row level security;
 alter table issues enable row level security;
 
@@ -538,6 +566,29 @@ using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'))
 
 create policy "Admins can delete redirects"
 on redirects for delete
+to authenticated
+using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
+
+-- Guess the Spot rounds need to be readable by anonymous visitors (the
+-- public /geoguesser page reads the current round), but only admins can
+-- publish or edit one — same shape as redirects above.
+create policy "Public can read geoguesser rounds"
+on geoguesser_rounds for select
+to anon, authenticated
+using (true);
+
+create policy "Admins can create geoguesser rounds"
+on geoguesser_rounds for insert
+to authenticated
+with check (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
+
+create policy "Admins can update geoguesser rounds"
+on geoguesser_rounds for update
+to authenticated
+using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
+
+create policy "Admins can delete geoguesser rounds"
+on geoguesser_rounds for delete
 to authenticated
 using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
 

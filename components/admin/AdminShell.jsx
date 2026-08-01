@@ -22,6 +22,7 @@ const SECTIONS = [
     adminOnly: true,
     items: [
       { href: "/admin/forms", label: "Forms", adminOnly: true },
+      { href: "/admin/geoguesser", label: "Guess the Spot", adminOnly: true },
       { href: "/admin/analytics", label: "Analytics", adminOnly: true },
       { href: "/admin/redirects", label: "Redirects", adminOnly: true },
     ],

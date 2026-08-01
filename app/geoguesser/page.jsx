@@ -1,20 +1,56 @@
 import Masthead from "@/components/Masthead";
 import Footer from "@/components/Footer";
 import ThemeVars from "@/components/ThemeVars";
+import PageViewTracker from "@/components/PageViewTracker";
+import GeoguesserGame from "@/components/GeoguesserGame";
+import { createClient } from "@/lib/supabase/public";
+import { getCurrentRound } from "@/lib/geoguesser";
 
-export default function GeoGuesserPage() {
+export const metadata = {
+  title: "Guess the Spot — The Bermondsey Review",
+};
+
+export default async function GeoGuesserPage() {
+  let round = null;
+  try {
+    const supabase = await createClient();
+    round = await getCurrentRound(supabase);
+  } catch {
+    round = null;
+  }
+
   return (
     <main className="bg-paper min-h-screen flex flex-col">
       <ThemeVars />
+      <PageViewTracker path="/geoguesser" />
       <Masthead />
       {/* w-full: a direct flex-col child with mx-auto shrink-to-fits its
           content instead of filling the available width without this —
           see the matching comment in components/HomePageBody.jsx. */}
-      <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-12 py-16 text-center flex-1 w-full">
-        <h1 className="font-display font-700 text-3xl text-ink">Guess the Spot</h1>
-        <p className="font-body text-steel mt-3">
-          Coming in phase 2, once the article system is live — see the tech plan's build order.
+      <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-12 py-10 flex-1 w-full">
+        <h1 className="font-display font-700 text-3xl sm:text-4xl text-ink">Guess the Spot</h1>
+        <p className="font-body text-steel mt-2 mb-8">
+          A photo from around SE16 — click the map where you think it was taken.
         </p>
+
+        {round ? (
+          // Only the fields the game actually needs — never
+          // correct_lat/correct_lng, which stay server-side and get
+          // resolved by the scoring API route instead. See
+          // app/api/geoguesser/guess/route.js.
+          <GeoguesserGame
+            round={{
+              id: round.id,
+              photo_url: round.photo_url,
+              photo_alt: round.photo_alt,
+              hint: round.hint,
+            }}
+          />
+        ) : (
+          <p className="font-body text-steel py-8 text-center border-t border-steel/20">
+            No round published yet — check back soon.
+          </p>
+        )}
       </div>
       <Footer />
     </main>
