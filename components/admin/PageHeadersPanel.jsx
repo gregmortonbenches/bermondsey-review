@@ -18,7 +18,7 @@ const AUTOSAVE_DELAY_MS = 1200;
 // more of these pages get built out, e.g. the Crossword once it exists.
 const PAGE_COPY_TARGETS = [
   { key: "archive", label: "Archive", path: "/archive" },
-  { key: "geoguesser", label: "Guess the Spot", path: "/geoguesser" },
+  { key: "geoguesser", label: "Bermy on the Map, SE1", path: "/geoguesser" },
 ];
 
 export default function PageHeadersPanel({ initialPageCopy }) {

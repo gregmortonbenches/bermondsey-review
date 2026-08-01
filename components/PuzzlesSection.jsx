@@ -39,7 +39,7 @@ const GAMES = [
   },
   {
     slug: "geoguesser",
-    title: "Guess the Spot",
+    title: "Bermy on the Map, SE1",
     description: "Five photos from around SE16. How many can you place?",
     cta: "Play today's round",
     bg: "color-mix(in srgb, var(--color-brick, #9C6B42) 55%, white)",

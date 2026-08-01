@@ -12,7 +12,7 @@ export default async function AdminGeoguesserPage() {
   if (role !== "admin") {
     return (
       <div className="min-h-screen bg-paper flex items-center justify-center px-4">
-        <p className="font-sans text-sm text-steel">Guess the Spot rounds are visible to admins only.</p>
+        <p className="font-sans text-sm text-steel">Bermy on the Map rounds are visible to admins only.</p>
       </div>
     );
   }
@@ -24,7 +24,7 @@ export default async function AdminGeoguesserPage() {
       <div className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12 py-8">
         <div className="flex items-center justify-between flex-wrap gap-4 mb-8">
           <div>
-            <h1 className="font-display font-700 text-3xl text-ink">Guess the Spot</h1>
+            <h1 className="font-display font-700 text-3xl text-ink">Bermy on the Map, SE1</h1>
             <p className="font-sans text-sm text-steel mt-1">
               One round is live at a time — the most recently published one below. Older rounds stay
               here as history.

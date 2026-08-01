@@ -302,7 +302,7 @@ function SectionSlot({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const hasSettings = section.type === "carousel" || section.type === "puzzles";
   const settingsTitle =
-    section.type === "carousel" ? "How many articles show at once, mobile vs desktop" : "Edit the crossword/Guess the Spot card text";
+    section.type === "carousel" ? "How many articles show at once, mobile vs desktop" : "Edit the crossword/Bermy on the Map card text";
 
   return (
     <div
@@ -378,7 +378,7 @@ function SectionSlot({
             onChange={(crossword) => onUpdateSection({ crossword })}
           />
           <PuzzleCardFields
-            label="Guess the Spot card"
+            label="Bermy on the Map card"
             values={section.geoguesser}
             defaults={PUZZLE_DEFAULTS.geoguesser}
             onChange={(geoguesser) => onUpdateSection({ geoguesser })}

@@ -8,7 +8,7 @@ import { getCurrentRound } from "@/lib/geoguesser";
 import { getSiteSettingsSafe, DEFAULT_SITE_SETTINGS } from "@/lib/theme";
 
 export const metadata = {
-  title: "Guess the Spot — The Bermondsey Review",
+  title: "Bermy on the Map, SE1 — The Bermondsey Review",
 };
 
 export default async function GeoGuesserPage() {
