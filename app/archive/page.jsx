@@ -5,6 +5,7 @@ import PageViewTracker from "@/components/PageViewTracker";
 import ThemeVars from "@/components/ThemeVars";
 import { createClient } from "@/lib/supabase/public";
 import { getPublishedPosts } from "@/lib/posts";
+import { getSiteSettingsSafe, DEFAULT_SITE_SETTINGS } from "@/lib/theme";
 
 const CATEGORIES = ["All", "Bermondsey", "Books", "Film", "Culture"];
 
@@ -15,11 +16,17 @@ export default async function ArchivePage({ searchParams }) {
   const activeCategory = params?.category || "All";
 
   let posts = [];
+  let copy = DEFAULT_SITE_SETTINGS.page_copy.archive;
   try {
     const supabase = await createClient();
     // Cartoons get their own homepage section (components/CartoonsSection.jsx)
     // rather than showing up in the archive list.
-    posts = (await getPublishedPosts(supabase)).filter((p) => p.type !== "cartoon");
+    const [allPosts, settings] = await Promise.all([
+      getPublishedPosts(supabase),
+      getSiteSettingsSafe(supabase),
+    ]);
+    posts = allPosts.filter((p) => p.type !== "cartoon");
+    copy = settings.page_copy?.archive || copy;
   } catch {
     posts = [];
   }
@@ -36,10 +43,8 @@ export default async function ArchivePage({ searchParams }) {
           content instead of filling the available width without this —
           see the matching comment in components/HomePageBody.jsx. */}
       <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-12 py-8 flex-1 w-full">
-        <h2 className="font-display font-700 text-3xl sm:text-4xl text-ink">Archive</h2>
-        <p className="font-body text-steel mt-2">
-          Every issue of the Review, newest first.
-        </p>
+        <h2 className="font-display font-700 text-3xl sm:text-4xl text-ink">{copy.title}</h2>
+        <p className="font-body text-steel mt-2">{copy.description}</p>
 
         <div className="flex flex-wrap gap-2 mt-6 mb-2">
           {CATEGORIES.map((cat) => (

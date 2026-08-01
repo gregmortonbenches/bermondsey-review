@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getPageLayout } from "@/lib/layout";
 import { getCurrentUserRole } from "@/lib/profile";
 import { getPublishedPosts } from "@/lib/posts";
+import { getSiteSettingsSafe } from "@/lib/theme";
 import Masthead from "@/components/Masthead";
 import Footer from "@/components/Footer";
 import ThemeVars from "@/components/ThemeVars";
@@ -9,6 +10,7 @@ import ArticleCard from "@/components/ArticleCard";
 import Newsletter from "@/components/Newsletter";
 import CartoonsSection from "@/components/CartoonsSection";
 import LayoutCanvas from "@/components/admin/LayoutCanvas";
+import PageHeadersPanel from "@/components/admin/PageHeadersPanel";
 
 export default async function AdminLayoutPage() {
   const supabase = await createClient();
@@ -25,9 +27,10 @@ export default async function AdminLayoutPage() {
     );
   }
 
-  const [sections, posts] = await Promise.all([
+  const [sections, posts, settings] = await Promise.all([
     getPageLayout(supabase, "home"),
     getPublishedPosts(supabase).catch(() => []),
+    getSiteSettingsSafe(supabase),
   ]);
   const cartoons = posts.filter((p) => p.type === "cartoon");
   const articlePosts = posts.filter((p) => p.type !== "cartoon");
@@ -55,14 +58,17 @@ export default async function AdminLayoutPage() {
   };
 
   return (
-    <LayoutCanvas
-      pageKey="home"
-      initialSections={sections}
-      sectionContent={sectionContent}
-      carouselArticles={rest}
-      masthead={<Masthead />}
-      footer={<Footer />}
-      themeVars={<ThemeVars scope=".theme-canvas" />}
-    />
+    <>
+      <PageHeadersPanel initialPageCopy={settings.page_copy} />
+      <LayoutCanvas
+        pageKey="home"
+        initialSections={sections}
+        sectionContent={sectionContent}
+        carouselArticles={rest}
+        masthead={<Masthead />}
+        footer={<Footer />}
+        themeVars={<ThemeVars scope=".theme-canvas" />}
+      />
+    </>
   );
 }

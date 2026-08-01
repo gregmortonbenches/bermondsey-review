@@ -302,6 +302,12 @@ create table site_settings (
   -- left blank simply isn't rendered as an icon in the footer.
   social_links jsonb not null default '{}'::jsonb,
   footer_text text,
+  -- { "archive": { "title": "...", "description": "..." }, "geoguesser":
+  -- {...} } — the heading + one-line description for standalone pages
+  -- that aren't a posts/pages row (see PAGE_COPY_TARGETS in
+  -- components/admin/SiteSettingsEditor.jsx and DEFAULT_SITE_SETTINGS.page_copy
+  -- in lib/theme.js for the defaults a missing/blank key falls back to).
+  page_copy jsonb not null default '{}'::jsonb,
   updated_at timestamptz not null default now()
 );
 
@@ -316,6 +322,10 @@ insert into site_settings (id) values (true) on conflict (id) do nothing;
 --     add column if not exists nav_links jsonb not null default '[]'::jsonb,
 --     add column if not exists social_links jsonb not null default '{}'::jsonb,
 --     add column if not exists footer_text text;
+
+-- Existing installs: run this once to add page_copy without losing
+-- anything else already written.
+--   alter table site_settings add column if not exists page_copy jsonb not null default '{}'::jsonb;
 
 -- Standalone pages (About, Contact, etc.) — not part of the fortnightly
 -- issue cycle the way posts are, so they get their own table rather than

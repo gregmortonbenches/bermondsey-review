@@ -194,7 +194,7 @@ export default function SiteSettingsEditor({ initialSettings }) {
               to a page, an external URL, or a section of the homepage (e.g. <code>/#puzzles</code>)
               — grab the exact link for any section from its "Copy link" control in{" "}
               <a href="/admin/layout" className="underline underline-offset-4 hover:text-river">
-                Homepage layout
+                Layout
               </a>
               .
             </p>

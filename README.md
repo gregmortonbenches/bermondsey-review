@@ -227,6 +227,27 @@ Articles, videos, podcasts, and cartoons are now editable through a real
     `ConfirmDialog` pattern, and won't let you save without both a photo
     and a correct spot set (`correct_lat`/`correct_lng` are `not null`
     columns).
+- **Standalone pages (Archive, Guess the Spot) now have editable
+  headers too** — a real gap noticed right after Guess the Spot
+  shipped: the CMS's admin-editable-content story was really only
+  "posts/pages, plus whatever's on the homepage," and every other
+  fixed-URL page (Archive's heading, Guess the Spot's) had its title and
+  description hardcoded straight in the page's own JSX, no editing
+  surface anywhere. `site_settings.page_copy` (a new jsonb column) holds
+  `{ archive: { title, description }, geoguesser: {...} }`, with
+  `DEFAULT_SITE_SETTINGS.page_copy` in `lib/theme.js` supplying the
+  fallback each page already had before this existed — an unconfigured
+  site looks identical either way. `app/archive/page.jsx` and
+  `app/geoguesser/page.jsx` both now read from it instead of a literal
+  string. Editable from **`components/admin/PageHeadersPanel.jsx`**, a
+  small autosaving panel — deliberately *not* folded into the "Site"
+  settings screen (identity and navigation: title, logo, nav links,
+  footer) or the homepage's own section canvas (`LayoutCanvas.jsx`,
+  which is specifically about homepage sections, not other pages) —
+  instead rendered above the homepage canvas on the same `/admin/layout`
+  route, under an "Other pages" heading of its own. The sidebar's nav
+  label changed from "Homepage layout" to plain "Layout" to match — that
+  route now covers more than just the homepage.
 - **A real 404 page, and richer "nothing here yet" states.** A broken or
   outdated link used to hit Next's bare default 404 — unstyled, no
   masthead, reads as the site being broken rather than one link being
