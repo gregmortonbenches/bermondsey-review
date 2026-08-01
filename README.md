@@ -168,6 +168,25 @@ Articles, videos, podcasts, and cartoons are now editable through a real
   through the layout builder; the equivalent nav link, though, lives in
   `site_settings` and *is* just admin-editable data, so an already-saved
   custom nav list needs its "Cartoons" href updated by hand in `/admin/site`.
+- **A real, previously-silent bug: admin edits not showing up on the live
+  site without a code deploy.** Found while testing the Cartoons nav
+  link above — changing it in `/admin/site` didn't take effect. Root
+  cause: nothing in the app ever told Next.js to regenerate a
+  statically-rendered page (the homepage, the archive, an
+  already-known article/page slug — anything not forced dynamic by
+  reading `cookies()`, which every admin route already does). Those
+  pages were generated once at build/deploy time and served from that
+  cache indefinitely — editing site settings, an existing post's body,
+  or the homepage layout updates Supabase immediately, but none of it
+  would show up on the live site until the *next* code deploy, which
+  isn't how a CMS should work. `export const revalidate = 60` in
+  `app/layout.jsx` fixes this for every route at once (a layout's
+  `revalidate` applies to everything under it) — admin routes are
+  unaffected since they're already fully dynamic, so this only touches
+  the routes that were silently stuck on stale data. 60 seconds keeps
+  most of static rendering's caching benefit while making the admin
+  feel like it's actually in control of the live site, rather than every
+  edit needing "wait for the next deploy" as an unstated caveat.
 - **A real 404 page, and richer "nothing here yet" states.** A broken or
   outdated link used to hit Next's bare default 404 — unstyled, no
   masthead, reads as the site being broken rather than one link being
