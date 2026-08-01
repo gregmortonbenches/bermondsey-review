@@ -11,6 +11,7 @@ import CarouselCountControl from "./CarouselCountControl";
 import { MOBILE_ITEM_COUNT_OPTIONS, DESKTOP_ITEM_COUNT_OPTIONS } from "@/lib/carouselLayout";
 import { GripIcon, ChevronUpIcon, ChevronDownIcon, GearIcon } from "./icons";
 import { useReorderSensors } from "./dnd";
+import { suppressCanvasNavigation } from "./canvasNav";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy, arrayMove, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -116,20 +117,6 @@ export default function LayoutCanvas({ pageKey, initialSections, sectionContent,
 
   const statusCopy = { saved: "✓ Saved", unsaved: "Unsaved changes…", saving: "Saving…", error: "Couldn't save" };
   const statusColor = { saved: "text-river", unsaved: "text-steel", saving: "text-steel", error: "text-brick" };
-
-  // This canvas renders the actual Masthead/Footer/PuzzlesSection/etc. —
-  // real production components with real <a href> links (nav items, the
-  // puzzle cards, article links, the newsletter's "Subscribe" anchor),
-  // not editor-specific stand-ins. Without this, clicking any of them
-  // does exactly what it does on the live site: navigates away from the
-  // layout builder entirely. Caught in the capture phase so it runs
-  // before the link's own navigation, and scoped to just anchor clicks
-  // so the admin's own drag/move/hide/settings controls — all <button>s,
-  // never <a>s — are completely unaffected. Real navigation still works
-  // from the "Preview" link below, which opens the actual page.
-  function suppressCanvasNavigation(e) {
-    if (e.target.closest("a")) e.preventDefault();
-  }
 
   // Newsletter always renders last on the real homepage regardless of its
   // position here — it's full-bleed, outside the constrained-width column

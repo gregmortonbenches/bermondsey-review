@@ -227,27 +227,58 @@ Articles, videos, podcasts, and cartoons are now editable through a real
     `ConfirmDialog` pattern, and won't let you save without both a photo
     and a correct spot set (`correct_lat`/`correct_lng` are `not null`
     columns).
-- **Standalone pages (Archive, Guess the Spot) now have editable
-  headers too** — a real gap noticed right after Guess the Spot
-  shipped: the CMS's admin-editable-content story was really only
-  "posts/pages, plus whatever's on the homepage," and every other
-  fixed-URL page (Archive's heading, Guess the Spot's) had its title and
-  description hardcoded straight in the page's own JSX, no editing
-  surface anywhere. `site_settings.page_copy` (a new jsonb column) holds
-  `{ archive: { title, description }, geoguesser: {...} }`, with
+- **`/admin/layout` is a tabbed, whole-site true canvas, not just the
+  homepage's.** Two rounds of the same underlying gap: the CMS's
+  admin-editable-content story was really only "posts/pages, plus
+  whatever's on the homepage" — Archive's heading, Guess the Spot's,
+  had no editing surface anywhere, hardcoded straight in each page's own
+  JSX. A first pass added `site_settings.page_copy` (a new jsonb column
+  — `{ archive: { title, description }, geoguesser: {...} }`, with
   `DEFAULT_SITE_SETTINGS.page_copy` in `lib/theme.js` supplying the
-  fallback each page already had before this existed — an unconfigured
-  site looks identical either way. `app/archive/page.jsx` and
-  `app/geoguesser/page.jsx` both now read from it instead of a literal
-  string. Editable from **`components/admin/PageHeadersPanel.jsx`**, a
-  small autosaving panel — deliberately *not* folded into the "Site"
-  settings screen (identity and navigation: title, logo, nav links,
-  footer) or the homepage's own section canvas (`LayoutCanvas.jsx`,
-  which is specifically about homepage sections, not other pages) —
-  instead rendered above the homepage canvas on the same `/admin/layout`
-  route, under an "Other pages" heading of its own. The sidebar's nav
-  label changed from "Homepage layout" to plain "Layout" to match — that
-  route now covers more than just the homepage.
+  fallback each page already had, so an unconfigured site looks
+  identical) and a small form above the homepage canvas to edit it. That
+  form broke the site's own "click what you see" rule everywhere else
+  — so it moved into a real per-page canvas instead:
+  - `components/admin/AdminLayoutTabs.jsx` is `/admin/layout`'s outer
+    shell now — a Home / Archive / Guess the Spot tab strip. Home
+    renders the existing `LayoutCanvas.jsx` (reorderable sections)
+    unchanged; Archive and Guess the Spot — pages with no sections of
+    their own, just a heading and description — get
+    `components/admin/PageCopyEditCanvas.jsx`, a lighter true canvas:
+    the real Masthead/Footer for context, and the heading/description as
+    actual `<input>`/`<textarea>` styled to match the real heading (same
+    device PostForm's title/dek fields already use), plus read-only
+    context below it (Archive's real post list, Guess the Spot's current
+    round photo) — editing an individual post or round still happens on
+    its own screen. `page_copy`'s autosave lives in `AdminLayoutTabs`
+    rather than each canvas, since Archive's and Guess the Spot's copy
+    share one jsonb column — saving one page's slice without resending
+    the other's would silently wipe it (a plain column update replaces
+    the whole value, it doesn't merge).
+  - `components/ArchiveBody.jsx` and `components/GeoguesserBody.jsx` are
+    new — `app/archive/page.jsx` and `app/geoguesser/page.jsx` were
+    split the same way `app/page.jsx`/`components/HomePageBody.jsx`
+    already were, so the real route and a new preview frame
+    (`app/admin/layout/preview/archive-frame`,
+    `.../geoguesser-frame`) render the exact same component rather than
+    two implementations that could drift. `app/admin/layout/preview/page.jsx`
+    gained a matching tab strip so "Preview" from any of the three edit
+    canvases opens straight to the right one (`?tab=`) without losing
+    your chosen device size.
+  - `components/admin/canvasNav.js`: the click-suppression that keeps a
+    canvas's real links (masthead nav, article links) from navigating
+    you away — previously duplicated inside `LayoutCanvas.jsx` — is now
+    shared by all three canvases. Gained one escape hatch,
+    `data-canvas-allow`, for the one legitimate exception: a link from
+    inside a canvas to a *different admin screen* (Guess the Spot's
+    round preview links to `/admin/geoguesser` to manage rounds) —
+    without it, that link would be permanently unreachable from inside
+    the canvas that displays it.
+  - The sidebar's nav label changed from "Homepage layout" to plain
+    "Layout" to match — that route covers more than just the homepage
+    now. Colours, fonts, and the masthead/logo stay out of every one of
+    these canvases on purpose — they're still Design's and Site's job,
+    shown read-only here for context, not editable in place.
 - **A real 404 page, and richer "nothing here yet" states.** A broken or
   outdated link used to hit Next's bare default 404 — unstyled, no
   masthead, reads as the site being broken rather than one link being

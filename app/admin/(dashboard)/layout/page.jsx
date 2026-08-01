@@ -1,16 +1,17 @@
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { getPageLayout } from "@/lib/layout";
 import { getCurrentUserRole } from "@/lib/profile";
 import { getPublishedPosts } from "@/lib/posts";
-import { getSiteSettingsSafe } from "@/lib/theme";
+import { getCurrentRound } from "@/lib/geoguesser";
+import { getSiteSettingsSafe, DEFAULT_SITE_SETTINGS } from "@/lib/theme";
 import Masthead from "@/components/Masthead";
 import Footer from "@/components/Footer";
 import ThemeVars from "@/components/ThemeVars";
 import ArticleCard from "@/components/ArticleCard";
 import Newsletter from "@/components/Newsletter";
 import CartoonsSection from "@/components/CartoonsSection";
-import LayoutCanvas from "@/components/admin/LayoutCanvas";
-import PageHeadersPanel from "@/components/admin/PageHeadersPanel";
+import AdminLayoutTabs from "@/components/admin/AdminLayoutTabs";
 
 export default async function AdminLayoutPage() {
   const supabase = await createClient();
@@ -27,14 +28,16 @@ export default async function AdminLayoutPage() {
     );
   }
 
-  const [sections, posts, settings] = await Promise.all([
+  const [sections, posts, settings, currentRound] = await Promise.all([
     getPageLayout(supabase, "home"),
     getPublishedPosts(supabase).catch(() => []),
     getSiteSettingsSafe(supabase),
+    getCurrentRound(supabase).catch(() => null),
   ]);
   const cartoons = posts.filter((p) => p.type === "cartoon");
   const articlePosts = posts.filter((p) => p.type !== "cartoon");
   const [featured, ...rest] = articlePosts;
+  const pageCopy = { ...DEFAULT_SITE_SETTINGS.page_copy, ...settings.page_copy };
 
   // Real content for each section type, rendered server-side (these are
   // Server Components — LayoutCanvas, a Client Component, can't import
@@ -57,18 +60,69 @@ export default async function AdminLayoutPage() {
     cartoons: <CartoonsSection cartoons={cartoons} />,
   };
 
+  // Read-only context shown below Archive's/Guess the Spot's own
+  // editable heading — the actual post list, the actual current round's
+  // photo — same "true canvas" reasoning as the homepage sections above,
+  // scaled down: there's nothing to reorder or configure here, just
+  // content worth seeing while you edit the copy above it. Editing an
+  // individual post, or a round's photo/correct spot, has its own
+  // screen already (data-canvas-allow lets that link through the
+  // canvas's own link-suppression — see canvasNav.js).
+  const archiveExtra = (
+    <div>
+      <p className="font-sans text-xs text-steel mb-3">
+        Every published post shows here, newest first — categories filter this list on the live site.
+      </p>
+      {articlePosts.length === 0 ? (
+        <p className="font-body text-steel py-8">Nothing filed under this section yet.</p>
+      ) : (
+        articlePosts.map((article) => <ArticleCard key={article.slug} article={article} />)
+      )}
+    </div>
+  );
+
+  const geoguesserExtra = (
+    <div>
+      <p className="font-sans text-xs text-steel mb-3">
+        The current round&rsquo;s photo — manage rounds (including the correct spot) in{" "}
+        <a href="/admin/geoguesser" data-canvas-allow="true" className="underline underline-offset-4 hover:text-river">
+          Guess the Spot
+        </a>
+        .
+      </p>
+      {currentRound ? (
+        <div className="relative aspect-[16/9] rounded-sm overflow-hidden bg-steel/[0.08] max-w-md">
+          <Image
+            src={currentRound.photo_url}
+            alt={currentRound.photo_alt || ""}
+            fill
+            sizes="480px"
+            className="object-cover"
+          />
+        </div>
+      ) : (
+        <p className="font-body text-steel py-8 text-center border-t border-steel/20">
+          No round published yet —{" "}
+          <a href="/admin/geoguesser/new" data-canvas-allow="true" className="underline underline-offset-4 hover:text-river">
+            add one
+          </a>
+          .
+        </p>
+      )}
+    </div>
+  );
+
   return (
-    <>
-      <PageHeadersPanel initialPageCopy={settings.page_copy} />
-      <LayoutCanvas
-        pageKey="home"
-        initialSections={sections}
-        sectionContent={sectionContent}
-        carouselArticles={rest}
-        masthead={<Masthead />}
-        footer={<Footer />}
-        themeVars={<ThemeVars scope=".theme-canvas" />}
-      />
-    </>
+    <AdminLayoutTabs
+      initialSections={sections}
+      sectionContent={sectionContent}
+      carouselArticles={rest}
+      initialPageCopy={pageCopy}
+      archiveExtra={archiveExtra}
+      geoguesserExtra={geoguesserExtra}
+      masthead={<Masthead />}
+      footer={<Footer />}
+      themeVars={<ThemeVars scope=".theme-canvas" />}
+    />
   );
 }
