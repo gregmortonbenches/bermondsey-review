@@ -124,6 +124,24 @@ Articles, videos, podcasts, and cartoons are now editable through a real
   second drag handle nested inside the outer canvas's own, for a list
   that's almost always one or two blocks long, wasn't worth the added
   chrome, though nothing about `@dnd-kit` stops it if that changes later.
+- **A focal point picker for the cover image**, Squarespace-style. A
+  post's cover image shows at very different crops — a square archive
+  thumbnail, a 4:5 carousel card, a 4:3 hero — so a plain, always-centred
+  `object-cover` can crop an off-centre subject right out of frame in the
+  narrower ones. `PostForm.jsx`'s `FocalPointPicker` shows the image
+  uncropped (`object-contain`, nothing hidden) with a draggable-looking
+  marker you click to place; two live swatches beside it preview the
+  actual square and 4:3 crops at that point, so you see the effect while
+  setting it rather than publishing and going to check the homepage.
+  Stored as `posts.cover_image_focal_x/y` (0-100, null = CSS's own
+  "center" default — an existing post with none set looks exactly as it
+  did before this existed) and applied via `object-position` everywhere
+  the cover image renders with `object-cover` — `ArticleCard.jsx`,
+  `ArticleCarousel.jsx`, `PostRenderer.jsx` — through one shared
+  `focalPointStyle()` helper in `lib/media.js` rather than four places
+  reimplementing the same fallback logic. Resets automatically whenever
+  the cover image itself is replaced, since a new photo's subject is
+  essentially never in the same spot as the old one's.
 - **A real 404 page, and richer "nothing here yet" states.** A broken or
   outdated link used to hit Next's bare default 404 — unstyled, no
   masthead, reads as the site being broken rather than one link being

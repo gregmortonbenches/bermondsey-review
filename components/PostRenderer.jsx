@@ -3,6 +3,7 @@ import { categoryFamily } from "@/lib/articles";
 import { getYouTubeEmbedUrl } from "@/lib/youtube";
 import BlockContent from "./BlockContent";
 import CoverArt from "./CoverArt";
+import { focalPointStyle } from "@/lib/media";
 
 export default function PostRenderer({ post }) {
   const accent = categoryFamily(post.category);
@@ -42,6 +43,7 @@ export default function PostRenderer({ post }) {
                 fill
                 sizes="(max-width: 640px) 100vw, 50vw"
                 className="object-cover"
+                style={focalPointStyle(post)}
                 priority
               />
             </div>

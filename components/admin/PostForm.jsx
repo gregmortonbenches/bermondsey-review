@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { createPost, updatePost, deletePost, uploadMedia } from "@/lib/posts";
@@ -75,6 +76,8 @@ const emptyPost = {
   body: [],
   cover_image_url: "",
   cover_image_alt: "",
+  cover_image_focal_x: null,
+  cover_image_focal_y: null,
   media_url: "",
   category: "Bermondsey",
   author: "",
@@ -187,12 +190,19 @@ export default function PostForm({ mode, initialPost, themeVars }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [post]);
 
+  // A new cover image's subject is almost never in the same place as
+  // the old one's, so the focal point resets rather than silently
+  // carrying over and cropping the replacement oddly.
+  function setCoverImage(url) {
+    setPost((p) => ({ ...p, cover_image_url: url, cover_image_focal_x: null, cover_image_focal_y: null }));
+  }
+
   async function handleCoverUpload(file) {
     if (!file) return;
     setCoverUploading(true);
     try {
       const url = await uploadMedia(supabase, file);
-      set("cover_image_url", url);
+      setCoverImage(url);
     } catch (err) {
       setError(`Cover image upload failed: ${friendlyError(err.message)}`);
     } finally {
@@ -246,6 +256,8 @@ export default function PostForm({ mode, initialPost, themeVars }) {
       body: snapshot.body,
       cover_image_url: snapshot.cover_image_url,
       cover_image_alt: snapshot.cover_image_alt,
+      cover_image_focal_x: snapshot.cover_image_focal_x,
+      cover_image_focal_y: snapshot.cover_image_focal_y,
       media_url: snapshot.media_url,
       category: snapshot.category,
       author: snapshot.author,
@@ -515,16 +527,24 @@ export default function PostForm({ mode, initialPost, themeVars }) {
             url={post.cover_image_url}
             uploading={coverUploading}
             onFile={handleCoverUpload}
-            onSelectUrl={(url) => set("cover_image_url", url)}
+            onSelectUrl={setCoverImage}
             supabase={supabase}
           />
           {post.cover_image_url && (
-            <input
-              value={post.cover_image_alt || ""}
-              onChange={(e) => set("cover_image_alt", e.target.value)}
-              placeholder="Describe this image for screen readers…"
-              className="w-full font-sans text-xs text-steel border-b border-transparent hover:border-steel/20 focus:border-river outline-none mt-1.5 py-1 placeholder:text-steel/40"
-            />
+            <>
+              <input
+                value={post.cover_image_alt || ""}
+                onChange={(e) => set("cover_image_alt", e.target.value)}
+                placeholder="Describe this image for screen readers…"
+                className="w-full font-sans text-xs text-steel border-b border-transparent hover:border-steel/20 focus:border-river outline-none mt-1.5 py-1 placeholder:text-steel/40"
+              />
+              <FocalPointPicker
+                url={post.cover_image_url}
+                focalX={post.cover_image_focal_x}
+                focalY={post.cover_image_focal_y}
+                onChange={(x, y) => setPost((p) => ({ ...p, cover_image_focal_x: x, cover_image_focal_y: y }))}
+              />
+            </>
           )}
         </div>
 
@@ -675,6 +695,68 @@ export default function PostForm({ mode, initialPost, themeVars }) {
         onConfirm={handleDelete}
         onCancel={() => setConfirmDeleteOpen(false)}
       />
+    </div>
+  );
+}
+
+// The cover image shows at very different crops — a square archive
+// thumbnail, a 4:5 carousel card, a 4:3 hero — so a plain centred
+// object-cover can crop an off-centre subject right out of frame in the
+// narrower ones. Click anywhere on the uncropped preview (object-contain,
+// so nothing's hidden) to set where those crops should centre instead;
+// the two swatches beside it preview the effect at the tightest crops
+// this image actually appears at, live, rather than making you publish
+// and go check the homepage to find out.
+function FocalPointPicker({ url, focalX, focalY, onChange }) {
+  const containerRef = useRef(null);
+  const x = focalX ?? 50;
+  const y = focalY ?? 50;
+  const objectPosition = focalX == null ? "center" : `${x}% ${y}%`;
+
+  function handleClick(e) {
+    const rect = containerRef.current.getBoundingClientRect();
+    const nextX = Math.round(((e.clientX - rect.left) / rect.width) * 100);
+    const nextY = Math.round(((e.clientY - rect.top) / rect.height) * 100);
+    onChange(Math.min(100, Math.max(0, nextX)), Math.min(100, Math.max(0, nextY)));
+  }
+
+  return (
+    <div className="mt-3">
+      <div className="flex items-center justify-between gap-2 mb-1.5">
+        <p className="font-sans text-xs text-steel">
+          Focal point — click where the subject is, so it stays in frame in narrower crops.
+        </p>
+        {focalX != null && (
+          <button
+            type="button"
+            onClick={() => onChange(null, null)}
+            className="font-sans text-[11px] text-steel hover:text-brick underline underline-offset-2 shrink-0"
+          >
+            Reset to centre
+          </button>
+        )}
+      </div>
+      <div className="flex items-start gap-3">
+        <div
+          ref={containerRef}
+          onClick={handleClick}
+          className="relative w-full max-w-[280px] aspect-[4/3] rounded-sm overflow-hidden bg-steel/[0.15] cursor-crosshair shrink-0"
+        >
+          <Image src={url} alt="" fill sizes="280px" className="object-contain" />
+          <div
+            className="absolute w-4 h-4 rounded-full border-2 border-paper bg-river shadow-md -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+            style={{ left: `${x}%`, top: `${y}%` }}
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <div className="relative w-14 h-14 rounded-sm overflow-hidden bg-steel/[0.15] shrink-0">
+            <Image src={url} alt="" fill sizes="56px" className="object-cover" style={{ objectPosition }} />
+          </div>
+          <div className="relative w-16 h-12 rounded-sm overflow-hidden bg-steel/[0.15] shrink-0">
+            <Image src={url} alt="" fill sizes="64px" className="object-cover" style={{ objectPosition }} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

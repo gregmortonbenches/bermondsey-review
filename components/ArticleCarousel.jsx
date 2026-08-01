@@ -3,6 +3,7 @@ import Image from "next/image";
 import CoverArt from "./CoverArt";
 import { categoryFamily } from "@/lib/articles";
 import { carouselWidthVars } from "@/lib/carouselLayout";
+import { focalPointStyle } from "@/lib/media";
 
 /**
  * Horizontal scrolling rail: image on top, title below, byline below that,
@@ -38,6 +39,7 @@ export default function ArticleCarousel({ articles, mobileCount, desktopCount })
                     fill
                     sizes="(max-width: 640px) 68vw, 27vw"
                     className="object-cover"
+                    style={focalPointStyle(article)}
                   />
                 </div>
               ) : (

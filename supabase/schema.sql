@@ -108,6 +108,8 @@ create table posts (
   body jsonb not null default '[]'::jsonb,
   cover_image_url text,
   cover_image_alt text,          -- for screen readers — shown wherever the cover image is (the post itself, its card on the homepage/archive)
+  cover_image_focal_x numeric,   -- 0-100, % from the left — where object-cover crops should centre; null falls back to CSS's own "center"
+  cover_image_focal_y numeric,   -- 0-100, % from the top — same idea, vertical axis
   media_url text,               -- video embed URL / podcast audio file URL
   media_duration_seconds integer,
   category text,                -- "Bermondsey" | "Books" | "Film" | "Culture"
@@ -124,6 +126,10 @@ create table posts (
 -- Existing installs: run this once to add cover_image_alt without
 -- losing anything already written.
 --   alter table posts add column if not exists cover_image_alt text;
+
+-- Existing installs: run this once to add the cover image focal point.
+--   alter table posts add column if not exists cover_image_focal_x numeric;
+--   alter table posts add column if not exists cover_image_focal_y numeric;
 
 create index posts_status_published_at_idx on posts (status, published_at desc);
 create index posts_slug_idx on posts (slug);

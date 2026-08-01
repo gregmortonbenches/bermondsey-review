@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import CoverArt from "./CoverArt";
 import { categoryFamily } from "@/lib/articles";
+import { focalPointStyle } from "@/lib/media";
 
 export default function ArticleCard({ article, size = "regular" }) {
   const accent = categoryFamily(article.category); // "brick" | "river"
@@ -42,6 +43,7 @@ export default function ArticleCard({ article, size = "regular" }) {
                 fill
                 sizes="(max-width: 640px) 100vw, 50vw"
                 className="object-cover"
+                style={focalPointStyle(article)}
               />
             </div>
           ) : (
@@ -65,6 +67,7 @@ export default function ArticleCard({ article, size = "regular" }) {
             fill
             sizes="140px"
             className="object-cover"
+            style={focalPointStyle(article)}
           />
         </div>
       ) : (
