@@ -516,6 +516,20 @@ Articles, videos, podcasts, and cartoons are now editable through a real
     something that actually says what the card is: a plain crossword
     grid, and Tower Bridge (the landmark someone would actually place
     near Bermondsey, rather than an unrelated character).
+- **A consistent divider between homepage sections**, New Yorker
+  "Goings On"–style: a hairline, a centred uppercase title, an optional
+  italic one-line description underneath — `components/SectionHeader.jsx`,
+  shared by Recent Reviews (the Article Carousel — renamed from a bare
+  "Reviews" to match), Puzzles & Games, and Cartoons, none of which had
+  any section header before this (Puzzles' was left-aligned prose-style;
+  Carousel and Cartoons had none at all, just ran straight into content).
+  Featured — the lead post at the very top of the page — deliberately
+  doesn't get one: it's the first thing on the page regardless of section
+  order, so a divider there would either double up against the
+  masthead's own hairline or need special-casing depending on position,
+  and the piece's own headline already reads as its own section without
+  one. No illustration above the title yet, unlike the reference — the
+  site has no artwork for one — just the rule and the type.
 - `/admin/posts/new` — a type picker (article/video/podcast/cartoon) with
   plain-language descriptions instead of jargon
 - **A true visual canvas, not a form describing the content.** The

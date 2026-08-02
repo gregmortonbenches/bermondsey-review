@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import CoverArt from "./CoverArt";
+import SectionHeader from "./SectionHeader";
 import { categoryFamily } from "@/lib/articles";
 import { carouselWidthVars } from "@/lib/carouselLayout";
 import { focalPointStyle } from "@/lib/media";
@@ -19,7 +20,8 @@ import { focalPointStyle } from "@/lib/media";
 export default function ArticleCarousel({ articles, mobileCount, desktopCount }) {
   const widthVars = carouselWidthVars(mobileCount, desktopCount, { defaultMobile: "68%", defaultDesktop: "27%" });
   return (
-    <section id="carousel" className="py-10 scroll-mt-24" style={widthVars || undefined}>
+    <section id="carousel" className="pb-10 scroll-mt-24" style={widthVars || undefined}>
+      <SectionHeader title="Recent Reviews" description="More from this issue, and a few from before it." />
       <div className="flex overflow-x-auto snap-x snap-mandatory gap-0 -mx-4 px-4 sm:mx-0 sm:px-0 pb-4 [scrollbar-width:thin]">
         {articles.map((article, i) => {
           const accent = categoryFamily(article.category);

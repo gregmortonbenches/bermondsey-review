@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import CoverArt from "./CoverArt";
+import SectionHeader from "./SectionHeader";
 import { focalPointStyle } from "@/lib/media";
 
 function ShareIcon() {
@@ -75,8 +76,8 @@ export default function CartoonsSection({ cartoons }) {
   if (!cartoons?.length) return null;
 
   return (
-    <section id="cartoons" className="py-10 scroll-mt-24">
-      <h2 className="font-display font-700 text-2xl text-ink mb-5">Cartoons</h2>
+    <section id="cartoons" className="pb-10 scroll-mt-24">
+      <SectionHeader title="Cartoons" description="This fortnight's drawings." />
       <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 -mx-4 px-4 sm:mx-0 sm:px-0 pb-4 [scrollbar-width:thin]">
         {cartoons.map((cartoon) => (
           <div key={cartoon.slug} className="shrink-0 snap-start w-[80%] xs:w-[55%] sm:w-[38%] lg:w-[30%]">
