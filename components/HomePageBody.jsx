@@ -50,6 +50,8 @@ export default async function HomePageBody() {
           <PuzzlesSection
             key={section.id}
             overrides={{ crossword: section.crossword, geoguesser: section.geoguesser }}
+            headerTitle={section.headerTitle}
+            headerDescription={section.headerDescription}
           />
         );
       case "carousel":
@@ -59,10 +61,19 @@ export default async function HomePageBody() {
             articles={rest}
             mobileCount={section.mobileCount}
             desktopCount={section.desktopCount}
+            headerTitle={section.headerTitle}
+            headerDescription={section.headerDescription}
           />
         );
       case "cartoons":
-        return <CartoonsSection key={section.id} cartoons={cartoons} />;
+        return (
+          <CartoonsSection
+            key={section.id}
+            cartoons={cartoons}
+            headerTitle={section.headerTitle}
+            headerDescription={section.headerDescription}
+          />
+        );
       default:
         return null;
     }

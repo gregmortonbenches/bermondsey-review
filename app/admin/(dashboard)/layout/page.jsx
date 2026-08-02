@@ -10,7 +10,6 @@ import Footer from "@/components/Footer";
 import ThemeVars from "@/components/ThemeVars";
 import ArticleCard from "@/components/ArticleCard";
 import Newsletter from "@/components/Newsletter";
-import CartoonsSection from "@/components/CartoonsSection";
 import AdminLayoutTabs from "@/components/admin/AdminLayoutTabs";
 
 export default async function AdminLayoutPage() {
@@ -42,10 +41,11 @@ export default async function AdminLayoutPage() {
   // Real content for each section type, rendered server-side (these are
   // Server Components — LayoutCanvas, a Client Component, can't import
   // and render them itself, only place ones it's handed) and passed to
-  // the canvas as pre-rendered elements. Carousel and puzzles are the
-  // exceptions — see LayoutCanvas's own doc comment for why they're
-  // rendered live by the canvas itself instead, so their settings
-  // (carousel item counts, puzzle card text) preview instantly.
+  // the canvas as pre-rendered elements. Carousel, puzzles, and cartoons
+  // are the exceptions — see LayoutCanvas's own doc comment for why
+  // they're rendered live by the canvas itself instead, so their
+  // settings (item counts, card text, section headers) preview
+  // instantly rather than needing a save-and-reload.
   const sectionContent = {
     featured: (
       <section id="featured" className="pt-8 scroll-mt-24">
@@ -57,7 +57,6 @@ export default async function AdminLayoutPage() {
       </section>
     ),
     newsletter: <Newsletter />,
-    cartoons: <CartoonsSection cartoons={cartoons} />,
   };
 
   // Read-only context shown below Archive's/Guess the Spot's own
@@ -117,6 +116,7 @@ export default async function AdminLayoutPage() {
       initialSections={sections}
       sectionContent={sectionContent}
       carouselArticles={rest}
+      cartoons={cartoons}
       initialPageCopy={pageCopy}
       archiveExtra={archiveExtra}
       geoguesserExtra={geoguesserExtra}

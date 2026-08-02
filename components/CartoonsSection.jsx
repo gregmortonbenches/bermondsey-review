@@ -6,6 +6,7 @@ import Image from "next/image";
 import CoverArt from "./CoverArt";
 import SectionHeader from "./SectionHeader";
 import { focalPointStyle } from "@/lib/media";
+import { SECTION_HEADER_DEFAULTS } from "@/lib/sections";
 
 function ShareIcon() {
   return (
@@ -72,12 +73,15 @@ function ShareButton({ slug }) {
  * See lib/layout.js's withCartoonsSection for how an already-live site's
  * saved layout picks this section up automatically.
  */
-export default function CartoonsSection({ cartoons }) {
+export default function CartoonsSection({ cartoons, headerTitle, headerDescription }) {
   if (!cartoons?.length) return null;
 
   return (
     <section id="cartoons" className="pb-10 scroll-mt-24">
-      <SectionHeader title="Cartoons" description="This fortnight's drawings." />
+      <SectionHeader
+        title={headerTitle || SECTION_HEADER_DEFAULTS.cartoons.title}
+        description={headerDescription || SECTION_HEADER_DEFAULTS.cartoons.description}
+      />
       <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 -mx-4 px-4 sm:mx-0 sm:px-0 pb-4 [scrollbar-width:thin]">
         {cartoons.map((cartoon) => (
           <div key={cartoon.slug} className="shrink-0 snap-start w-[80%] xs:w-[55%] sm:w-[38%] lg:w-[30%]">

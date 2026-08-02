@@ -5,6 +5,7 @@ import SectionHeader from "./SectionHeader";
 import { categoryFamily } from "@/lib/articles";
 import { carouselWidthVars } from "@/lib/carouselLayout";
 import { focalPointStyle } from "@/lib/media";
+import { SECTION_HEADER_DEFAULTS } from "@/lib/sections";
 
 /**
  * Horizontal scrolling rail: image on top, title below, byline below that,
@@ -17,11 +18,14 @@ import { focalPointStyle } from "@/lib/media";
  * layout (68%/46%/27% width) — see lib/carouselLayout.js. Left unset,
  * this looks exactly as it did before that setting existed.
  */
-export default function ArticleCarousel({ articles, mobileCount, desktopCount }) {
+export default function ArticleCarousel({ articles, mobileCount, desktopCount, headerTitle, headerDescription }) {
   const widthVars = carouselWidthVars(mobileCount, desktopCount, { defaultMobile: "68%", defaultDesktop: "27%" });
   return (
     <section id="carousel" className="pb-10 scroll-mt-24" style={widthVars || undefined}>
-      <SectionHeader title="Recent Reviews" description="More from this issue, and a few from before it." />
+      <SectionHeader
+        title={headerTitle || SECTION_HEADER_DEFAULTS.carousel.title}
+        description={headerDescription || SECTION_HEADER_DEFAULTS.carousel.description}
+      />
       <div className="flex overflow-x-auto snap-x snap-mandatory gap-0 -mx-4 px-4 sm:mx-0 sm:px-0 pb-4 [scrollbar-width:thin]">
         {articles.map((article, i) => {
           const accent = categoryFamily(article.category);

@@ -40,6 +40,7 @@ export default function AdminLayoutTabs({
   initialSections,
   sectionContent,
   carouselArticles,
+  cartoons,
   initialPageCopy,
   archiveExtra,
   geoguesserExtra,
@@ -110,6 +111,7 @@ export default function AdminLayoutTabs({
           initialSections={initialSections}
           sectionContent={sectionContent}
           carouselArticles={carouselArticles}
+          cartoons={cartoons}
           masthead={masthead}
           footer={footer}
           themeVars={themeVars}

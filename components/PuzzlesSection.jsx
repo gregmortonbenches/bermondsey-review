@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import SectionHeader from "./SectionHeader";
+import { SECTION_HEADER_DEFAULTS } from "@/lib/sections";
 
 /**
  * Colour-card format inspired by the New Yorker's "Puzzles & Games" rail:
@@ -84,10 +85,13 @@ export const PUZZLE_DEFAULTS = Object.fromEntries(GAMES.map((g) => [g.slug, { ti
 // customise each card's title/description/cta without touching code; a
 // missing or blank field falls back to the default above, so an
 // unconfigured site looks exactly as it always has.
-export default function PuzzlesSection({ overrides }) {
+export default function PuzzlesSection({ overrides, headerTitle, headerDescription }) {
   return (
     <section id="puzzles" className="pb-14 scroll-mt-24">
-      <SectionHeader title="Puzzles & Games" />
+      <SectionHeader
+        title={headerTitle || SECTION_HEADER_DEFAULTS.puzzles.title}
+        description={headerDescription || SECTION_HEADER_DEFAULTS.puzzles.description}
+      />
       <div className="grid sm:grid-cols-2 gap-6">
         {GAMES.map(({ slug, title, description, cta, bg, Illustration }) => {
           const override = overrides?.[slug];

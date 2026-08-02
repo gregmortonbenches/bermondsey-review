@@ -529,7 +529,20 @@ Articles, videos, podcasts, and cartoons are now editable through a real
   masthead's own hairline or need special-casing depending on position,
   and the piece's own headline already reads as its own section without
   one. No illustration above the title yet, unlike the reference — the
-  site has no artwork for one — just the rule and the type.
+  site has no artwork for one — just the rule and the type. Each
+  section's title/description is now admin-editable too, same gear icon
+  as everything else on that section — `SECTION_HEADER_DEFAULTS`
+  (`lib/sections.js`) supplies the fallback, `SectionHeaderFields`
+  (`components/admin/LayoutCanvas.jsx`, `PuzzleCardFields`'s sibling)
+  is the shared field pair. Doing this properly meant fixing a real gap
+  first: Cartoons was still pre-rendered server-side and handed to
+  `LayoutCanvas` as an opaque prop (`sectionContent.cartoons`), unlike
+  Carousel and Puzzles, which render live from the section's own
+  state — so a Cartoons header edit wouldn't have shown up until a
+  save-and-reload. Moved it into the same live-render path as the
+  other two (`LayoutCanvas` now takes a `cartoons` prop instead of
+  baking it into `sectionContent`), so all three settings panels behave
+  identically: type, and the heading updates instantly.
 - `/admin/posts/new` — a type picker (article/video/podcast/cartoon) with
   plain-language descriptions instead of jargon
 - **A true visual canvas, not a form describing the content.** The
