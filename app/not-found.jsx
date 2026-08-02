@@ -23,7 +23,7 @@ export default function NotFound() {
           That page has gone missing.
         </h1>
         <p className="font-body text-lg text-steel mt-4 max-w-md mx-auto">
-          The link might be old, or the page may have moved. Try the front page, or the archive
+          The link might be old, or the page may have moved. Try the front page, or The Latest
           for everything we've published.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
@@ -34,10 +34,10 @@ export default function NotFound() {
             Back to the front page
           </Link>
           <Link
-            href="/archive"
+            href="/latest"
             className="font-sans text-sm font-600 text-ink border border-steel/30 px-5 py-2.5 rounded-sm hover:bg-steel/[0.08] transition-colors"
           >
-            Browse the archive
+            Browse The Latest
           </Link>
         </div>
       </div>

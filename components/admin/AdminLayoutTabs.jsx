@@ -10,7 +10,7 @@ const AUTOSAVE_DELAY_MS = 1200;
 
 const TABS = [
   { key: "home", label: "Home" },
-  { key: "archive", label: "Archive" },
+  { key: "archive", label: "The Latest" },
   { key: "geoguesser", label: "Guess the Spot" },
 ];
 
@@ -119,7 +119,7 @@ export default function AdminLayoutTabs({
       )}
       {activeTab === "archive" && (
         <PageCopyEditCanvas
-          pageLabel="Archive"
+          pageLabel="The Latest"
           previewHref="/admin/layout/preview?tab=archive"
           copy={pageCopy.archive || {}}
           saveState={saveState}

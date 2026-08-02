@@ -296,7 +296,7 @@ function NavLinkRow({ link, onChange, onRemove }) {
       <input
         value={link.href}
         onChange={(e) => onChange({ href: e.target.value })}
-        placeholder="/archive, /#puzzles, or https://…"
+        placeholder="/latest, /#puzzles, or https://…"
         className="flex-1 min-w-0 font-sans text-sm border border-steel/25 rounded-sm px-2 py-1"
       />
       <button

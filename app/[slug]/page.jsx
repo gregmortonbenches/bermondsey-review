@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/public";
 import { getAllPublishedPages, getPublishedPageBySlug } from "@/lib/pages";
 import { getSiteSettingsSafe } from "@/lib/theme";
 
-// Next.js always prefers a specific route (e.g. /archive, /admin) over
+// Next.js always prefers a specific route (e.g. /latest, /admin) over
 // this catch-all, so a page can never shadow one of the site's built-in
 // routes — see RESERVED_SLUGS in lib/pages.js for where that's enforced
 // at save time too.

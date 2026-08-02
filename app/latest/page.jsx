@@ -12,7 +12,7 @@ export default async function ArchivePage({ searchParams }) {
       {/* Tracked here, not inside ArchiveBody — that component is shared
           with the admin layout builder's preview, and previews shouldn't
           count as real visits. */}
-      <PageViewTracker path="/archive" />
+      <PageViewTracker path="/latest" />
       <ArchiveBody activeCategory={activeCategory} />
     </>
   );

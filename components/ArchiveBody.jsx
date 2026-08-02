@@ -50,7 +50,7 @@ export default async function ArchiveBody({ activeCategory = "All" }) {
           {ARCHIVE_CATEGORIES.map((cat) => (
             <a
               key={cat}
-              href={cat === "All" ? "/archive" : `/archive?category=${cat}`}
+              href={cat === "All" ? "/latest" : `/latest?category=${cat}`}
               className={`font-sans text-sm px-3 py-1.5 rounded-full border transition-colors ${
                 activeCategory === cat
                   ? "bg-ink text-paper border-ink"

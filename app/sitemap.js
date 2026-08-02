@@ -5,7 +5,7 @@ import { getAllPublishedPages } from "@/lib/pages";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://example.com";
 
 export default async function sitemap() {
-  const staticRoutes = ["", "/archive", "/crossword", "/geoguesser"].map((path) => ({
+  const staticRoutes = ["", "/latest", "/crossword", "/geoguesser"].map((path) => ({
     url: `${SITE_URL}${path}`,
     lastModified: new Date(),
   }));

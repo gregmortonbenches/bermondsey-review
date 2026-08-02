@@ -14,5 +14,13 @@ const nextConfig = {
       },
     ],
   },
+  // /archive was the page's URL before it was renamed to /latest — a
+  // permanent redirect here (checked at the edge, no DB round-trip)
+  // keeps any old bookmarks/search results/external links working,
+  // unlike the admin's own /admin/redirects feature, which is scoped
+  // deliberately to /article/* only (see proxy.js).
+  async redirects() {
+    return [{ source: "/archive", destination: "/latest", permanent: true }];
+  },
 };
 export default nextConfig;

@@ -7,7 +7,9 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
 ## What's here
 
 - `app/page.jsx` — homepage (featured article, "from this issue" extras, article list, newsletter band)
-- `app/archive/page.jsx` — full archive, reverse-chronological, filterable by category
+- `app/latest/page.jsx` — "The Latest," the full post listing, reverse-chronological, filterable
+  by category (`/archive` used to be this page's URL — permanently redirected to `/latest` in
+  `next.config.mjs` so old links/bookmarks keep working)
 - `app/article/[slug]/page.jsx` — individual article page
 - `app/crossword` — still a stub page, not built yet
 - `app/geoguesser` — "Guess the Spot," a real game now — see the entry
@@ -334,7 +336,7 @@ Articles, videos, podcasts, and cartoons are now editable through a real
   `getSiteNavLinks` in `lib/pages.js`) — live at the root, e.g.
   `/about`, via `app/[slug]/page.jsx`. A reserved-slug check stops a
   page from claiming an address the site itself already uses
-  (`/archive`, `/admin`, etc.).
+  (`/latest`, `/admin`, etc.).
 - **`/admin/forms` — a general-purpose form builder**, not just the
   newsletter signup. Build a form with any mix of short text, long
   text, email, dropdown, and checkbox fields — drag to reorder them the
@@ -586,6 +588,29 @@ Articles, videos, podcasts, and cartoons are now editable through a real
     actually is, and auto-assigns `category: "Cartoon"` when you pick
     the type (`handleTypeChange`, resets back to the default if you
     switch away and hadn't picked a different category in between).
+- **The Archive is now "The Latest"** — both the on-page heading (the
+  `page_copy.archive` default in `lib/theme.js`, still overridable from
+  `/admin/layout`) and the URL itself (`app/archive/page.jsx` →
+  `app/latest/page.jsx`, so it's `/latest` now, not `/archive`). Renamed
+  everywhere the label showed up in the admin (the `/admin/layout` tab,
+  its canvas's own heading, the preview shell's tab) and in the few
+  places the public site links to it (the 404 page's "browse" link,
+  `sitemap.js`). The internal `page_copy` JSONB key stays `archive`,
+  though — that's an implementation detail no one but this code sees,
+  and renaming it would silently drop whatever an admin had already
+  saved under the old key, for zero user-visible benefit. Old `/archive`
+  links (bookmarks, search results, anything already indexed) get a
+  permanent redirect to `/latest` — added in `next.config.mjs` rather
+  than through the admin's own `/admin/redirects` feature, since that
+  one is deliberately scoped to `/article/*` slugs only (see the comment
+  in `proxy.js`) to avoid a database round-trip on every request
+  site-wide; a one-off structural route rename doesn't need that, a
+  static config-level redirect (checked at the edge, no DB lookup) is
+  the right tool. Also updated `RESERVED_SLUGS` in `lib/pages.js`
+  (`archive` → `latest`) — that list stops a custom `/admin/pages` page
+  from claiming a slug one of the site's own real routes already uses;
+  leaving the stale `archive` entry in place would've left `/latest`
+  itself unprotected, so a custom page could have shadowed the real one.
 - `/admin/posts/new` — a type picker (article/video/podcast/cartoon) with
   plain-language descriptions instead of jargon
 - **A true visual canvas, not a form describing the content.** The
