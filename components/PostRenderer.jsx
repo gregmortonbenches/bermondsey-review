@@ -12,6 +12,38 @@ export default function PostRenderer({ post }) {
   const embedUrl = post.type === "video" ? getYouTubeEmbedUrl(post.media_url) : null;
   const heroTint = accent === "brick" ? "bg-brick/[0.12]" : "bg-river/[0.1]";
 
+  // A single illustration doesn't read as a headline-and-standfirst piece,
+  // so cartoons skip the split hero band below entirely for their own
+  // compact, centred layout: the full image — uncropped (object-contain,
+  // not object-cover; cropping a single-panel joke can cut off the
+  // punchline, unlike the homepage rail's thumbnail, which can afford to)
+  // — with the caption (post.title, same field CartoonsSection shows
+  // under the thumbnail) and artist underneath. No body content section:
+  // a cartoon post has no blocks to render, same as it always has.
+  if (post.type === "cartoon") {
+    return (
+      <article className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center">
+        <p className="font-sans text-xs tracking-[0.14em] uppercase mb-4 text-brick">Cartoon</p>
+        {post.cover_image_url ? (
+          <div className="relative w-full aspect-[4/3] bg-steel/[0.05] rounded-sm overflow-hidden">
+            <Image
+              src={post.cover_image_url}
+              alt={post.cover_image_alt || post.title || "Cartoon"}
+              fill
+              sizes="(max-width: 640px) 100vw, 42rem"
+              className="object-contain"
+              priority
+            />
+          </div>
+        ) : (
+          <CoverArt category={post.category} className="aspect-[4/3] rounded-sm" />
+        )}
+        {post.title && <p className="font-display italic text-xl text-ink mt-6">{post.title}</p>}
+        {post.author && <p className="font-sans text-sm text-steel mt-2">{post.author}</p>}
+      </article>
+    );
+  }
+
   return (
     <article>
       {/* The lead: a full-width band tinted with the story's own category

@@ -558,6 +558,34 @@ Articles, videos, podcasts, and cartoons are now editable through a real
     losing it — and both live-render paths (the admin canvas in
     `LayoutCanvas.jsx`, and the real homepage in `HomePageBody.jsx`)
     check the flag the same way: `hideHeaderDescription ? "" : headerDescription || default`.
+- **Cartoons got their own post page and authoring form, instead of
+  reusing the article ones as-is.** Both had gaps that only showed up
+  once cartoons became a real, live feature rather than a placeholder:
+  - `PostRenderer.jsx` — a cartoon post used to fall through into the
+    same split hero band every article gets (a category eyebrow and
+    headline on one side, the cover image cropped into a 4:3 box with
+    `object-cover` on the other), then nothing at all below it, since no
+    article/video/podcast branch ever matched `type: "cartoon"` — a
+    single illustration doesn't have "body blocks." Cartoons now get
+    their own compact, centred layout: the full image shown large with
+    `object-contain` rather than `object-cover`, since cropping a
+    single-panel drawing can cut off the actual joke (the homepage
+    rail's thumbnail can still afford to crop — that's just a preview),
+    with the caption (`post.title` — the same field the homepage rail
+    already shows under the thumbnail) and artist underneath.
+  - `PostForm.jsx` — creating a cartoon showed the full article form:
+    a "Headline"-labelled title, a dek input captioned "One or two
+    sentences under the headline…" that nothing ever displayed for a
+    cartoon, and a Category dropdown offering Bermondsey/Books/Film/
+    Culture, none of which actually fit a single illustration (`lib/
+    articles.js`'s `categoryFamily` already special-cased a `"Cartoon"`
+    category for the brick accent colour — it just had nowhere to come
+    from, since it wasn't in the picker's list). The cartoon type now
+    hides the dek input and the category picker entirely, relabels the
+    title field's placeholder to "Caption (optional)" to match what it
+    actually is, and auto-assigns `category: "Cartoon"` when you pick
+    the type (`handleTypeChange`, resets back to the default if you
+    switch away and hadn't picked a different category in between).
 - `/admin/posts/new` — a type picker (article/video/podcast/cartoon) with
   plain-language descriptions instead of jargon
 - **A true visual canvas, not a form describing the content.** The

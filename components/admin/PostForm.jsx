@@ -137,6 +137,22 @@ export default function PostForm({ mode, initialPost, themeVars }) {
     setPost((p) => ({ ...p, [field]: value }));
   }
 
+  // A cartoon isn't a "Bermondsey"/"Books"/"Film"/"Culture" piece the way
+  // an article is — none of those fit a single illustration — so it gets
+  // its own pseudo-category instead of a pick from that list (categoryFamily
+  // in lib/articles.js already keys "Cartoon" to the brick accent; this is
+  // what actually sets it). Switching back out of "cartoon" only resets the
+  // category if it's still that auto-assigned value, so a deliberate pick
+  // for another type made *after* switching away isn't clobbered.
+  function handleTypeChange(value) {
+    setPost((p) => {
+      let category = p.category;
+      if (value === "cartoon") category = "Cartoon";
+      else if (p.type === "cartoon" && p.category === "Cartoon") category = "Bermondsey";
+      return { ...p, type: value, category };
+    });
+  }
+
   async function persist(payload, { redirectOnCreate = false } = {}) {
     setError(null);
     try {
@@ -460,7 +476,7 @@ export default function PostForm({ mode, initialPost, themeVars }) {
             <button
               key={t.value}
               type="button"
-              onClick={() => set("type", t.value)}
+              onClick={() => handleTypeChange(t.value)}
               className={`flex flex-col items-center text-center gap-1.5 rounded-sm border-2 px-3 py-4 transition-colors ${
                 post.type === t.value
                   ? "border-brick bg-brick/[0.06] text-ink"
@@ -476,35 +492,49 @@ export default function PostForm({ mode, initialPost, themeVars }) {
 
         {/* Title and dek are styled exactly like the real headline and
             standfirst on the published page — so this looks like the
-            page you're building, not a generic form. */}
+            page you're building, not a generic form. A cartoon has no
+            standfirst — nothing on its own page reads it — so the dek
+            input doesn't show at all for that type, and the title field
+            (which does double as the caption under the image, both here
+            and on the homepage rail) gets a placeholder that says so. */}
         <input
           value={post.title}
           onChange={(e) => set("title", e.target.value)}
-          className="w-full font-display font-700 text-3xl sm:text-4xl leading-tight text-ink border-2 border-transparent hover:border-steel/20 focus:border-river rounded-sm px-2 py-1 -mx-2 mb-2 outline-none placeholder:text-steel/50"
-          placeholder="Headline"
+          className={`w-full font-display font-700 text-3xl sm:text-4xl leading-tight text-ink border-2 border-transparent hover:border-steel/20 focus:border-river rounded-sm px-2 py-1 -mx-2 outline-none placeholder:text-steel/50 ${
+            post.type === "cartoon" ? "mb-6" : "mb-2"
+          }`}
+          placeholder={post.type === "cartoon" ? "Caption (optional)" : "Headline"}
         />
-        <input
-          value={post.dek || ""}
-          onChange={(e) => set("dek", e.target.value)}
-          className="w-full font-body text-lg sm:text-xl text-steel border-2 border-transparent hover:border-steel/20 focus:border-river rounded-sm px-2 py-1 -mx-2 mb-6 outline-none placeholder:text-steel/50"
-          placeholder="One or two sentences under the headline…"
-        />
+        {post.type !== "cartoon" && (
+          <input
+            value={post.dek || ""}
+            onChange={(e) => set("dek", e.target.value)}
+            className="w-full font-body text-lg sm:text-xl text-steel border-2 border-transparent hover:border-steel/20 focus:border-river rounded-sm px-2 py-1 -mx-2 mb-6 outline-none placeholder:text-steel/50"
+            placeholder="One or two sentences under the headline…"
+          />
+        )}
 
         <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mb-6 font-sans text-sm">
-          <label className="flex items-center gap-2 text-steel">
-            Category
-            <select
-              value={post.category || ""}
-              onChange={(e) => set("category", e.target.value)}
-              className="text-ink border-b border-steel/30 focus:border-river outline-none py-0.5 bg-transparent"
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </label>
+          {/* No category picker for cartoons — none of the four article
+              categories fit a single illustration, so it's fixed to
+              "Cartoon" (handleTypeChange sets this) rather than asking
+              for a pick that wouldn't mean anything. */}
+          {post.type !== "cartoon" && (
+            <label className="flex items-center gap-2 text-steel">
+              Category
+              <select
+                value={post.category || ""}
+                onChange={(e) => set("category", e.target.value)}
+                className="text-ink border-b border-steel/30 focus:border-river outline-none py-0.5 bg-transparent"
+              >
+                {CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <label className="flex items-center gap-2 text-steel">
             Author
             <input
@@ -521,7 +551,9 @@ export default function PostForm({ mode, initialPost, themeVars }) {
             Cover image
           </label>
           <p className="font-sans text-xs text-steel mb-2">
-            Shown wherever this post is listed — homepage, archive, and the top of the piece itself.
+            {post.type === "cartoon"
+              ? "This is the cartoon itself — shown full-size and uncropped on its own page; the homepage rail crops it to fit a thumbnail."
+              : "Shown wherever this post is listed — homepage, archive, and the top of the piece itself."}
           </p>
           <ImageDropzone
             url={post.cover_image_url}
