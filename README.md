@@ -543,6 +543,21 @@ Articles, videos, podcasts, and cartoons are now editable through a real
   other two (`LayoutCanvas` now takes a `cartoons` prop instead of
   baking it into `sectionContent`), so all three settings panels behave
   identically: type, and the heading updates instantly.
+  - **"No sub-heading" as its own checkbox, not just an empty text
+    field.** Every other overridable field in this admin follows one
+    rule: blank means "use the default." That rule breaks for a
+    description whose default *is* text (Recent Reviews, Cartoons) —
+    clearing the box wouldn't ask for no description, it would just
+    reset to the coded-in one, with no way to actually get a header with
+    no sub-heading at all. `hideHeaderDescription` is a separate boolean
+    on the section object precisely to give that third state a place to
+    live, alongside "unset" (blank, falls back to default) and "set"
+    (blank, uses your text). `SectionHeaderFields` disables (greys out,
+    doesn't clear) the description textarea while it's ticked, so
+    switching it back off restores whatever you'd written rather than
+    losing it — and both live-render paths (the admin canvas in
+    `LayoutCanvas.jsx`, and the real homepage in `HomePageBody.jsx`)
+    check the flag the same way: `hideHeaderDescription ? "" : headerDescription || default`.
 - `/admin/posts/new` — a type picker (article/video/podcast/cartoon) with
   plain-language descriptions instead of jargon
 - **A true visual canvas, not a form describing the content.** The

@@ -52,6 +52,7 @@ export default async function HomePageBody() {
             overrides={{ crossword: section.crossword, geoguesser: section.geoguesser }}
             headerTitle={section.headerTitle}
             headerDescription={section.headerDescription}
+            hideHeaderDescription={section.hideHeaderDescription}
           />
         );
       case "carousel":
@@ -63,6 +64,7 @@ export default async function HomePageBody() {
             desktopCount={section.desktopCount}
             headerTitle={section.headerTitle}
             headerDescription={section.headerDescription}
+            hideHeaderDescription={section.hideHeaderDescription}
           />
         );
       case "cartoons":
@@ -72,6 +74,7 @@ export default async function HomePageBody() {
             cartoons={cartoons}
             headerTitle={section.headerTitle}
             headerDescription={section.headerDescription}
+            hideHeaderDescription={section.hideHeaderDescription}
           />
         );
       default:

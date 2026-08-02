@@ -185,18 +185,21 @@ export default function LayoutCanvas({ pageKey, initialSections, sectionContent,
                       desktopCount={section.desktopCount}
                       headerTitle={section.headerTitle}
                       headerDescription={section.headerDescription}
+                      hideHeaderDescription={section.hideHeaderDescription}
                     />
                   ) : section.type === "puzzles" ? (
                     <PuzzlesSection
                       overrides={{ crossword: section.crossword, geoguesser: section.geoguesser }}
                       headerTitle={section.headerTitle}
                       headerDescription={section.headerDescription}
+                      hideHeaderDescription={section.hideHeaderDescription}
                     />
                   ) : section.type === "cartoons" ? (
                     <CartoonsSection
                       cartoons={cartoons}
                       headerTitle={section.headerTitle}
                       headerDescription={section.headerDescription}
+                      hideHeaderDescription={section.hideHeaderDescription}
                     />
                   ) : (
                     sectionContent[section.type]
@@ -434,7 +437,16 @@ function SectionSlot({
 // Placeholders show the actual default copy (SECTION_HEADER_DEFAULTS,
 // lib/sections.js) so a blank field's fallback is obvious, same
 // reasoning as PuzzleCardFields below.
+//
+// "No sub-heading" is a separate flag (hideHeaderDescription) rather
+// than just clearing the text field, because blank already means
+// something here — it means "use the default description" (same as
+// every other overridable field in this admin), so there'd be no way
+// to distinguish "I haven't touched this" from "I specifically don't
+// want a description" without it. Unticking it keeps whatever text was
+// there, so switching back on doesn't lose what you'd written.
 function SectionHeaderFields({ section, defaults, onUpdateSection }) {
+  const hideDescription = !!section.hideHeaderDescription;
   return (
     <div>
       <p className="font-sans text-[10px] uppercase tracking-[0.08em] text-steel mb-1.5">Section header</p>
@@ -450,8 +462,18 @@ function SectionHeaderFields({ section, defaults, onUpdateSection }) {
           onChange={(e) => onUpdateSection({ headerDescription: e.target.value })}
           placeholder={defaults.description || "No description"}
           rows={2}
-          className="w-full font-sans text-xs border border-steel/25 rounded-sm px-2 py-1.5 outline-none focus:border-river placeholder:text-steel/50 resize-none"
+          disabled={hideDescription}
+          className="w-full font-sans text-xs border border-steel/25 rounded-sm px-2 py-1.5 outline-none focus:border-river placeholder:text-steel/50 resize-none disabled:opacity-50 disabled:bg-steel/[0.05]"
         />
+        <label className="flex items-center gap-1.5 font-sans text-xs text-steel">
+          <input
+            type="checkbox"
+            checked={hideDescription}
+            onChange={(e) => onUpdateSection({ hideHeaderDescription: e.target.checked })}
+            className="w-3.5 h-3.5 accent-river"
+          />
+          No sub-heading
+        </label>
       </div>
     </div>
   );

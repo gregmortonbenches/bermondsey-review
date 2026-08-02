@@ -73,14 +73,14 @@ function ShareButton({ slug }) {
  * See lib/layout.js's withCartoonsSection for how an already-live site's
  * saved layout picks this section up automatically.
  */
-export default function CartoonsSection({ cartoons, headerTitle, headerDescription }) {
+export default function CartoonsSection({ cartoons, headerTitle, headerDescription, hideHeaderDescription }) {
   if (!cartoons?.length) return null;
 
   return (
     <section id="cartoons" className="pb-10 scroll-mt-24">
       <SectionHeader
         title={headerTitle || SECTION_HEADER_DEFAULTS.cartoons.title}
-        description={headerDescription || SECTION_HEADER_DEFAULTS.cartoons.description}
+        description={hideHeaderDescription ? "" : headerDescription || SECTION_HEADER_DEFAULTS.cartoons.description}
       />
       <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 -mx-4 px-4 sm:mx-0 sm:px-0 pb-4 [scrollbar-width:thin]">
         {cartoons.map((cartoon) => (

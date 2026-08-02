@@ -85,12 +85,12 @@ export const PUZZLE_DEFAULTS = Object.fromEntries(GAMES.map((g) => [g.slug, { ti
 // customise each card's title/description/cta without touching code; a
 // missing or blank field falls back to the default above, so an
 // unconfigured site looks exactly as it always has.
-export default function PuzzlesSection({ overrides, headerTitle, headerDescription }) {
+export default function PuzzlesSection({ overrides, headerTitle, headerDescription, hideHeaderDescription }) {
   return (
     <section id="puzzles" className="pb-14 scroll-mt-24">
       <SectionHeader
         title={headerTitle || SECTION_HEADER_DEFAULTS.puzzles.title}
-        description={headerDescription || SECTION_HEADER_DEFAULTS.puzzles.description}
+        description={hideHeaderDescription ? "" : headerDescription || SECTION_HEADER_DEFAULTS.puzzles.description}
       />
       <div className="grid sm:grid-cols-2 gap-6">
         {GAMES.map(({ slug, title, description, cta, bg, Illustration }) => {
