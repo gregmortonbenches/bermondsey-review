@@ -1,3 +1,23 @@
+// Substack (thebermondseyreview.substack.com) owns the actual subscriber
+// list and delivery, so this embeds Substack's own subscribe widget
+// (an iframe served from the publication's own /embed route) rather than
+// collecting emails into a table here and syncing them across — that
+// would just be duplicating list management, double opt-in, and
+// unsubscribe handling Substack already does. The trade-off: subscriber
+// emails live only in Substack, not queryable from this site's own DB —
+// worth it as long as Substack is the only thing that ever needs to
+// email this list.
+//
+// The widget is cross-origin, so it renders with Substack's own styling
+// (a white card, their own input/button/copy) — can't be restyled from
+// here. The white rounded wrapper keeps that from reading as a stray
+// rectangle against the blue band; the height below matches Substack's
+// documented default embed size. If the live widget ends up with extra
+// whitespace or gets clipped once this is deployed, adjust the iframe's
+// `height` — that's the one number Substack's own docs say to tune per
+// publication.
+const SUBSTACK_EMBED_URL = "https://thebermondseyreview.substack.com/embed";
+
 export default function Newsletter() {
   return (
     <section id="newsletter" className="bg-river text-paper scroll-mt-24">
@@ -7,24 +27,17 @@ export default function Newsletter() {
             Get the next issue in your inbox
           </h2>
         </div>
-        {/* Wired to Supabase + Resend in step 2 — for now this is a visual placeholder */}
-        <form className="flex w-full sm:w-auto">
-          <label htmlFor="email" className="sr-only">
-            Email address
-          </label>
-          <input
-            id="email"
-            type="email"
-            placeholder="you@example.com"
-            className="font-sans text-sm px-4 py-3 w-full sm:w-64 rounded-l-sm text-ink bg-paper placeholder:text-steel focus-visible:outline-2 focus-visible:outline-brick"
+        <div className="bg-paper rounded-sm overflow-hidden w-full sm:w-auto">
+          <iframe
+            src={SUBSTACK_EMBED_URL}
+            width="480"
+            height="320"
+            style={{ border: "none", background: "white", display: "block", width: "100%", maxWidth: 480 }}
+            frameBorder="0"
+            scrolling="no"
+            title="Subscribe to The Bermondsey Review on Substack"
           />
-          <button
-            type="submit"
-            className="font-sans text-sm font-600 bg-brick text-paper px-5 py-3 rounded-r-sm hover:bg-paper hover:text-ink transition-colors whitespace-nowrap"
-          >
-            Subscribe
-          </button>
-        </form>
+        </div>
       </div>
     </section>
   );
