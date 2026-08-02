@@ -485,13 +485,13 @@ Articles, videos, podcasts, and cartoons are now editable through a real
   - **Edit mode vs. Preview.** Since this canvas is the real Masthead,
     real `PuzzlesSection`, real article cards — actual production
     components, not editor stand-ins — every link on it is a real
-    `<a href>` (nav items, the puzzle cards). Left alone, clicking any of
-    them does exactly what it does on the live site: navigates away from
-    the layout builder entirely, mid-edit. A single capture-phase click
-    handler on the canvas (`suppressCanvasNavigation`) intercepts and
-    blocks anything routed through an `<a>` tag, while leaving the
-    admin's own controls — drag handle, move, hide/show, the carousel
-    settings gear
+    `<a href>` (nav items, the puzzle cards, the newsletter's own
+    "Subscribe" anchor). Left alone, clicking any of them does exactly
+    what it does on the live site: navigates away from the layout
+    builder entirely, mid-edit. A single capture-phase click handler on
+    the canvas (`suppressCanvasNavigation`) intercepts and blocks
+    anything routed through an `<a>` tag, while leaving the admin's own
+    controls — drag handle, move, hide/show, the carousel settings gear
     — untouched, since those are all `<button>`s, never anchors. The
     **Preview** button in the top bar (opens `/admin/layout/preview` in
     a new tab) is the real thing, full navigation intact, for actually
@@ -586,22 +586,6 @@ Articles, videos, podcasts, and cartoons are now editable through a real
     actually is, and auto-assigns `category: "Cartoon"` when you pick
     the type (`handleTypeChange`, resets back to the default if you
     switch away and hadn't picked a different category in between).
-- **Newsletter signup goes straight to Substack** (`components/Newsletter.jsx`)
-  — Substack (thebermondseyreview.substack.com) is the actual publication
-  doing the sending, so the homepage's newsletter band embeds Substack's
-  own subscribe widget (an iframe pointed at its `/embed` route) instead
-  of collecting emails into a table here and syncing them across, which
-  would just be duplicating list management, double opt-in, and
-  unsubscribe handling Substack already does — see items 5–6 of "Next
-  steps" below, now resolved this way instead of a from-scratch build.
-  The trade-off: subscriber emails live only in Substack, not queryable
-  from this site's own database — fine as long as Substack is the only
-  thing that ever needs to email this list. The widget is cross-origin,
-  so it renders with Substack's own styling (a white card, its own
-  input/button/copy) rather than this site's own form controls — can't
-  be restyled from here, only wrapped. If the live widget shows up with
-  extra whitespace or gets clipped, the `height` on the iframe is the one
-  number to tune, per Substack's own embed docs.
 - `/admin/posts/new` — a type picker (article/video/podcast/cartoon) with
   plain-language descriptions instead of jargon
 - **A true visual canvas, not a form describing the content.** The
@@ -764,8 +748,8 @@ embeds (step 10 of the build order), are the natural next steps.
 2. ~~Supabase schema~~ ← done (`supabase/schema.sql`)
 3. ~~`/admin` editing flow~~ ← done, plain block editor (no embeds yet)
 4. Wire the public pages (homepage, archive, article) to read real post *content* from Supabase instead of `lib/articles.js` — note the homepage's section *order* is already real (`page_layouts`, via the layout builder); it's just the articles inside those sections that are still mock data
-5. ~~Newsletter signup~~ ← done, via a Substack embed (`components/Newsletter.jsx`) — no subscriber storage of our own; Substack holds the list
-6. ~~Email sending pipeline~~ ← no longer needed here — Substack owns delivery
+5. Newsletter signup + subscriber storage
+6. Email sending pipeline (Resend)
 7. Crossword widget
 8. Guess-the-spot game
 9. Video support (`/watch/[slug]`)

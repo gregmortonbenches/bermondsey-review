@@ -48,7 +48,7 @@ export default async function AdminLayoutPage() {
   // instantly rather than needing a save-and-reload.
   const sectionContent = {
     featured: (
-      <section id="featured" className="pt-8 scroll-mt-24">
+      <section id="featured" className="pt-8 pb-10 scroll-mt-24">
         {featured ? (
           <ArticleCard article={featured} size="featured" />
         ) : (

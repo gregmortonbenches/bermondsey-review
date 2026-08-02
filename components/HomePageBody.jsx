@@ -37,7 +37,7 @@ export default async function HomePageBody() {
     switch (section.type) {
       case "featured":
         return (
-          <section key={section.id} id="featured" className="pt-8 scroll-mt-24">
+          <section key={section.id} id="featured" className="pt-8 pb-10 scroll-mt-24">
             {featured ? (
               <ArticleCard article={featured} size="featured" />
             ) : (
