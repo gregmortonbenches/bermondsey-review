@@ -508,7 +508,14 @@ Articles, videos, podcasts, and cartoons are now editable through a real
     settings, `PuzzlesSection` has no server-only dependencies, so the
     canvas renders it live from state instead of a pre-rendered prop —
     typing updates the preview instantly, no save-and-reload needed to
-    see it.
+    see it. Each card's illustration is now the same kind of override:
+    the settings gear's `ImageDropzone` lets you upload a photo that
+    replaces the hand-drawn line art (`overrides[slug].imageUrl`, same
+    fallback-to-default pattern as the text) — and the line art itself
+    got a pass, swapping a pigeon-with-pencil and a fox-with-compass for
+    something that actually says what the card is: a plain crossword
+    grid, and Tower Bridge (the landmark someone would actually place
+    near Bermondsey, rather than an unrelated character).
 - `/admin/posts/new` — a type picker (article/video/podcast/cartoon) with
   plain-language descriptions instead of jargon
 - **A true visual canvas, not a form describing the content.** The

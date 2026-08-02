@@ -1,11 +1,16 @@
 import Link from "next/link";
+import Image from "next/image";
 
 /**
  * Colour-card format inspired by the New Yorker's "Puzzles & Games" rail:
- * a flat colour block, a single cute line-drawn character, title,
- * one-line description, and a "Play" link pinned to the bottom.
- * Card colours are tints pulled from the site's own palette so it still
- * reads as the Bermondsey Review, not a copy of the reference.
+ * a flat colour block, a simple line drawing of the thing itself (a
+ * crossword grid, Tower Bridge), title, one-line description, and a
+ * "Play" link pinned to the bottom. Card colours are tints pulled from
+ * the site's own palette so it still reads as the Bermondsey Review, not
+ * a copy of the reference. An admin can swap either illustration for an
+ * uploaded photo from the homepage layout builder's Puzzles & Games
+ * settings — see PuzzleCardFields in components/admin/LayoutCanvas.jsx —
+ * the default line drawing only shows when no image has been set.
  */
 const GAMES = [
   {
@@ -17,22 +22,21 @@ const GAMES = [
     Illustration: () => (
       <svg viewBox="0 0 120 120" className="w-24 h-24" aria-hidden="true">
         <g fill="none" stroke="#1C1B17" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          {/* pigeon body */}
-          <circle cx="46" cy="70" r="26" />
-          <circle cx="46" cy="42" r="15" />
-          <circle cx="52" cy="38" r="2" fill="#1C1B17" />
-          <path d="M60 41 L68 44 L60 47 Z" fill="#1C1B17" />
-          {/* pencil */}
-          <line x1="76" y1="86" x2="94" y2="30" />
-          <path d="M91 39 L97 41 L94 30 Z" fill="#1C1B17" />
-          {/* crossword grid held under wing */}
-          <rect x="24" y="82" width="36" height="30" />
-          <line x1="36" y1="82" x2="36" y2="112" />
-          <line x1="48" y1="82" x2="48" y2="112" />
-          <line x1="24" y1="92" x2="60" y2="92" />
-          <line x1="24" y1="102" x2="60" y2="102" />
-          <rect x="24" y="92" width="12" height="10" fill="#1C1B17" />
-          <rect x="48" y="102" width="12" height="10" fill="#1C1B17" />
+          {/* a plain crossword grid — no character, just the puzzle itself */}
+          <rect x="20" y="20" width="80" height="80" />
+          <line x1="36" y1="20" x2="36" y2="100" />
+          <line x1="52" y1="20" x2="52" y2="100" />
+          <line x1="68" y1="20" x2="68" y2="100" />
+          <line x1="84" y1="20" x2="84" y2="100" />
+          <line x1="20" y1="36" x2="100" y2="36" />
+          <line x1="20" y1="52" x2="100" y2="52" />
+          <line x1="20" y1="68" x2="100" y2="68" />
+          <line x1="20" y1="84" x2="100" y2="84" />
+          <rect x="36" y="20" width="16" height="16" fill="#1C1B17" stroke="none" />
+          <rect x="68" y="36" width="16" height="16" fill="#1C1B17" stroke="none" />
+          <rect x="20" y="52" width="16" height="16" fill="#1C1B17" stroke="none" />
+          <rect x="84" y="68" width="16" height="16" fill="#1C1B17" stroke="none" />
+          <rect x="52" y="84" width="16" height="16" fill="#1C1B17" stroke="none" />
         </g>
       </svg>
     ),
@@ -46,18 +50,22 @@ const GAMES = [
     Illustration: () => (
       <svg viewBox="0 0 120 120" className="w-24 h-24" aria-hidden="true">
         <g fill="none" stroke="#1C1B17" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          {/* fox head */}
-          <path d="M35 30 L48 52 L22 52 Z" />
-          <path d="M85 30 L98 52 L72 52 Z" />
-          <path d="M60 34 C 84 34 92 58 92 72 C 92 92 76 104 60 104 C 44 104 28 92 28 72 C 28 58 36 34 60 34 Z" />
-          <circle cx="50" cy="70" r="2.4" fill="#1C1B17" />
-          <circle cx="70" cy="70" r="2.4" fill="#1C1B17" />
-          <path d="M54 84 Q60 90 66 84" />
-          {/* compass held in front */}
-          <circle cx="60" cy="98" r="14" fill="#FFFFFF" />
-          <line x1="60" y1="90" x2="60" y2="106" />
-          <line x1="52" y1="98" x2="68" y2="98" />
-          <path d="M60 92 L63 98 L60 104 L57 98 Z" fill="#1C1B17" />
+          {/* Tower Bridge — the landmark most people would actually place
+              near Bermondsey, rather than an unrelated character */}
+          <path d="M6 92 Q18 86 30 92 T54 92 T78 92 T102 92 T114 92" />
+          <rect x="24" y="34" width="20" height="58" />
+          <path d="M24 34 L34 18 L44 34" />
+          <line x1="34" y1="18" x2="34" y2="34" />
+          <rect x="76" y="34" width="20" height="58" />
+          <path d="M76 34 L86 18 L96 34" />
+          <line x1="86" y1="18" x2="86" y2="34" />
+          <line x1="44" y1="46" x2="76" y2="46" />
+          <line x1="44" y1="54" x2="76" y2="54" />
+          <line x1="0" y1="76" x2="24" y2="76" />
+          <line x1="96" y1="76" x2="120" y2="76" />
+          <line x1="44" y1="76" x2="76" y2="76" />
+          <line x1="0" y1="82" x2="24" y2="82" />
+          <line x1="96" y1="82" x2="120" y2="82" />
         </g>
       </svg>
     ),
@@ -95,7 +103,13 @@ export default function PuzzlesSection({ overrides }) {
                 <h3 className="font-display font-700 text-2xl text-ink">{override?.title || title}</h3>
                 <p className="font-body text-ink/80 mt-2 max-w-[26ch] mx-auto">{override?.description || description}</p>
               </div>
-              <Illustration />
+              {override?.imageUrl ? (
+                <div className="relative w-24 h-24 rounded-sm overflow-hidden">
+                  <Image src={override.imageUrl} alt="" fill sizes="96px" className="object-cover" />
+                </div>
+              ) : (
+                <Illustration />
+              )}
               <span className="font-sans text-sm font-600 text-ink underline-offset-4 group-hover:underline">
                 {override?.cta || cta} »
               </span>

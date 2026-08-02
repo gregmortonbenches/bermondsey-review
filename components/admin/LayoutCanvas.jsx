@@ -8,6 +8,8 @@ import { usePublishOutline } from "./EditorOutlineContext";
 import ArticleCarousel from "@/components/ArticleCarousel";
 import PuzzlesSection, { PUZZLE_DEFAULTS } from "@/components/PuzzlesSection";
 import CarouselCountControl from "./CarouselCountControl";
+import { ImageDropzone } from "./BlockEditor";
+import { uploadMedia } from "@/lib/posts";
 import { MOBILE_ITEM_COUNT_OPTIONS, DESKTOP_ITEM_COUNT_OPTIONS } from "@/lib/carouselLayout";
 import { GripIcon, ChevronUpIcon, ChevronDownIcon, GearIcon } from "./icons";
 import { useReorderSensors } from "./dnd";
@@ -172,6 +174,7 @@ export default function LayoutCanvas({ pageKey, initialSections, sectionContent,
                   onMoveUp={() => moveSection(section.id, -1)}
                   onMoveDown={() => moveSection(section.id, 1)}
                   onUpdateSection={(updates) => updateSection(section.id, updates)}
+                  supabase={supabase}
                 >
                   {section.type === "carousel" ? (
                     <ArticleCarousel
@@ -284,6 +287,7 @@ function SectionSlot({
   onUpdateSection,
   fixed,
   children,
+  supabase,
 }) {
   const meta = SECTION_REGISTRY[section.type] || { label: section.type };
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -363,12 +367,14 @@ function SectionSlot({
             values={section.crossword}
             defaults={PUZZLE_DEFAULTS.crossword}
             onChange={(crossword) => onUpdateSection({ crossword })}
+            supabase={supabase}
           />
           <PuzzleCardFields
             label="Bermy on the Map card"
             values={section.geoguesser}
             defaults={PUZZLE_DEFAULTS.geoguesser}
             onChange={(geoguesser) => onUpdateSection({ geoguesser })}
+            supabase={supabase}
           />
         </div>
       )}
@@ -384,12 +390,27 @@ function SectionSlot({
   );
 }
 
-// Title/description/CTA for one Puzzles & Games card. Placeholders show
-// the actual default copy (from PUZZLE_DEFAULTS) rather than a generic
-// "Title" hint, so it's obvious what ships if a field is left blank —
-// same reasoning as CarouselCountControl's "Auto" option elsewhere on
-// this canvas.
-function PuzzleCardFields({ label, values, defaults, onChange }) {
+// Title/description/CTA/image for one Puzzles & Games card. Text
+// placeholders show the actual default copy (from PUZZLE_DEFAULTS)
+// rather than a generic "Title" hint, so it's obvious what ships if a
+// field is left blank — same reasoning as CarouselCountControl's "Auto"
+// option elsewhere on this canvas. The image is optional in the same
+// way: left unset, the card keeps its hand-drawn illustration (see
+// PuzzlesSection.jsx) instead of showing a blank square.
+function PuzzleCardFields({ label, values, defaults, onChange, supabase }) {
+  const [uploading, setUploading] = useState(false);
+
+  async function handleImageUpload(file) {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadMedia(supabase, file);
+      onChange({ ...values, imageUrl: url });
+    } finally {
+      setUploading(false);
+    }
+  }
+
   return (
     <div>
       <p className="font-sans text-[10px] uppercase tracking-[0.08em] text-steel mb-1.5">{label}</p>
@@ -413,6 +434,28 @@ function PuzzleCardFields({ label, values, defaults, onChange }) {
           placeholder={defaults.cta}
           className="w-full font-sans text-xs border border-steel/25 rounded-sm px-2 py-1.5 outline-none focus:border-river placeholder:text-steel/50"
         />
+        <div>
+          <p className="font-sans text-[10px] text-steel mb-1">
+            Card image — optional, replaces the illustration
+          </p>
+          <ImageDropzone
+            url={values?.imageUrl}
+            uploading={uploading}
+            onFile={handleImageUpload}
+            onSelectUrl={(url) => onChange({ ...values, imageUrl: url })}
+            supabase={supabase}
+            aspect="aspect-square"
+          />
+          {values?.imageUrl && (
+            <button
+              type="button"
+              onClick={() => onChange({ ...values, imageUrl: "" })}
+              className="font-sans text-[11px] text-steel hover:text-brick underline underline-offset-2 mt-1"
+            >
+              Remove, use the illustration instead
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
