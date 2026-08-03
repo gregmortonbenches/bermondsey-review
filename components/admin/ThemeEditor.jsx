@@ -55,7 +55,7 @@ export default function ThemeEditor({ initialSettings }) {
     <div className="grid lg:grid-cols-[380px_1fr] h-full">
       <div className="border-r border-steel/20 overflow-y-auto p-5">
         <div className="flex items-center justify-between mb-1">
-          <h2 className="font-display font-700 text-lg text-ink">Design</h2>
+          <h2 className="font-display font-700 text-lg text-ink">Style</h2>
           <span className={`font-sans text-xs ${statusColor[saveState]}`}>{statusCopy[saveState]}</span>
         </div>
         <p className="font-sans text-xs text-steel mb-5">
