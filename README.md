@@ -26,6 +26,21 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
 - **Article lead** (`components/PostRenderer.jsx`): a full-width band tinted with the piece's own category colour (the same brick/river split the category label already uses), headline block and cover image side by side on desktop, stacking on mobile — a proper front-of-section lead rather than a plain white header sitting above the image. Has a `sm:min-h-[420px]` floor so a short headline with no dek doesn't leave the image looking like a thin sliver; longer copy still grows the row taller than that. The masthead's own site-title heading dropped its old fixed size + `truncate` in favour of a smaller mobile size that wraps to two lines instead — a real defect this surfaced: "The Bermondsey Review" was silently clipping to "The Bermondse…" on phone-width screens.
 - **The homepage's featured article** (`components/ArticleCard.jsx`'s `size="featured"` branch) gets the same lead treatment as the article's own page — same category tint, same side-by-side headline/image — so "the most recent article" reads as one consistent design moment whether you're looking at the homepage or the piece itself. Kept as a rounded card within the normal content column rather than a true full-bleed band like the article page's own hero: "featured" is one of several reorderable homepage sections (see `components/admin/LayoutCanvas.jsx`), and a full-bleed treatment would mean pulling it out of that reorderable flow the way the newsletter band already is — a bigger change than the lead-treatment itself called for. The plain list-row layout used everywhere else (archive, category listings) is untouched.
 - **A real, pre-existing layout bug, caught by that featured-card change making it visible**: the homepage (and separately, archive/crossword/geoguesser/forms) render their main content noticeably narrower than the masthead/footer above and below them. Root cause: `<main>` is `flex flex-col`, and each of these pages has a `max-w-* mx-auto ... flex-1` div as `<main>`'s *direct* child — but per the flexbox spec, auto margins on a flex item's cross axis (`mx-auto`, when the flex direction is column) disable `align-items: stretch`, so without an explicit width the item falls back to shrink-to-fit sizing based on its content instead of filling the available space. `components/admin/LayoutCanvas.jsx`'s own homepage preview already had `w-full` on the equivalent div (something already hit and fixed this there, just not in the actual public pages) — added the same `w-full` to all 5 affected files. Confirmed via direct `getBoundingClientRect()` measurement on both the local build and the actual broken production site (not just eyeballing a screenshot, which is how this stayed unnoticed) — every wrapper now measures exactly its intended `max-w-wide`/`max-w-content` value instead of a content-dependent one.
+- **Link hover/press feedback is underline, not a colour change.** Headlines
+  (`ArticleCard.jsx`'s list and featured variants, `ArticleCarousel.jsx`),
+  cartoon captions (`CartoonsSection.jsx`), and the masthead/footer nav
+  links (`MastheadNav.jsx`, `Footer.jsx`) used to swap `text-ink` for
+  `text-brick`/`text-river` on hover (`group-hover:text-brick` etc.) — now
+  they get `group-hover:underline` (`hover:underline` for the nav links,
+  which aren't wrapped in a `group`) plus a matching `active:`/`group-active:`
+  variant for touch devices, which don't fire `:hover` on tap. Text colour
+  now stays fixed regardless of hover/press state. `PuzzlesSection.jsx`'s
+  card CTAs already worked this way (`group-hover:underline`, no colour
+  change) — this just brought the rest of the site's links in line with
+  that existing pattern rather than inventing a new one. The footer's
+  social-media icon links deliberately keep their old opacity-based hover
+  (`text-paper/80` → `text-paper`) instead — they're bare SVGs with no
+  text content, so `text-decoration` has nothing to underline.
 
 ## Running it locally
 

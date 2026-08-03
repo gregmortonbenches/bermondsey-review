@@ -64,7 +64,7 @@ export default async function Footer() {
 
           <nav className="flex flex-wrap gap-x-6 gap-y-2 font-sans text-sm">
             {navLinks.map((link) => (
-              <Link key={link.label} href={link.href} className="text-paper/80 hover:text-paper transition-colors">
+              <Link key={link.label} href={link.href} className="text-paper/80 underline-offset-4 hover:underline active:underline">
                 {link.label}
               </Link>
             ))}

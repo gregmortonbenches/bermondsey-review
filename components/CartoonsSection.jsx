@@ -103,7 +103,7 @@ export default function CartoonsSection({ cartoons, headerTitle, headerDescripti
               <ShareButton slug={cartoon.slug} />
             </div>
             <Link href={`/article/${cartoon.slug}`} className="group block mt-2">
-              <p className="font-display font-700 text-base text-ink group-hover:text-river transition-colors">
+              <p className="font-display font-700 text-base text-ink underline-offset-4 group-hover:underline group-active:underline">
                 {cartoon.title}
               </p>
               {cartoon.author && <p className="font-sans text-xs text-steel mt-0.5">{cartoon.author}</p>}

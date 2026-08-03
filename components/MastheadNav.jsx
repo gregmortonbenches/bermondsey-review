@@ -98,7 +98,7 @@ export default function MastheadNav({ logoUrl, siteTitle, siteTagline, links }) 
           list, not an interface control. */}
       <nav className="hidden sm:flex flex-wrap items-center justify-center gap-x-8 gap-y-2 py-4 hairline-b font-display text-sm text-ink">
         {links.map((link) => (
-          <Link key={link.label} href={link.href} className="hover:text-river transition-colors">
+          <Link key={link.label} href={link.href} className="underline-offset-4 hover:underline active:underline">
             {link.label}
           </Link>
         ))}
@@ -112,7 +112,7 @@ export default function MastheadNav({ logoUrl, siteTitle, siteTagline, links }) 
               key={link.label}
               href={link.href}
               onClick={() => setMenuOpen(false)}
-              className="hover:text-river transition-colors"
+              className="underline-offset-4 hover:underline active:underline"
             >
               {link.label}
             </Link>

@@ -54,11 +54,7 @@ export default function ArticleCarousel({ articles, mobileCount, desktopCount, h
               <p className={`font-sans text-[11px] tracking-[0.12em] uppercase mt-3 ${accent === "brick" ? "text-brick" : "text-river"}`}>
                 {article.category}
               </p>
-              <h3
-                className={`font-display font-700 text-lg text-ink leading-snug mt-1 transition-colors ${
-                  accent === "brick" ? "group-hover:text-brick" : "group-hover:text-river"
-                }`}
-              >
+              <h3 className="font-display font-700 text-lg text-ink leading-snug mt-1 underline-offset-4 group-hover:underline group-active:underline">
                 {article.title}
               </h3>
               <p className="font-sans text-xs font-600 text-steel mt-2">{article.author}</p>

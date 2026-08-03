@@ -25,11 +25,7 @@ export default function ArticleCard({ article, size = "regular" }) {
             <p className={`font-sans text-xs tracking-[0.14em] uppercase mb-3 ${accent === "brick" ? "text-brick" : "text-river"}`}>
               {article.category}
             </p>
-            <h3
-              className={`font-display font-700 text-3xl sm:text-4xl text-ink leading-tight transition-colors ${
-                accent === "brick" ? "group-hover:text-brick" : "group-hover:text-river"
-              }`}
-            >
+            <h3 className="font-display font-700 text-3xl sm:text-4xl text-ink leading-tight underline-offset-4 group-hover:underline group-active:underline">
               {article.title}
             </h3>
             {article.dek && <p className="font-body text-base sm:text-lg text-ink/70 mt-3">{article.dek}</p>}
@@ -77,11 +73,7 @@ export default function ArticleCard({ article, size = "regular" }) {
         <p className={`font-sans text-xs tracking-[0.14em] uppercase mb-2 ${accent === "brick" ? "text-brick" : "text-river"}`}>
           {article.category}
         </p>
-        <h3
-          className={`font-display font-700 text-lg sm:text-xl text-ink leading-tight transition-colors ${
-            accent === "brick" ? "group-hover:text-brick" : "group-hover:text-river"
-          }`}
-        >
+        <h3 className="font-display font-700 text-lg sm:text-xl text-ink leading-tight underline-offset-4 group-hover:underline group-active:underline">
           {article.title}
         </h3>
         <p className="font-body text-sm text-steel mt-2 hidden sm:block">{article.dek}</p>
