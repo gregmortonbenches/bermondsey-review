@@ -58,16 +58,16 @@ button:focus-visible {
 
 /* The train crossing the header's viaduct arches — see
    components/HeaderArches.jsx. Mostly holds off-screen to the left, then
-   takes ~10s to cross, once roughly every 42s — a rare flourish, not a
-   distracting loop, all in one keyframes timeline rather than something
-   re-triggered on a client-side interval. prefers-reduced-motion below
-   already turns this (and every other animation) off entirely. */
+   takes ~9s to cross, once roughly every 30s — still a rare flourish,
+   not a distracting loop, all in one keyframes timeline rather than
+   something re-triggered on a client-side interval. prefers-reduced-motion
+   below already turns this (and every other animation) off entirely. */
 .header-train {
-  animation: header-train-cross 42s linear infinite;
+  animation: header-train-cross 30s linear infinite;
 }
 @keyframes header-train-cross {
   0%,
-  75% {
+  70% {
     /* % here, not vw: % on translateX is relative to the train's own
        width, so -100% always clears it fully regardless of viewport
        size. -10vw (an earlier version of this) doesn't — the train

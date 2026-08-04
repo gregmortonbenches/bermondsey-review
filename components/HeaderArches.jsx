@@ -25,6 +25,13 @@
 // fully plain header — brought back as a thin band *above* the wordmark
 // rather than inside it, so the restrained, illustration-free wordmark
 // itself is untouched.
+//
+// The arch pattern's stroke is faded (stroke-ink/[0.45]) rather than
+// full ink — at full strength it was the same colour and near-enough
+// weight as the wordmark directly below it, so the two competed for
+// attention instead of one clearly leading. The parapet line stays full
+// strength: it's the one structural line meant to read clearly, with
+// the arches beneath it receding into supporting texture.
 const STROKE = "1.75";
 
 // One tile = one arch. Pier-to-pier arch width is 85, with a 45-wide
@@ -49,7 +56,7 @@ export default function HeaderArches() {
             <path
               d={`M${PIER_X} ${GROUND_Y} V${SPRINGLINE_Y} A${ARCH_RX} ${ARCH_RY} 0 0 1 ${PIER_X + ARCH_W} ${SPRINGLINE_Y} V${GROUND_Y}`}
               fill="none"
-              className="stroke-ink"
+              className="stroke-ink/[0.45]"
               strokeWidth={STROKE}
               strokeLinecap="round"
               strokeLinejoin="round"
