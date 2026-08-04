@@ -71,7 +71,7 @@ export default function HeaderArches() {
           lines marking where one carriage ends and the next begins. */}
       <svg className="header-train absolute left-0 top-[5px] w-40 h-auto" viewBox="0 0 260 50">
         <g fill="none" className="stroke-river" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
-          <path d="M8 8 H226 Q246 8 252 24 Q254 32 248 40 H8" />
+          <path d="M8 8 H226 Q246 8 252 24 Q254 32 248 40 H8 Z" />
           <path d="M228 12 Q242 13 247 24 L232 24 Q230 18 228 12 Z" />
           <circle cx="250" cy="34" r="1.4" className="fill-river" stroke="none" />
           <line x1="81" y1="8" x2="81" y2="40" strokeWidth="1.3" />
