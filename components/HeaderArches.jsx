@@ -26,27 +26,29 @@ const STROKE = "1.75";
 
 // The arch band is a small fixed-size graphic (in real px, since a
 // <pattern> needs a fixed tile size to repeat without distorting) that
-// hangs from the parapet line rather than filling the whole row: it
-// starts GAP below the parapet and is BAND_H tall in total, regardless
-// of how tall the row itself is. Mobile's row (~69px, a short title with
-// no tagline) and desktop's (~89px, a bigger title) both have the
-// parapet sitting close to the title's own bottom edge — an earlier
-// version instead sized this graphic to the *row's* full height with
-// arch geometry in fixed pixels from the row's top, which put the arch
-// crowns overlapping the title itself on both breakpoints, since that
-// geometry had no relationship to where the parapet (or the title)
-// actually ended up.
-const BAND_H = 36;
-const GAP = 6; // parapet -> crown
+// hangs from the parapet line rather than filling the whole row: it's
+// BAND_H tall in total, positioned via CSS (top: parapetY) starting
+// right at the parapet, regardless of how tall the row itself is.
+//
+// These proportions are a straight scale-down (~0.6x) of the original
+// standalone-strip version's own geometry (TILE_W 130, ARCH_W 85,
+// ARCH_RY 18, etc.) — same arch shape, same ratio of pier width to arch
+// span, same ratio of arch rise to pier height — not a redesign at a
+// smaller size. An earlier version here used different, unrelated
+// numbers at a much smaller scale, which read as a different, busier
+// style (more, smaller repeats) rather than the same arches shown
+// smaller. MastheadNav.jsx's wordmark rows carry extra bottom padding
+// specifically to give this room to breathe without heavy clipping.
+const BAND_H = 40;
 
-const TILE_W = 70;
-const TILE_H = 30;
-const PIER_X = 10;
-const ARCH_W = 50;
+const TILE_W = 78;
+const TILE_H = BAND_H;
+const PIER_X = 9;
+const ARCH_W = 51;
 const ARCH_RX = ARCH_W / 2;
-const ARCH_RY = 10; // flat/segmental, not a tall semicircle
-const SPRINGLINE_Y = 12; // within the tile, i.e. GAP + 12 from the parapet
-const GROUND_Y = TILE_H; // bottom of the band
+const ARCH_RY = 11; // flat/segmental, not a tall semicircle
+const SPRINGLINE_Y = 19; // from the parapet (y=0 of this band)
+const GROUND_Y = 34;
 
 const ARCH_PATH = `M${PIER_X} ${GROUND_Y} V${SPRINGLINE_Y} A${ARCH_RX} ${ARCH_RY} 0 0 1 ${PIER_X + ARCH_W} ${SPRINGLINE_Y} V${GROUND_Y}`;
 
@@ -64,7 +66,7 @@ export function HeaderArchesBackground({ id, parapetY = "72%" }) {
       aria-hidden="true"
     >
       <defs>
-        <pattern id={patternId} x="0" y={GAP} width={TILE_W} height={TILE_H} patternUnits="userSpaceOnUse">
+        <pattern id={patternId} width={TILE_W} height={TILE_H} patternUnits="userSpaceOnUse">
           <path
             d={ARCH_PATH}
             fill="none"
@@ -77,8 +79,8 @@ export function HeaderArchesBackground({ id, parapetY = "72%" }) {
       </defs>
       <rect width="100%" height="100%" fill={`url(#${patternId})`} />
       {/* The parapet — where the wordmark sits, like a building on top
-          of the bridge deck. Right at the top of this band (y=0), GAP
-          above where the arches themselves start. */}
+          of the bridge deck. Right at the top of this band (y=0),
+          SPRINGLINE_Y above where the arches themselves start. */}
       <line x1="0" y1="0" x2="100%" y2="0" className="stroke-ink" strokeWidth={STROKE} strokeLinecap="round" />
     </svg>
   );
@@ -108,7 +110,14 @@ export function HeaderTrain({ topY = "72%" }) {
       style={{ top: topY, transform: "translateY(-100%)" }}
       aria-hidden="true"
     >
-      <svg className="header-train block w-full h-auto" viewBox="0 0 260 50">
+      {/* viewBox height is 40, not 50: the drawn shape's lowest point
+          (the skirt, y=40) needs to BE the bottom edge of the viewBox,
+          not sit inside it with empty space below — otherwise the
+          train's own bounding box touches the parapet exactly as
+          intended, but the visibly drawn train sits proportionally
+          higher than that, floating above the line it's meant to
+          rest on. */}
+      <svg className="header-train block w-full h-auto" viewBox="0 0 260 40">
         <g fill="none" className="stroke-river" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
           <path d="M8 8 H226 Q246 8 252 24 Q254 32 248 40 H8 Z" />
           <path d="M228 12 Q242 13 247 24 L232 24 Q230 18 228 12 Z" />

@@ -13,8 +13,17 @@ export default function MastheadNav({ logoUrl, siteTitle, links }) {
       <Image src={logoUrl} alt={siteTitle} fill sizes="176px" className="object-contain sm:object-center" priority />
     </div>
   ) : (
-    <div className="min-w-0 sm:text-center">
-      <h1 className="font-display font-700 text-xl sm:text-[2.5rem] leading-tight sm:leading-none tracking-tight sm:tracking-[0.03em] sm:uppercase text-ink">
+    // Centred and reasonably sized at every width now — mobile used to
+    // stay small and left-aligned specifically to avoid truncating next
+    // to the Subscribe/hamburger button cluster; now that mobile has
+    // neither (see below), that constraint's gone, so there's no reason
+    // left for the title to look different on a phone than everywhere
+    // else. text-2xl rather than matching desktop's 2.5rem exactly —
+    // checked at 320px (the narrowest common phone width): 2.5rem and
+    // even text-3xl both wrap "The Bermondsey Review" onto two lines
+    // there, text-2xl is the largest size that still fits on one.
+    <div className="min-w-0 text-center">
+      <h1 className="font-display font-700 text-2xl sm:text-[2.5rem] leading-tight sm:leading-none tracking-tight sm:tracking-[0.03em] sm:uppercase text-ink">
         {siteTitle}
       </h1>
     </div>
@@ -22,20 +31,23 @@ export default function MastheadNav({ logoUrl, siteTitle, links }) {
 
   return (
     <>
-      {/* Mobile: just the title now — no Subscribe button, no hamburger.
-          Left-aligned rather than centred: the site title is
-          admin-editable free text with no length limit, and past a
-          certain length a centred title reads worse on a narrow column
-          than a left-aligned one that's free to wrap.
+      {/* Mobile: just the title now — no Subscribe button, no hamburger —
+          centred, same as desktop.
+          Extra bottom padding (pb-12, vs. a plain py-4) beyond what the
+          title itself needs: HeaderArchesBackground's arch band hangs
+          below the parapet at a fixed pixel height regardless of the
+          row's own height, so the row needs enough room below the
+          parapet for it to show without `overflow-hidden` clipping it
+          down to a sliver.
           `isolate` matters here, not just `relative`: HeaderArchesBackground
           sits at z-[-10] to stay behind the title, but a `relative` element
           with no z-index of its own doesn't establish a new stacking
           context — without `isolate`, that negative z-index escapes this
           row entirely and the arches render behind the header's own
           background instead, invisible. */}
-      <div className="relative isolate overflow-hidden flex sm:hidden items-center py-4 hairline-b gap-2">
-        <HeaderArchesBackground id="mobile" />
-        <HeaderTrain />
+      <div className="relative isolate overflow-hidden flex sm:hidden items-center justify-center pt-4 pb-12 hairline-b gap-2">
+        <HeaderArchesBackground id="mobile" parapetY="47%" />
+        <HeaderTrain topY="47%" />
         <Link href="/" className="group flex items-center gap-3 min-w-0">
           {wordmark}
         </Link>
@@ -43,10 +55,11 @@ export default function MastheadNav({ logoUrl, siteTitle, links }) {
 
       {/* Desktop: wordmark dead-centre, Subscribe pinned right — a true
           3-column grid rather than flex + margin-auto, so the title's
-          centring doesn't shift with how wide the right-hand button is. */}
-      <div className="relative isolate overflow-hidden hidden sm:grid grid-cols-[1fr_auto_1fr] items-center py-6 hairline-b gap-4">
-        <HeaderArchesBackground id="desktop" parapetY="78%" />
-        <HeaderTrain topY="78%" />
+          centring doesn't shift with how wide the right-hand button is.
+          Same extra-bottom-padding reasoning as the mobile row above. */}
+      <div className="relative isolate overflow-hidden hidden sm:grid grid-cols-[1fr_auto_1fr] items-center pt-6 pb-14 hairline-b gap-4">
+        <HeaderArchesBackground id="desktop" parapetY="58%" />
+        <HeaderTrain topY="58%" />
         <span aria-hidden="true" />
         <Link href="/" className="group justify-self-center">
           {wordmark}
