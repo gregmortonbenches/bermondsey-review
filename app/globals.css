@@ -68,11 +68,17 @@ button:focus-visible {
 @keyframes header-train-cross {
   0%,
   75% {
-    /* vw, not %: % on translateX is relative to the train's own small
-       width, which wouldn't reliably clear a wide viewport. */
-    transform: translateX(-10vw);
+    /* % here, not vw: % on translateX is relative to the train's own
+       width, so -100% always clears it fully regardless of viewport
+       size. -10vw (an earlier version of this) doesn't — the train
+       renders wider than 10vw of a typical desktop viewport, so part of
+       it stayed visible even at rest. */
+    transform: translateX(-100%);
   }
   100% {
+    /* vw here is deliberate: the endpoint needs to clear the *strip's*
+       width, which % (relative to the train's own small box) can't
+       express. */
     transform: translateX(110vw);
   }
 }
