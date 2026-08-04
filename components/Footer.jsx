@@ -55,11 +55,6 @@ export default async function Footer() {
         <div className="flex flex-wrap items-start justify-between gap-8">
           <div>
             <p className="font-display font-700 text-xl">{settings.site_title}</p>
-            {settings.site_tagline && (
-              <p className="font-sans text-xs tracking-[0.1em] uppercase text-paper/60 mt-1">
-                {settings.site_tagline}
-              </p>
-            )}
           </div>
 
           <nav className="flex flex-wrap gap-x-6 gap-y-2 font-sans text-sm">

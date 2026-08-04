@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { HeaderArchesBackground, HeaderTrain } from "./HeaderArches";
 
 function HamburgerIcon({ open }) {
   return (
@@ -23,7 +24,7 @@ function HamburgerIcon({ open }) {
   );
 }
 
-export default function MastheadNav({ logoUrl, siteTitle, siteTagline, links }) {
+export default function MastheadNav({ logoUrl, siteTitle, links }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const wordmark = logoUrl ? (
@@ -35,11 +36,6 @@ export default function MastheadNav({ logoUrl, siteTitle, siteTagline, links }) 
       <h1 className="font-display font-700 text-xl sm:text-[2.5rem] leading-tight sm:leading-none tracking-tight sm:tracking-[0.03em] sm:uppercase text-ink">
         {siteTitle}
       </h1>
-      {siteTagline && (
-        <p className="hidden sm:block font-sans text-[11px] sm:text-xs tracking-[0.16em] uppercase text-steel mt-2">
-          {siteTagline}
-        </p>
-      )}
     </div>
   );
 
@@ -50,8 +46,16 @@ export default function MastheadNav({ logoUrl, siteTitle, siteTagline, links }) 
           admin-editable free text with no length limit, and centring it
           alongside a shrink-0 button cluster on a narrow screen is what
           previously forced it to truncate; wrapping to two lines here
-          still degrades better than a forced centred layout would). */}
-      <div className="flex sm:hidden items-center justify-between py-4 hairline-b gap-2">
+          still degrades better than a forced centred layout would).
+          `isolate` matters here, not just `relative`: HeaderArchesBackground
+          sits at z-[-10] to stay behind the title, but a `relative` element
+          with no z-index of its own doesn't establish a new stacking
+          context — without `isolate`, that negative z-index escapes this
+          row entirely and the arches render behind the header's own
+          background instead, invisible. */}
+      <div className="relative isolate overflow-hidden flex sm:hidden items-center justify-between py-4 hairline-b gap-2">
+        <HeaderArchesBackground id="mobile" />
+        <HeaderTrain />
         <Link href="/" className="group flex items-center gap-3 min-w-0">
           {wordmark}
         </Link>
@@ -77,7 +81,9 @@ export default function MastheadNav({ logoUrl, siteTitle, siteTagline, links }) 
       {/* Desktop: wordmark dead-centre, Subscribe pinned right — a true
           3-column grid rather than flex + margin-auto, so the title's
           centring doesn't shift with how wide the right-hand button is. */}
-      <div className="hidden sm:grid grid-cols-[1fr_auto_1fr] items-center py-6 hairline-b gap-4">
+      <div className="relative isolate overflow-hidden hidden sm:grid grid-cols-[1fr_auto_1fr] items-center py-6 hairline-b gap-4">
+        <HeaderArchesBackground id="desktop" parapetY="78%" />
+        <HeaderTrain topY="78%" />
         <span aria-hidden="true" />
         <Link href="/" className="group justify-self-center">
           {wordmark}
