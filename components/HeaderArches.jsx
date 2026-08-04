@@ -60,16 +60,19 @@ export default function HeaderArches() {
         {/* The parapet — a plain line, floating clear above the arches. */}
         <line x1="0" y1={PARAPET_Y} x2="100%" y2={PARAPET_Y} className="stroke-ink" strokeWidth={STROKE} strokeLinecap="round" />
       </svg>
-      {/* Rides the same parapet line the arches float below — wheels sit
-          on it, same as the arches' own top edge relates to it. */}
-      <svg className="header-train absolute left-0 top-0 w-20 h-auto" viewBox="0 0 90 30">
-        <g fill="none" className="stroke-river" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="14" y1="4" x2="14" y2="12" />
-          <path d="M4 26 V12 H60 V26" />
-          <path d="M60 26 V16 H74 V26" />
-          <circle cx="16" cy="26" r="4" />
-          <circle cx="36" cy="26" r="4" />
-          <circle cx="66" cy="26" r="4" />
+      {/* A modern unit, not a steam engine — the actual Southeastern
+          Class 707s that run this line have a streamlined nose and sit
+          low on a flush skirt, no visible wheels or funnel. Nose on the
+          right (the leading edge for a sprite moving left-to-right,
+          matching .header-train's own direction of travel), flush skirt
+          resting on the same parapet line the arches float below. */}
+      <svg className="header-train absolute left-0 top-1 w-24 h-auto" viewBox="0 0 150 50">
+        <g fill="none" className="stroke-river" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 8 H116 Q136 8 142 24 Q144 32 138 40 H5" />
+          <path d="M118 12 Q132 13 137 24 L122 24 Q120 18 118 12 Z" />
+          <circle cx="140" cy="34" r="1.4" className="fill-river" stroke="none" />
+          <line x1="72" y1="12" x2="72" y2="40" strokeWidth="1.3" />
+          <line x1="40" y1="12" x2="40" y2="40" strokeWidth="1.3" />
         </g>
       </svg>
     </div>
