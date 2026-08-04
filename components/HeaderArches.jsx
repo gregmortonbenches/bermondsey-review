@@ -65,14 +65,17 @@ export default function HeaderArches() {
           low on a flush skirt, no visible wheels or funnel. Nose on the
           right (the leading edge for a sprite moving left-to-right,
           matching .header-train's own direction of travel), flush skirt
-          resting on the same parapet line the arches float below. */}
-      <svg className="header-train absolute left-0 top-1 w-24 h-auto" viewBox="0 0 150 50">
+          resting on the same parapet line the arches float below. Three
+          carriages — the body is one continuous outline (real EMUs are
+          articulated, not separate boxes end to end), with two joint
+          lines marking where one carriage ends and the next begins. */}
+      <svg className="header-train absolute left-0 top-[5px] w-40 h-auto" viewBox="0 0 260 50">
         <g fill="none" className="stroke-river" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
-          <path d="M5 8 H116 Q136 8 142 24 Q144 32 138 40 H5" />
-          <path d="M118 12 Q132 13 137 24 L122 24 Q120 18 118 12 Z" />
-          <circle cx="140" cy="34" r="1.4" className="fill-river" stroke="none" />
-          <line x1="72" y1="12" x2="72" y2="40" strokeWidth="1.3" />
-          <line x1="40" y1="12" x2="40" y2="40" strokeWidth="1.3" />
+          <path d="M8 8 H226 Q246 8 252 24 Q254 32 248 40 H8" />
+          <path d="M228 12 Q242 13 247 24 L232 24 Q230 18 228 12 Z" />
+          <circle cx="250" cy="34" r="1.4" className="fill-river" stroke="none" />
+          <line x1="81" y1="8" x2="81" y2="40" strokeWidth="1.3" />
+          <line x1="154" y1="8" x2="154" y2="40" strokeWidth="1.3" />
         </g>
       </svg>
     </div>
