@@ -61,9 +61,21 @@ button:focus-visible {
    takes ~9s to cross, once roughly every 30s — still a rare flourish,
    not a distracting loop, all in one keyframes timeline rather than
    something re-triggered on a client-side interval. prefers-reduced-motion
-   below already turns this (and every other animation) off entirely. */
+   below already turns this (and every other animation) off entirely.
+
+   animation-delay: -11s makes the *first* crossing start at 10s after
+   page load rather than waiting a full 21s (70% of the 30s cycle) —
+   a negative delay makes the animation act as though that much of its
+   cycle had already elapsed, so it begins 11s into the 30s loop instead
+   of at 0s. 11s into a hold-until-70%(21s)/cross-from-70%-to-100%(9s)
+   cycle is still within the hold phase, so at t=0 it's already sitting
+   off-screen as normal; the hold phase's remaining 10s (21s - 11s) then
+   elapses before the first crossing begins at real time t=10s. Every
+   crossing after that is still a plain 30s apart, since a negative delay
+   only shifts the starting phase, not the loop's own period. */
 .header-train {
   animation: header-train-cross 30s linear infinite;
+  animation-delay: -11s;
 }
 @keyframes header-train-cross {
   0%,

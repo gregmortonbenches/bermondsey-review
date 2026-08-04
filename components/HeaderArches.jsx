@@ -26,9 +26,13 @@ const STROKE = "1.75";
 
 // The arch band is a small fixed-size graphic (in real px, since a
 // <pattern> needs a fixed tile size to repeat without distorting) that
-// hangs from the parapet line rather than filling the whole row: it's
-// BAND_H tall in total, positioned via CSS (top: parapetY) starting
-// right at the parapet, regardless of how tall the row itself is.
+// hangs from the *bottom* of the row — `bottom: 0`, not `top: someY%` —
+// so the arch piers' ground level always lands exactly on the row's own
+// bottom edge (its hairline, right above the nav links) regardless of
+// how tall the row is, rather than floating with a gap above that
+// hairline that a percentage-based top offset couldn't reliably close.
+// HeaderTrain anchors the same way, offset `bottom: BAND_H` so its skirt
+// lands exactly on the parapet line at the *top* of this band.
 //
 // These proportions are a straight scale-down (~0.6x) of the original
 // standalone-strip version's own geometry (TILE_W 130, ARCH_W 85,
@@ -57,12 +61,12 @@ const ARCH_PATH = `M${PIER_X} ${GROUND_Y} V${SPRINGLINE_Y} A${ARCH_RX} ${ARCH_RY
 // SVG pattern ids have to be unique per document, and two <defs> sharing
 // one id is exactly the kind of thing that renders fine in one browser
 // and silently breaks in another.
-export function HeaderArchesBackground({ id, parapetY = "72%" }) {
+export function HeaderArchesBackground({ id }) {
   const patternId = `header-arches-${id}`;
   return (
     <svg
-      className="absolute inset-x-0 -z-10 block w-full"
-      style={{ top: parapetY, height: BAND_H }}
+      className="absolute inset-x-0 bottom-0 -z-10 block w-full"
+      style={{ height: BAND_H }}
       aria-hidden="true"
     >
       <defs>
@@ -96,36 +100,39 @@ export function HeaderArchesBackground({ id, parapetY = "72%" }) {
 // begins.
 //
 // z-20 so it paints in front of the title text and the Subscribe
-// button, not just the arches behind them — an outer wrapper handles the
-// static vertical placement (top + a full translateY(-100%), so the
-// train's own skirt lands exactly on the parapet regardless of the
-// row's height) while an inner element carries .header-train's
-// horizontal crossing animation; a single element can't do both, since
-// the keyframes' own transform would silently replace a static one set
-// alongside it on the same property.
-export function HeaderTrain({ topY = "72%" }) {
+// button, not just the arches behind them. `bottom: BAND_H` positions
+// its skirt exactly on the parapet line (the arch band's own top edge,
+// BAND_H above the row's bottom) — a static CSS property distinct from
+// `transform`, so it doesn't conflict with .header-train's own
+// `transform: translateX(...)` crossing animation the way a static
+// `transform: translateY(...)` would (a CSS animation's own transform
+// value fully replaces whatever static value shared that property,
+// rather than composing with it — an earlier version needed a whole
+// second wrapper element just to work around that; positioning by
+// `bottom` instead of `transform: translateY` sidesteps the conflict
+// entirely, so one element can carry both).
+//
+// viewBox height is 40, not 50: the drawn shape's lowest point (the
+// skirt, y=40) needs to BE the bottom edge of the viewBox, not sit
+// inside it with empty space below — otherwise the train's own bounding
+// box lands exactly where intended, but the visibly drawn train sits
+// proportionally higher than that box, floating above the line it's
+// meant to rest on.
+export function HeaderTrain() {
   return (
-    <div
-      className="absolute left-0 z-20 w-40 sm:w-48 pointer-events-none"
-      style={{ top: topY, transform: "translateY(-100%)" }}
+    <svg
+      className="header-train absolute left-0 z-20 w-40 sm:w-48 h-auto pointer-events-none"
+      style={{ bottom: BAND_H }}
+      viewBox="0 0 260 40"
       aria-hidden="true"
     >
-      {/* viewBox height is 40, not 50: the drawn shape's lowest point
-          (the skirt, y=40) needs to BE the bottom edge of the viewBox,
-          not sit inside it with empty space below — otherwise the
-          train's own bounding box touches the parapet exactly as
-          intended, but the visibly drawn train sits proportionally
-          higher than that, floating above the line it's meant to
-          rest on. */}
-      <svg className="header-train block w-full h-auto" viewBox="0 0 260 40">
-        <g fill="none" className="stroke-river" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
-          <path d="M8 8 H226 Q246 8 252 24 Q254 32 248 40 H8 Z" />
-          <path d="M228 12 Q242 13 247 24 L232 24 Q230 18 228 12 Z" />
-          <circle cx="250" cy="34" r="1.4" className="fill-river" stroke="none" />
-          <line x1="81" y1="8" x2="81" y2="40" strokeWidth="1.3" />
-          <line x1="154" y1="8" x2="154" y2="40" strokeWidth="1.3" />
-        </g>
-      </svg>
-    </div>
+      <g fill="none" className="stroke-river" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8 8 H226 Q246 8 252 24 Q254 32 248 40 H8 Z" />
+        <path d="M228 12 Q242 13 247 24 L232 24 Q230 18 228 12 Z" />
+        <circle cx="250" cy="34" r="1.4" className="fill-river" stroke="none" />
+        <line x1="81" y1="8" x2="81" y2="40" strokeWidth="1.3" />
+        <line x1="154" y1="8" x2="154" y2="40" strokeWidth="1.3" />
+      </g>
+    </svg>
   );
 }

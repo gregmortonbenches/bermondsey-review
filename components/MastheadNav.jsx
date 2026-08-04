@@ -34,11 +34,13 @@ export default function MastheadNav({ logoUrl, siteTitle, links }) {
       {/* Mobile: just the title now — no Subscribe button, no hamburger —
           centred, same as desktop.
           Extra bottom padding (pb-12, vs. a plain py-4) beyond what the
-          title itself needs: HeaderArchesBackground's arch band hangs
-          below the parapet at a fixed pixel height regardless of the
-          row's own height, so the row needs enough room below the
-          parapet for it to show without `overflow-hidden` clipping it
-          down to a sliver.
+          title itself needs: HeaderArchesBackground's arch band is
+          bottom-anchored (`bottom: 0`) so its ground level always abuts
+          this row's own hairline, and the row needs enough room below
+          the title for that fixed-height band to show without
+          `overflow-hidden` clipping it down to a sliver. pb-12 gives an
+          8px gap between the title and the parapet above the arches
+          (pb-12's 48px, minus the band's own 40px height).
           `isolate` matters here, not just `relative`: HeaderArchesBackground
           sits at z-[-10] to stay behind the title, but a `relative` element
           with no z-index of its own doesn't establish a new stacking
@@ -46,8 +48,8 @@ export default function MastheadNav({ logoUrl, siteTitle, links }) {
           row entirely and the arches render behind the header's own
           background instead, invisible. */}
       <div className="relative isolate overflow-hidden flex sm:hidden items-center justify-center pt-4 pb-12 hairline-b gap-2">
-        <HeaderArchesBackground id="mobile" parapetY="47%" />
-        <HeaderTrain topY="47%" />
+        <HeaderArchesBackground id="mobile" />
+        <HeaderTrain />
         <Link href="/" className="group flex items-center gap-3 min-w-0">
           {wordmark}
         </Link>
@@ -56,10 +58,11 @@ export default function MastheadNav({ logoUrl, siteTitle, links }) {
       {/* Desktop: wordmark dead-centre, Subscribe pinned right — a true
           3-column grid rather than flex + margin-auto, so the title's
           centring doesn't shift with how wide the right-hand button is.
-          Same extra-bottom-padding reasoning as the mobile row above. */}
+          Same extra-bottom-padding reasoning as the mobile row above —
+          pb-14's 56px leaves a 16px gap above the arch band. */}
       <div className="relative isolate overflow-hidden hidden sm:grid grid-cols-[1fr_auto_1fr] items-center pt-6 pb-14 hairline-b gap-4">
-        <HeaderArchesBackground id="desktop" parapetY="58%" />
-        <HeaderTrain topY="58%" />
+        <HeaderArchesBackground id="desktop" />
+        <HeaderTrain />
         <span aria-hidden="true" />
         <Link href="/" className="group justify-self-center">
           {wordmark}
