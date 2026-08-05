@@ -100,7 +100,7 @@ function AdminShellInner({ role, children }) {
     <div className="flex h-screen bg-paper">
       <aside className="w-56 shrink-0 h-screen overflow-y-auto border-r border-steel/20 flex flex-col">
         <Link href="/admin" className="block px-4 py-5 hover:bg-steel/[0.04] transition-colors">
-          <p className="font-display font-700 text-lg text-ink">The Bermondsey Review</p>
+          <p className="font-display font-700 text-lg text-ink">Bermy Review</p>
           <p className="font-sans text-[11px] uppercase tracking-[0.08em] text-steel mt-0.5">
             {isAdmin ? "Admin" : "Contributor"}
           </p>

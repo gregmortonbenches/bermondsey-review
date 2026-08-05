@@ -39,7 +39,7 @@ export default function LoginPage() {
         onSubmit={handleSubmit}
         className="w-full max-w-sm border border-steel/25 rounded-sm p-8"
       >
-        <h1 className="font-display font-700 text-2xl text-ink mb-1">The Bermondsey Review</h1>
+        <h1 className="font-display font-700 text-2xl text-ink mb-1">Bermy Review</h1>
         <p className="font-sans text-sm text-steel mb-6">Sign in to edit and publish.</p>
 
         {error && (
