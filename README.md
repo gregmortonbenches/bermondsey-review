@@ -59,6 +59,14 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
   (`text-paper/80` → `text-paper`) instead — they're bare SVGs with no
   text content, so `text-decoration` has nothing to underline.
 
+## Footer: white background instead of dark ink
+
+- `components/Footer.jsx`: `bg-ink text-paper` → `bg-paper text-ink`, plus a `border-t border-steel/20` hairline added — without a dark background to set it apart from the page above, a plain colour swap with no separator would leave the footer reading as a continuation of whatever's above it rather than its own section, so the hairline (the same separator convention used everywhere else on the site: the masthead's own rows, the crossword/geoguesser page headers) does that job instead. Every text colour built for white-on-dark needed the equivalent dark-on-light swap, not just the background: `text-paper/80` nav links → plain `text-ink` (dropping the opacity now that full contrast doesn't need softening, matching how the masthead's own nav links are styled); `text-paper/80 hover:text-paper` social icons → `text-steel hover:text-ink` (the site's standard muted→full-strength hover pattern, same reasoning as everywhere else — icons have no text content, so this stays opacity/colour-based rather than an underline the way text links get); `text-paper/70`/`border-paper/15` footer-text paragraph → `text-steel`/`border-steel/20`; `text-paper/50` copyright line → `text-steel/70`, preserving the original relative hierarchy (copyright was the most faded line before, still is).
+
+## Newsletter heading: "Get the newsletter"
+
+- `components/Newsletter.jsx`: "Get the next issue in your inbox" → "Get the newsletter" — shorter, plain copy for the sign-up band's heading.
+
 ## Worm pink, bigger eyes, first crossing at 0.5s
 
 - **Colour**: the worm's stroke switched from `stroke-river` (one of the site's two theme accents, admin-editable at `/admin/theme`) to a literal `stroke-[#E8809B]` — a deliberate, non-theme-tied "worm pink." Using `river` was inherited from the train it replaced, where a theme colour made sense (a train has no inherent colour of its own); a worm's colour is its own, not something that should shift if someone later changes the site's brick/river accents. The eye dots' fill switched to match, from `fill-river` to the same literal pink.
