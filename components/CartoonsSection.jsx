@@ -84,7 +84,7 @@ export default function CartoonsSection({ cartoons, headerTitle, headerDescripti
       />
       <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 -mx-4 px-4 sm:mx-0 sm:px-0 pb-4 [scrollbar-width:thin]">
         {cartoons.map((cartoon) => (
-          <div key={cartoon.slug} className="shrink-0 snap-start w-[80%] xs:w-[55%] sm:w-[38%] lg:w-[30%]">
+          <div key={cartoon.slug} className="shrink-0 snap-start w-full sm:w-[38%] lg:w-[30%]">
             <div className="relative aspect-square rounded-sm overflow-hidden bg-steel/[0.08]">
               <Link href={`/article/${cartoon.slug}`} className="absolute inset-0 block">
                 {cartoon.cover_image_url ? (
@@ -92,7 +92,7 @@ export default function CartoonsSection({ cartoons, headerTitle, headerDescripti
                     src={cartoon.cover_image_url}
                     alt={cartoon.cover_image_alt || ""}
                     fill
-                    sizes="(max-width: 640px) 80vw, 30vw"
+                    sizes="(max-width: 640px) 100vw, 30vw"
                     className="object-cover"
                     style={focalPointStyle(cartoon)}
                   />
