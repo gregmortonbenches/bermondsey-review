@@ -209,8 +209,9 @@ export default function GeoguesserRoundForm({ mode, initialRound }) {
           Correct spot
         </label>
         <p className="font-sans text-xs text-steel mb-2">
-          Click the map where the photo was actually taken. This is never sent to the public page —
-          a guess is scored on the server instead (see app/api/geoguesser/guess).
+          Click the map where the photo was actually taken (or tab to it, arrow keys to move, Enter
+          to drop it on the crosshair). This is never sent to the public page — a guess is scored on
+          the server instead (see app/api/geoguesser/guess).
         </p>
         <GeoMap
           center={BERMONDSEY_CENTER}

@@ -15,7 +15,7 @@ export default function NotFound() {
     <main className="bg-paper min-h-screen flex flex-col">
       <ThemeVars />
       <Masthead />
-      <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-12 py-20 sm:py-28 flex-1 w-full text-center">
+      <div id="main-content" className="max-w-content mx-auto px-4 sm:px-6 lg:px-12 py-20 sm:py-28 flex-1 w-full text-center">
         <p className="font-display font-700 text-river text-sm uppercase tracking-[0.15em] mb-3">
           Page not found
         </p>

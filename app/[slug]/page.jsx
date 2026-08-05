@@ -47,7 +47,7 @@ export default async function CustomPage({ params }) {
       <ThemeVars />
       <PageViewTracker path={`/${page.slug}`} />
       <Masthead />
-      <div className="flex-1">
+      <div id="main-content" className="flex-1">
         <PageRenderer page={page} />
       </div>
       <Footer />

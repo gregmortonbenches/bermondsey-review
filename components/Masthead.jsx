@@ -20,7 +20,7 @@ import MastheadNav from "./MastheadNav";
 // positioned background, so it adds no extra layout height — gets the
 // same illustration without the extra height, with the title reading as
 // if it's sitting on top of the bridge deck.
-export default async function Masthead() {
+export default async function Masthead({ isHomepage = false }) {
   let settings = DEFAULT_SITE_SETTINGS;
   let navLinks = DEFAULT_SITE_SETTINGS.nav_links;
   try {
@@ -33,10 +33,31 @@ export default async function Masthead() {
   }
 
   return (
-    <header className="bg-paper">
-      <div className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12">
-        <MastheadNav logoUrl={settings.logo_url} siteTitle={settings.site_title} links={navLinks} />
-      </div>
-    </header>
+    <>
+      {/* Visually hidden until focused — the first tab stop on every
+          page, so keyboard/screen-reader users can jump straight past
+          the masthead and nav to the actual content instead of tabbing
+          through every nav link first each time. Targets #main-content,
+          which every top-level page wrapper sets on its own real
+          content div (see e.g. HomePageBody.jsx, ArchiveBody.jsx,
+          GeoguesserBody.jsx, and the article/page/crossword/forms
+          routes). */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-brick focus:text-paper focus:font-sans focus:text-sm focus:font-600 focus:px-4 focus:py-2 focus:rounded-sm"
+      >
+        Skip to content
+      </a>
+      <header className="bg-paper">
+        <div className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12">
+          <MastheadNav
+            logoUrl={settings.logo_url}
+            siteTitle={settings.site_title}
+            links={navLinks}
+            isHomepage={isHomepage}
+          />
+        </div>
+      </header>
+    </>
   );
 }

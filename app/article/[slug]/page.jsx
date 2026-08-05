@@ -47,7 +47,7 @@ export default async function ArticlePage({ params }) {
       <ThemeVars />
       <PageViewTracker path={`/article/${post.slug}`} />
       <Masthead />
-      <div className="flex-1">
+      <div id="main-content" className="flex-1">
         <PostRenderer post={post} />
       </div>
       <Newsletter />

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/public";
 import { getRoundById } from "@/lib/geoguesser";
-import { haversineDistanceMeters } from "@/lib/geo";
+import { haversineDistanceMeters, scoreFromDistance } from "@/lib/geo";
 
 // Scores a guess server-side rather than shipping correct_lat/correct_lng
 // to the browser at all — the public /geoguesser page only ever gets
@@ -35,6 +35,7 @@ export async function POST(request) {
 
   return NextResponse.json({
     distanceMeters,
+    score: scoreFromDistance(distanceMeters),
     correctLat: round.correct_lat,
     correctLng: round.correct_lng,
     locationName: round.location_name || null,
