@@ -94,9 +94,9 @@ export function HeaderArchesBackground({ id }) {
 // that run this line have a streamlined nose and sit low on a flush
 // skirt, no visible wheels or funnel. Nose on the right (the leading
 // edge for a sprite moving left-to-right, matching .header-train's own
-// direction of travel). Three carriages — the body is one continuous
+// direction of travel). Four carriages — the body is one continuous
 // outline (real EMUs are articulated, not separate boxes end to end),
-// with two joint lines marking where one carriage ends and the next
+// with three joint lines marking where one carriage ends and the next
 // begins.
 //
 // z-20 so it paints in front of the title text and the Subscribe
@@ -121,22 +121,24 @@ export function HeaderArchesBackground({ id }) {
 export function HeaderTrain() {
   return (
     <svg
-      className="header-train absolute left-0 z-20 w-48 sm:w-56 h-auto pointer-events-none"
+      className="header-train absolute left-0 z-20 w-56 sm:w-64 h-auto pointer-events-none"
       style={{ bottom: BAND_H }}
-      viewBox="0 0 300 40"
+      viewBox="0 0 386 40"
       aria-hidden="true"
     >
-      {/* Body extended by 40 units (266 vs the previous 226) — same
-          height/nose/cab shape, just a longer run of carriage before it,
-          so the train reads as longer rather than bigger overall. Joint
-          lines recomputed to keep three even carriages across the new
-          span. */}
+      {/* A fourth carriage added (body span 8-266 -> 8-352, one more
+          86-unit carriage the same width as the existing three) — same
+          height/nose/cab shape throughout, just one more run of
+          carriage, so it reads as a longer train rather than a bigger
+          one. Joint lines recomputed to keep four even carriages across
+          the new span. */}
       <g fill="none" className="stroke-river" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M8 8 H266 Q286 8 292 24 Q294 32 288 40 H8 Z" />
-        <path d="M268 12 Q282 13 287 24 L272 24 Q270 18 268 12 Z" />
-        <circle cx="290" cy="34" r="1.4" className="fill-river" stroke="none" />
+        <path d="M8 8 H352 Q372 8 378 24 Q380 32 374 40 H8 Z" />
+        <path d="M354 12 Q368 13 373 24 L358 24 Q356 18 354 12 Z" />
+        <circle cx="376" cy="34" r="1.4" className="fill-river" stroke="none" />
         <line x1="94" y1="8" x2="94" y2="40" strokeWidth="1.3" />
         <line x1="180" y1="8" x2="180" y2="40" strokeWidth="1.3" />
+        <line x1="266" y1="8" x2="266" y2="40" strokeWidth="1.3" />
       </g>
     </svg>
   );
