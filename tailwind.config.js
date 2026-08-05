@@ -50,6 +50,18 @@ module.exports = {
         content: "780px",
         wide: "1180px",
       },
+      // "xs" isn't one of Tailwind's default breakpoints — without this,
+      // `xs:` was already in use (ArticleCarousel.jsx, CartoonsSection.jsx)
+      // as if it existed, but silently generated no CSS at all: Tailwind's
+      // JIT only emits a rule for a variant it actually recognizes, so
+      // every `xs:w-[...]` was dead, and those elements just kept their
+      // base (smallest-phone) width all the way up to `sm:` (640px)
+      // instead of stepping down partway there as intended. 480px sits
+      // between typical phone widths and `sm:`, matching what both of
+      // those call sites were already written assuming existed.
+      screens: {
+        xs: "480px",
+      },
     },
   },
   plugins: [],
