@@ -66,20 +66,30 @@ button:focus-visible {
    prefers-reduced-motion below already turns this (and every other
    animation) off entirely.
 
-   animation-delay: -22.6s makes the *first* crossing start half a
-   second after page load rather than waiting a full 23.1s (77% of the
-   30s cycle) — a negative delay makes the animation act as though that
-   much of its cycle had already elapsed, so it begins 22.6s into the
-   30s loop instead of at 0s. 22.6s into a hold-until-77%(23.1s)/cross-
-   from-77%-to-100%(6.9s) cycle is still (just) within the hold phase,
-   so at t=0 it's already sitting off-screen as normal; the hold
-   phase's remaining 0.5s (23.1s - 22.6s) then elapses before the first
-   crossing begins at real time t=0.5s. Every crossing after that is
-   still a plain 30s apart, since a negative delay only shifts the
+   animation-duration/animation-delay read CSS custom properties, set by
+   components/HeaderWormSpeed.jsx once on mount and again on resize, so
+   the crossing takes genuinely constant real-world speed regardless of
+   viewport width — otherwise, since the crossing endpoint is
+   necessarily vw-relative (see the keyframes below), a fixed duration
+   means a wide desktop window makes the worm travel much further than
+   a narrow phone in that same fixed time, reading as faster on wide
+   screens even though nothing about the animation changed. See that
+   component's own comment for the full derivation.
+
+   The var() fallbacks (30s / -22.6s) are the original fixed values —
+   what a ~1280px desktop already got before HeaderWormSpeed existed,
+   so that's also what renders before its effect runs, or if JS is
+   disabled. Whatever the *current* delay value is (fixed here, or
+   computed there), the underlying idea is unchanged: a negative delay
+   makes the animation act as though that much of its cycle had already
+   elapsed, so it begins already inside the hold phase instead of at
+   0%, landing the first crossing at real time ~0.5s rather than
+   waiting out a full hold phase first. Every crossing after that is
+   still one full cycle apart, since a negative delay only shifts the
    starting phase, not the loop's own period. */
 .header-worm {
-  animation: header-worm-cross 30s linear infinite;
-  animation-delay: -22.6s;
+  animation: header-worm-cross var(--worm-cycle-duration, 30s) linear infinite;
+  animation-delay: var(--worm-cross-delay, -22.6s);
 }
 @keyframes header-worm-cross {
   0%,

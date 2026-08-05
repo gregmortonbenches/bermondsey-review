@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { HeaderArchesBackground, HeaderWorm } from "./HeaderArches";
+import HeaderWormSpeed from "./HeaderWormSpeed";
 
 // No "use client" any more — the hamburger/collapsible-menu toggle was
 // the only reason this needed client-side state at all. Mobile now
@@ -43,6 +44,12 @@ export default function MastheadNav({ logoUrl, siteTitle, links, isHomepage = fa
 
   return (
     <>
+      {/* Renders nothing — just keeps .header-worm's crossing speed
+          constant across viewport widths. One instance covers both
+          wordmark rows below, since it only sets shared CSS variables
+          on the document root. See its own comment for why this needs
+          JS at all rather than being pure CSS. */}
+      <HeaderWormSpeed />
       {isHomepage && <h1 className="sr-only">{siteTitle}</h1>}
       {/* Mobile: just the title now — no Subscribe button, no hamburger —
           centred, same as desktop.
