@@ -1,5 +1,34 @@
+import Script from "next/script";
 import { createClient } from "@/lib/supabase/public";
 import { getSiteSettingsSafe, DEFAULT_SITE_SETTINGS } from "@/lib/theme";
+
+// The actual subscribe form/button for embed 4462233900 — Supascribe's
+// own script (loaded below) finds this div by its data attribute and
+// replaces its contents with the real widget UI, styled from whatever's
+// configured on their dashboard (currently a white card with a blue
+// button, set there rather than here — this div itself carries no
+// visual styling of its own, deliberately, since Supascribe owns that).
+// Posts a subscriber's email to Supascribe's own API, which forwards it
+// on to the linked Substack (thebermondseyreview.substack.com) — not a
+// direct-to-Substack embed, so an email typed here does pass through
+// Supascribe's servers first.
+function SupascribeEmbed() {
+  return (
+    <div className="w-full sm:w-auto">
+      <div data-supascribe-embed-id="4462233900" data-supascribe-subscribe />
+      {/* lazyOnload: this is a below-the-fold sign-up widget, not
+          above-the-fold content, so there's no reason for it to compete
+          with anything on the critical rendering path — id lets Next
+          dedupe it rather than re-inject the script if this component
+          ever ends up rendered more than once in the same page load. */}
+      <Script
+        id="supascribe-loader"
+        src="https://js.supascribe.com/v1/loader/Wi76rW1A7iR26BlzZ3R7LbwAzFt2.js"
+        strategy="lazyOnload"
+      />
+    </div>
+  );
+}
 
 // Async, like Masthead/Footer — same settings fetch, same reasoning: one
 // source of truth for the site's identity, not a prop threaded through
@@ -31,24 +60,7 @@ export default async function Newsletter() {
             </p>
           )}
         </div>
-        {/* Wired to Supabase + Resend in step 2 — for now this is a visual placeholder */}
-        <form className="flex w-full sm:w-auto">
-          <label htmlFor="email" className="sr-only">
-            Email address
-          </label>
-          <input
-            id="email"
-            type="email"
-            placeholder="you@example.com"
-            className="font-sans text-sm px-4 py-3 w-full sm:w-64 rounded-l-sm text-ink bg-paper placeholder:text-steel focus-visible:outline-2 focus-visible:outline-brick"
-          />
-          <button
-            type="submit"
-            className="font-sans text-sm font-600 bg-brick text-paper px-5 py-3 rounded-r-sm hover:bg-paper hover:text-ink transition-colors whitespace-nowrap"
-          >
-            Subscribe
-          </button>
-        </form>
+        <SupascribeEmbed />
       </div>
     </section>
   );
