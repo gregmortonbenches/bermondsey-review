@@ -59,6 +59,11 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
   (`text-paper/80` → `text-paper`) instead — they're bare SVGs with no
   text content, so `text-decoration` has nothing to underline.
 
+## Footer back to black; worm slowed slightly
+
+- **Footer reverted**: `bg-paper text-ink` → back to `bg-ink text-paper` (and every dark-on-light colour from that change back to its white-on-dark equivalent — `text-ink` nav links → `text-paper/80`, `text-steel hover:text-ink` social icons → `text-paper/80 hover:text-paper`, etc.), undoing the earlier "footer background to white" request — asked for, tried, didn't land, reverted back to the original exactly as it was.
+- **Worm slowed**: `components/HeaderWormSpeed.jsx`'s `WORM_SPEED_PX_PER_S` — `245.8` → `210` (roughly 15% slower). Since this one constant is what the constant-speed calculation (see the entry below on making the crossing speed viewport-independent) derives everything else from, slowing it applies equally on every screen size, not just one — "on both" was already guaranteed by the fix that made them match in the first place. The CSS fallback values in `app/globals.css` (rendered before `HeaderWormSpeed`'s effect runs, or with JS disabled) recalculated to match: `35.114s` cycle, `-26.538s` delay, replacing the previous `30s`/`-22.6s`. Verified by re-running the same real-position-sampling check used for the original constant-speed fix: 210.3px/s at 375px, 209.0px/s at 1280px — both landing on the new 210px/s target, still matched to each other.
+
 ## A favicon: the worm's face
 
 - `app/icon.svg` — Next's file-based convention (drop `icon.svg`/`.png`/etc. straight into `app/`, no `layout.jsx` metadata needed; confirmed it auto-injects `<link rel="icon" href="/icon.svg" type="image/svg+xml">`). Just the worm's head, not the full segmented body — a favicon renders as small as 16px, where five thin ring-lines on a long capsule would just blur into noise, and the header illustration's own 1.75-unit stroke weight all but disappears at that size regardless. Filled solid pink with two white eyes instead of line art, for the same reason: a silhouette with contrasting eyes still reads at 16px; a thin outline doesn't. Checked at 16/32/64px — legible-if-abstract at 16px (about as good as favicons generally get), clearly a face by 32px.

@@ -50,7 +50,7 @@ export default async function Footer() {
   const socialLinks = Object.entries(settings.social_links || {}).filter(([, url]) => url);
 
   return (
-    <footer className="bg-paper text-ink mt-auto border-t border-steel/20">
+    <footer className="bg-ink text-paper mt-auto">
       <div className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12 py-10">
         <div className="flex flex-wrap items-start justify-between gap-8">
           <div>
@@ -59,7 +59,7 @@ export default async function Footer() {
 
           <nav className="flex flex-wrap gap-x-6 gap-y-2 font-sans text-sm">
             {navLinks.map((link) => (
-              <Link key={link.label} href={link.href} className="underline-offset-4 hover:underline active:underline">
+              <Link key={link.label} href={link.href} className="text-paper/80 underline-offset-4 hover:underline active:underline">
                 {link.label}
               </Link>
             ))}
@@ -77,7 +77,7 @@ export default async function Footer() {
                     target="_blank"
                     rel="noreferrer noopener"
                     aria-label={key}
-                    className="text-steel hover:text-ink transition-colors"
+                    className="text-paper/80 hover:text-paper transition-colors"
                   >
                     <Icon />
                   </a>
@@ -88,12 +88,12 @@ export default async function Footer() {
         </div>
 
         {settings.footer_text && (
-          <p className="font-sans text-sm text-steel mt-8 pt-8 border-t border-steel/20">
+          <p className="font-sans text-sm text-paper/70 mt-8 pt-8 border-t border-paper/15">
             {settings.footer_text}
           </p>
         )}
 
-        <p className="font-sans text-xs text-steel/70 mt-6">
+        <p className="font-sans text-xs text-paper/50 mt-6">
           © {new Date().getFullYear()} {settings.site_title}
         </p>
       </div>
