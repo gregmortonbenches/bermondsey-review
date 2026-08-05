@@ -3,7 +3,7 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { formatDistance } from "@/lib/geo";
+import { formatDistance, scoreLabel } from "@/lib/geo";
 
 // Leaflet needs a real DOM — loaded client-side only, and only once this
 // component (itself already client-only) actually mounts.
@@ -89,13 +89,18 @@ export default function GeoguesserGame({ round }) {
       ) : (
         <>
           <div className="bg-river/[0.06] rounded-sm px-5 py-4 mb-4">
-            <p className="font-display font-700 text-2xl text-ink">
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <p className="font-display font-700 text-4xl text-ink">
+                {result.score.toLocaleString()}
+                <span className="font-body font-400 text-lg text-steel"> / 5,000</span>
+              </p>
+              <p className="font-sans text-sm font-600 uppercase tracking-[0.08em] text-brick">
+                {scoreLabel(result.score)}
+              </p>
+            </div>
+            <p className="font-body text-steel mt-2">
               {formatDistance(result.distanceMeters)} away
-            </p>
-            <p className="font-body text-steel mt-1">
-              {result.locationName
-                ? `The real spot was ${result.locationName}.`
-                : "Here's the real spot."}
+              {result.locationName ? ` — the real spot was ${result.locationName}.` : " — here's the real spot."}
             </p>
           </div>
           <GeoMap
