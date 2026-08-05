@@ -21,7 +21,7 @@ export default async function PublicFormPage({ params }) {
       {/* w-full: a direct flex-col child with mx-auto shrink-to-fits its
           content instead of filling the available width without this —
           see the matching comment in components/HomePageBody.jsx. */}
-      <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-12 py-10 flex-1 w-full">
+      <div id="main-content" className="max-w-content mx-auto px-4 sm:px-6 lg:px-12 py-10 flex-1 w-full">
         <h1 className="font-display font-700 text-3xl sm:text-4xl text-ink">{form.title}</h1>
         {form.description && <p className="font-body text-lg text-steel mt-3">{form.description}</p>}
         <div className="mt-8">

@@ -70,7 +70,8 @@ export default function GeoguesserGame({ round }) {
       {!result ? (
         <>
           <p className="font-sans text-sm text-steel mb-2">
-            Click the map where you think this photo was taken.
+            Click the map where you think this photo was taken — or tab to it, use the arrow keys
+            to move it, and press Enter to drop your guess on the crosshair.
           </p>
           <GeoMap center={BERMONDSEY_CENTER} marker={guess} onPick={(lat, lng) => setGuess({ lat, lng })} />
           {error && (

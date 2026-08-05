@@ -1,6 +1,7 @@
 "use client";
 
-import { MapContainer, TileLayer, Marker, Polyline, useMapEvents } from "react-leaflet";
+import { useEffect } from "react";
+import { MapContainer, TileLayer, Marker, Polyline, useMapEvents, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -32,6 +33,30 @@ function ClickHandler({ onClick }) {
   return null;
 }
 
+// Leaflet's `keyboard` option (on by default, left untouched below) gives
+// arrow-key panning and +/- zoom for free once the map container has
+// focus — but nothing in Leaflet itself lets a keyboard-only visitor
+// actually *place* a guess, since that only ever fired from a mouse
+// click event. This adds the missing half: Enter or Space, while the
+// map has focus, picks whatever point is currently centred — the same
+// point the crosshair overlay in GeoMap's own markup is drawn over, so
+// there's a visible target to aim for while panning with the arrow keys.
+function KeyboardPickHandler({ onPick }) {
+  const map = useMap();
+  useEffect(() => {
+    const container = map.getContainer();
+    function handleKeyDown(e) {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      e.preventDefault();
+      const center = map.getCenter();
+      onPick(center.lat, center.lng);
+    }
+    container.addEventListener("keydown", handleKeyDown);
+    return () => container.removeEventListener("keydown", handleKeyDown);
+  }, [map, onPick]);
+  return null;
+}
+
 /**
  * Shared Leaflet map for Guess the Spot — used both by the public game
  * (click to guess) and the admin round editor (click to set the answer).
@@ -53,13 +78,14 @@ export default function GeoMap({
   heightClass = "h-80",
 }) {
   return (
-    <div className={`${heightClass} rounded-sm overflow-hidden border border-steel/25`}>
+    <div className={`${heightClass} relative rounded-sm overflow-hidden border border-steel/25`}>
       <MapContainer center={center} zoom={zoom} style={{ height: "100%", width: "100%" }} scrollWheelZoom>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {onPick && <ClickHandler onClick={onPick} />}
+        {onPick && <KeyboardPickHandler onPick={onPick} />}
         {marker && <Marker position={[marker.lat, marker.lng]} icon={dotIcon(GUESS_COLOR)} />}
         {resultMarkers && (
           <>
@@ -75,6 +101,29 @@ export default function GeoMap({
           </>
         )}
       </MapContainer>
+      {/* The point Enter/Space picks, for a keyboard user panning with
+          the arrow keys — Leaflet has no built-in equivalent of "hover
+          the cursor" for keyboard input, so the map's own centre stands
+          in for it instead, with this crosshair marking where that is.
+          Plain CSS overlay, not part of Leaflet's own coordinate system:
+          the map pans underneath it, this always stays dead centre.
+          pointer-events-none so it never intercepts the mouse clicks
+          ClickHandler listens for. */}
+      {onPick && (
+        <svg
+          viewBox="0 0 24 24"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 pointer-events-none z-[1000]"
+          aria-hidden="true"
+        >
+          <g fill="none" stroke="#2B4C73" strokeWidth="1.75" strokeLinecap="round">
+            <circle cx="12" cy="12" r="6" />
+            <line x1="12" y1="1" x2="12" y2="6" />
+            <line x1="12" y1="18" x2="12" y2="23" />
+            <line x1="1" y1="12" x2="6" y2="12" />
+            <line x1="18" y1="12" x2="23" y2="12" />
+          </g>
+        </svg>
+      )}
     </div>
   );
 }

@@ -7,7 +7,19 @@ import { HeaderArchesBackground, HeaderTrain } from "./HeaderArches";
 // shows the nav links directly under the wordmark, same as desktop,
 // rather than hiding them behind a menu button — so there's nothing
 // left here that needs interactivity.
-export default function MastheadNav({ logoUrl, siteTitle, links }) {
+export default function MastheadNav({ logoUrl, siteTitle, links, isHomepage = false }) {
+  // A page should have exactly one <h1> — the thing that page is
+  // actually about. Masthead renders on every page, so the site name
+  // can only correctly be an <h1> on the homepage, where the site name
+  // genuinely is what the page is about; everywhere else (an article,
+  // a custom page, the crossword, a form) the real content already
+  // supplies its own <h1>. But the wordmark markup below is duplicated
+  // (mobile row + desktop row both stay in the DOM always, toggled only
+  // by CSS `display` per breakpoint) — tagging the visible wordmark
+  // itself as <h1> would put two <h1>s in the DOM at once on the
+  // homepage. So the wordmark is always a plain <p>, and on the
+  // homepage a single visually-hidden <h1> carries the real heading
+  // semantics instead, once, outside both responsive rows.
   const wordmark = logoUrl ? (
     <div className="relative h-10 sm:h-14 w-32 sm:w-44 shrink-0">
       <Image src={logoUrl} alt={siteTitle} fill sizes="176px" className="object-contain sm:object-center" priority />
@@ -23,14 +35,15 @@ export default function MastheadNav({ logoUrl, siteTitle, links }) {
     // even text-3xl both wrap "The Bermondsey Review" onto two lines
     // there, text-2xl is the largest size that still fits on one.
     <div className="min-w-0 text-center">
-      <h1 className="font-display font-700 text-2xl sm:text-[2.5rem] leading-tight sm:leading-none tracking-tight sm:tracking-[0.03em] sm:uppercase text-ink">
+      <p className="font-display font-700 text-2xl sm:text-[2.5rem] leading-tight sm:leading-none tracking-tight sm:tracking-[0.03em] sm:uppercase text-ink">
         {siteTitle}
-      </h1>
+      </p>
     </div>
   );
 
   return (
     <>
+      {isHomepage && <h1 className="sr-only">{siteTitle}</h1>}
       {/* Mobile: just the title now — no Subscribe button, no hamburger —
           centred, same as desktop.
           Extra bottom padding (pb-12, vs. a plain py-4) beyond what the
