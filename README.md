@@ -59,6 +59,10 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
   (`text-paper/80` → `text-paper`) instead — they're bare SVGs with no
   text content, so `text-decoration` has nothing to underline.
 
+## Article carousel: landscape covers, not portrait
+
+- The homepage's "Latest Reviews" rail (`components/ArticleCarousel.jsx`) switched its cover image ratio from `aspect-[4/5]` (portrait, taller than wide) to `aspect-[4/3]` (landscape, wider than tall) — after a reference screenshot from The New Yorker's own "Today's Mix" rail, which uses clearly rectangular, landscape covers rather than a portrait crop. Same change applies to both branches that render there: a real uploaded cover image (`next/image` with `object-cover`) and the `CoverArt` placeholder icon shown when a post has none — `CoverArt` takes its aspect ratio entirely from the className passed in, so it needed no changes of its own to follow along. Verified with an isolated harness (mock articles, a locally-generated placeholder image, since this sandbox has no live Supabase cover images to test against) rather than eyeballing the class name change.
+
 ## Renamed to "Bermy Review"
 
 - The site's display name changed from "The Bermondsey Review" to "Bermy Review" everywhere it was hardcoded in code: `lib/theme.js`'s `DEFAULT_SITE_SETTINGS.site_title` (the fallback used until a site has its own saved value), the root layout's static `<title>` (`app/layout.jsx`), the admin login screen and sidebar (`app/admin/login/page.jsx`, `components/admin/AdminShell.jsx`), the Guess the Spot page's static metadata title (`app/geoguesser/page.jsx` — the only public page whose `<title>` is still a hardcoded literal rather than a `generateMetadata()` reading live settings), the post-preview iframe's title template (`app/admin/posts/[id]/preview/frame/page.jsx`), and `supabase/schema.sql`'s own column default (so a brand-new install matches the code-side default too).
