@@ -7,6 +7,67 @@ import DevicePreview from "./DevicePreview";
 
 const AUTOSAVE_DELAY_MS = 1200;
 
+// Accepts "9C6B42", "#9c6b42", or the 3-digit shorthand "#96C" — anything
+// else (mid-typing, a stray character, a non-hex word) returns null
+// rather than a guess, so the caller can tell "not done typing yet" apart
+// from "this is a real colour".
+function normalizeHex(input) {
+  let v = input.trim();
+  if (!v.startsWith("#")) v = `#${v}`;
+  const short = /^#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])$/.exec(v);
+  if (short) v = `#${short[1]}${short[1]}${short[2]}${short[2]}${short[3]}${short[3]}`;
+  return /^#[0-9a-fA-F]{6}$/.test(v) ? v.toUpperCase() : null;
+}
+
+// Pairs the native <input type="color"> swatch (which only ever holds a
+// valid 6-digit hex, and is the easiest way to actually pick a colour)
+// with a free-text field for typing/pasting one in directly. The two
+// stay in sync via `value`/`onChange` — typing keeps its own local state
+// rather than writing straight into `value`, so an in-progress, not-yet-
+// valid string ("#9C6" while still typing) doesn't get force-corrected
+// or fed to the swatch input, which would reject it outright. A value
+// that's still invalid on blur reverts to the last real colour, rather
+// than leaving the field stuck showing something that was never saved.
+function ColorField({ value, onChange }) {
+  const [text, setText] = useState(value);
+
+  useEffect(() => {
+    setText(value);
+  }, [value]);
+
+  function handleTextChange(e) {
+    const next = e.target.value;
+    setText(next);
+    const normalized = normalizeHex(next);
+    if (normalized) onChange(normalized);
+  }
+
+  function handleBlur() {
+    setText(value);
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <input
+        type="text"
+        value={text}
+        onChange={handleTextChange}
+        onBlur={handleBlur}
+        placeholder="#000000"
+        spellCheck={false}
+        maxLength={7}
+        className="w-[5.5rem] font-mono text-xs border border-steel/25 rounded-sm px-2 py-2 uppercase focus-visible:outline-2 focus-visible:outline-river"
+      />
+      <input
+        type="color"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-10 h-10 rounded-sm border border-steel/25 cursor-pointer bg-transparent shrink-0"
+      />
+    </div>
+  );
+}
+
 export default function ThemeEditor({ initialSettings }) {
   const supabase = createClient();
   const [settings, setSettings] = useState({ ...DEFAULT_SITE_SETTINGS, ...initialSettings });
@@ -69,12 +130,7 @@ export default function ThemeEditor({ initialSettings }) {
               <p className="font-sans text-sm font-600 text-ink">Primary accent</p>
               <p className="font-sans text-xs text-steel">Buttons, links, the wharf line</p>
             </div>
-            <input
-              type="color"
-              value={settings.brick_color}
-              onChange={(e) => set("brick_color", e.target.value)}
-              className="w-10 h-10 rounded-sm border border-steel/25 cursor-pointer bg-transparent"
-            />
+            <ColorField value={settings.brick_color} onChange={(v) => set("brick_color", v)} />
           </div>
 
           <div className="flex items-center justify-between">
@@ -82,12 +138,7 @@ export default function ThemeEditor({ initialSettings }) {
               <p className="font-sans text-sm font-600 text-ink">Secondary accent</p>
               <p className="font-sans text-xs text-steel">Masthead, nav hover, newsletter band</p>
             </div>
-            <input
-              type="color"
-              value={settings.river_color}
-              onChange={(e) => set("river_color", e.target.value)}
-              className="w-10 h-10 rounded-sm border border-steel/25 cursor-pointer bg-transparent"
-            />
+            <ColorField value={settings.river_color} onChange={(v) => set("river_color", v)} />
           </div>
 
           {(settings.brick_color !== DEFAULT_SITE_SETTINGS.brick_color ||
