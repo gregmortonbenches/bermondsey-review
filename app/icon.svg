@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- The worm's head only, not the full segmented body — see
+       components/HeaderArches.jsx's HeaderWorm for the header version
+       this is drawn from. A favicon renders as small as 16px; the same
+       flat-left/round-right "D" head shape reads fine at that size,
+       but five thin-stroke segment rings on a long capsule wouldn't —
+       they'd just blur into noise. Filled, not line art, for the same
+       reason: a 1.75-unit stroke (the header illustration's own
+       weight) all but disappears at 16px, where a solid silhouette
+       with two contrasting eyes still reads clearly. -->
+  <path d="M4 4 Q28 4 28 16 Q28 28 4 28 Z" fill="#E8809B" />
+  <circle cx="19" cy="11.5" r="2.2" fill="#FFFFFF" />
+  <circle cx="25" cy="13.5" r="2.2" fill="#FFFFFF" />
+</svg>

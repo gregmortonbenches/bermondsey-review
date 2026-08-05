@@ -52,7 +52,7 @@ export default async function Newsletter() {
       <div className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12 py-12 sm:py-16 grid sm:grid-cols-[1fr_auto] gap-6 items-center">
         <div>
           <h2 className="font-display font-700 text-2xl sm:text-3xl">
-            Get the next issue in your inbox
+            Get the newsletter
           </h2>
           {settings.site_tagline && (
             <p className="font-sans text-xs tracking-[0.1em] uppercase text-paper/70 mt-2">
