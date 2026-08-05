@@ -32,7 +32,7 @@ const SECTIONS = [
     adminOnly: true,
     items: [
       { href: "/admin/theme", label: "Style", adminOnly: true },
-      { href: "/admin/site", label: "Site", adminOnly: true },
+      { href: "/admin/site", label: "Identity", adminOnly: true },
       { href: "/admin/layout", label: "Layout", adminOnly: true },
     ],
   },
