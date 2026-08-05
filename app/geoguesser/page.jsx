@@ -2,7 +2,7 @@ import PageViewTracker from "@/components/PageViewTracker";
 import GeoguesserBody from "@/components/GeoguesserBody";
 
 export const metadata = {
-  title: "Bermy on the Map, SE1 — Bermy Review",
+  title: "Bermy on the Map, SE1 — The Worm",
 };
 
 export default function GeoGuesserPage() {

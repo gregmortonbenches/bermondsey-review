@@ -14,7 +14,7 @@ export async function generateMetadata({ params }) {
   const image = post.og_image_url || post.cover_image_url || undefined;
 
   return {
-    title: `${post.title || "Untitled"} — Bermy Review`,
+    title: `${post.title || "Untitled"} — The Worm`,
     description,
     openGraph: { title: post.title, description, images: image ? [image] : undefined },
   };
