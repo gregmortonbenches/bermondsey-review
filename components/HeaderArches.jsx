@@ -106,9 +106,17 @@ export function HeaderArchesBackground({ id }) {
 // lines became four segment rings instead, at the same x-positions —
 // this is what actually reads as "worm" at a glance rather than "blank
 // tube": a plain capsule outline alone looks like a pill, not a
-// creature. Two small dots near the head stand in for eyes, replacing
-// the train's single headlight circle and cab-window detail (neither
-// of which has a worm equivalent).
+// creature. Two dots near the head stand in for eyes, replacing the
+// train's single headlight circle and cab-window detail (neither of
+// which has a worm equivalent) — sized up from the train's own small
+// details (r 1.3 → 1.8) since a worm's eyes are more of its own
+// personality than a train's headlight ever was.
+//
+// Stroke colour is a literal pink (`#E8809B`), not `stroke-river`/
+// `stroke-brick` like the rest of the masthead's illustration — the
+// worm's own colour, not one of the site's two theme accents, so it
+// doesn't shift if someone changes the theme colours in /admin/theme
+// the way the arches or the wordmark link would.
 //
 // z-20 so it paints in front of the title text and the Subscribe
 // button, not just the arches behind them. `bottom: BAND_H` positions
@@ -137,10 +145,10 @@ export function HeaderWorm() {
       viewBox="0 0 472 40"
       aria-hidden="true"
     >
-      <g fill="none" className="stroke-river" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
+      <g fill="none" className="stroke-[#E8809B]" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
         <path d="M8 24 Q8 8 24 8 H442 Q466 8 466 24 Q466 40 442 40 H24 Q8 40 8 24 Z" />
-        <circle cx="450" cy="16" r="1.3" className="fill-river" stroke="none" />
-        <circle cx="458" cy="17" r="1.3" className="fill-river" stroke="none" />
+        <circle cx="450" cy="16" r="1.8" className="fill-[#E8809B]" stroke="none" />
+        <circle cx="458" cy="17" r="1.8" className="fill-[#E8809B]" stroke="none" />
         <line x1="94" y1="8" x2="94" y2="40" strokeWidth="1.3" />
         <line x1="180" y1="8" x2="180" y2="40" strokeWidth="1.3" />
         <line x1="266" y1="8" x2="266" y2="40" strokeWidth="1.3" />

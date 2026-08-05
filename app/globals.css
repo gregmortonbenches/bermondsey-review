@@ -66,19 +66,20 @@ button:focus-visible {
    prefers-reduced-motion below already turns this (and every other
    animation) off entirely.
 
-   animation-delay: -20.1s makes the *first* crossing start at 3s after
-   page load rather than waiting a full 23.1s (77% of the 30s cycle) —
-   a negative delay makes the animation act as though that much of its
-   cycle had already elapsed, so it begins 20.1s into the 30s loop instead
-   of at 0s. 20.1s into a hold-until-77%(23.1s)/cross-from-77%-to-100%(6.9s)
-   cycle is still within the hold phase, so at t=0 it's already sitting
-   off-screen as normal; the hold phase's remaining 3s (23.1s - 20.1s)
-   then elapses before the first crossing begins at real time t=3s. Every
-   crossing after that is still a plain 30s apart, since a negative delay
-   only shifts the starting phase, not the loop's own period. */
+   animation-delay: -22.6s makes the *first* crossing start half a
+   second after page load rather than waiting a full 23.1s (77% of the
+   30s cycle) — a negative delay makes the animation act as though that
+   much of its cycle had already elapsed, so it begins 22.6s into the
+   30s loop instead of at 0s. 22.6s into a hold-until-77%(23.1s)/cross-
+   from-77%-to-100%(6.9s) cycle is still (just) within the hold phase,
+   so at t=0 it's already sitting off-screen as normal; the hold
+   phase's remaining 0.5s (23.1s - 22.6s) then elapses before the first
+   crossing begins at real time t=0.5s. Every crossing after that is
+   still a plain 30s apart, since a negative delay only shifts the
+   starting phase, not the loop's own period. */
 .header-worm {
   animation: header-worm-cross 30s linear infinite;
-  animation-delay: -20.1s;
+  animation-delay: -22.6s;
 }
 @keyframes header-worm-cross {
   0%,
