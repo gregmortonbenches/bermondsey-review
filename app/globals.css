@@ -56,12 +56,15 @@ button:focus-visible {
   outline-offset: 3px;
 }
 
-/* The train crossing the header's viaduct arches — see
-   components/HeaderArches.jsx. Mostly holds off-screen to the left, then
-   takes ~7s to cross, once roughly every 30s — still a rare flourish,
-   not a distracting loop, all in one keyframes timeline rather than
-   something re-triggered on a client-side interval. prefers-reduced-motion
-   below already turns this (and every other animation) off entirely.
+/* The worm crossing the header's viaduct arches — see
+   components/HeaderArches.jsx (was a train; redrawn as a worm, same
+   size, crossing the same way — class/keyframe names renamed to match,
+   the actual timing values below untouched). Mostly holds off-screen to
+   the left, then takes ~7s to cross, once roughly every 30s — still a
+   rare flourish, not a distracting loop, all in one keyframes timeline
+   rather than something re-triggered on a client-side interval.
+   prefers-reduced-motion below already turns this (and every other
+   animation) off entirely.
 
    animation-delay: -13.1s makes the *first* crossing start at 10s after
    page load rather than waiting a full 23.1s (77% of the 30s cycle) —
@@ -73,23 +76,23 @@ button:focus-visible {
    then elapses before the first crossing begins at real time t=10s. Every
    crossing after that is still a plain 30s apart, since a negative delay
    only shifts the starting phase, not the loop's own period. */
-.header-train {
-  animation: header-train-cross 30s linear infinite;
+.header-worm {
+  animation: header-worm-cross 30s linear infinite;
   animation-delay: -13.1s;
 }
-@keyframes header-train-cross {
+@keyframes header-worm-cross {
   0%,
   77% {
-    /* % here, not vw: % on translateX is relative to the train's own
+    /* % here, not vw: % on translateX is relative to the worm's own
        width, so -100% always clears it fully regardless of viewport
-       size. -10vw (an earlier version of this) doesn't — the train
-       renders wider than 10vw of a typical desktop viewport, so part of
-       it stayed visible even at rest. */
+       size. -10vw (an earlier version of this) doesn't — it renders
+       wider than 10vw of a typical desktop viewport, so part of it
+       stayed visible even at rest. */
     transform: translateX(-100%);
   }
   100% {
     /* vw here is deliberate: the endpoint needs to clear the *strip's*
-       width, which % (relative to the train's own small box) can't
+       width, which % (relative to the worm's own small box) can't
        express. */
     transform: translateX(110vw);
   }

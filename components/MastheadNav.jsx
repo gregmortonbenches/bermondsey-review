@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { HeaderArchesBackground, HeaderTrain } from "./HeaderArches";
+import { HeaderArchesBackground, HeaderWorm } from "./HeaderArches";
 
 // No "use client" any more — the hamburger/collapsible-menu toggle was
 // the only reason this needed client-side state at all. Mobile now
@@ -62,7 +62,7 @@ export default function MastheadNav({ logoUrl, siteTitle, links, isHomepage = fa
           background instead, invisible. */}
       <div className="relative isolate overflow-hidden flex sm:hidden items-center justify-center pt-4 pb-12 hairline-b gap-2">
         <HeaderArchesBackground id="mobile" />
-        <HeaderTrain />
+        <HeaderWorm />
         <Link href="/" className="group flex items-center gap-3 min-w-0">
           {wordmark}
         </Link>
@@ -75,7 +75,7 @@ export default function MastheadNav({ logoUrl, siteTitle, links, isHomepage = fa
           pb-14's 56px leaves a 16px gap above the arch band. */}
       <div className="relative isolate overflow-hidden hidden sm:grid grid-cols-[1fr_auto_1fr] items-center pt-6 pb-14 hairline-b gap-4">
         <HeaderArchesBackground id="desktop" />
-        <HeaderTrain />
+        <HeaderWorm />
         <span aria-hidden="true" />
         <Link href="/" className="group justify-self-center">
           {wordmark}

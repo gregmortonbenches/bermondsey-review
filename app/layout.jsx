@@ -23,7 +23,7 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "Bermy Review",
+  title: "The Worm",
   description:
     "A fortnightly, free publication about Bermondsey, London — plus books, film, and whatever else we're reading.",
 };
