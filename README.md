@@ -59,6 +59,10 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
   (`text-paper/80` → `text-paper`) instead — they're bare SVGs with no
   text content, so `text-decoration` has nothing to underline.
 
+## The worm's first crossing now starts at 3s, not 10s
+
+- `.header-worm`'s `animation-delay` (`app/globals.css`): `-13.1s` → `-20.1s`. Same negative-delay technique used for every previous "when does the first crossing happen" tweak this session — with a 30s cycle split 77% hold (23.1s) / 23% cross (6.9s), the remaining hold time before the first crossing is `23.1s - |delay|`, so `-20.1s` leaves 3s of hold before the worm starts moving, instead of the previous `-13.1s`'s 10s. Every crossing after the first is still a plain 30s apart — a negative delay only shifts where in the cycle the animation *starts*, not the cycle's own length. Verified by sampling the worm's actual `getBoundingClientRect()` at fixed real-time intervals after page load (an isolated harness, not the real homepage — this sandbox's missing Supabase env crashes `PageViewTracker`'s client-side effect within a couple of seconds, wiping the DOM before a real 10s-plus timing test could finish): off-screen through 2.7s–3.1s, visibly moving by 3.3s.
+
 ## Renamed to "The Worm"; the header train is now a worm
 
 - Same rename mechanics as the previous "Bermy Review" one: every hardcoded occurrence of "Bermy Review" updated to "The Worm" — `lib/theme.js`'s `DEFAULT_SITE_SETTINGS.site_title` (the fallback, not the live value), the root layout's static `<title>`, the admin login screen and sidebar, Guess the Spot's static metadata title, the post-preview iframe's title template, and `supabase/schema.sql`'s own column default. **The live site's actual name is still stored `site_settings` data** — change it at `/admin/site` → Identity → Site title.
