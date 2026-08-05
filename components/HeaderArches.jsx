@@ -94,9 +94,9 @@ export function HeaderArchesBackground({ id }) {
 // that run this line have a streamlined nose and sit low on a flush
 // skirt, no visible wheels or funnel. Nose on the right (the leading
 // edge for a sprite moving left-to-right, matching .header-train's own
-// direction of travel). Four carriages — the body is one continuous
+// direction of travel). Five carriages — the body is one continuous
 // outline (real EMUs are articulated, not separate boxes end to end),
-// with three joint lines marking where one carriage ends and the next
+// with four joint lines marking where one carriage ends and the next
 // begins.
 //
 // z-20 so it paints in front of the title text and the Subscribe
@@ -121,24 +121,32 @@ export function HeaderArchesBackground({ id }) {
 export function HeaderTrain() {
   return (
     <svg
-      className="header-train absolute left-0 z-20 w-56 sm:w-64 h-auto pointer-events-none"
+      className="header-train absolute left-0 z-20 w-64 sm:w-72 h-auto pointer-events-none"
       style={{ bottom: BAND_H }}
-      viewBox="0 0 386 40"
+      viewBox="0 0 472 40"
       aria-hidden="true"
     >
-      {/* A fourth carriage added (body span 8-266 -> 8-352, one more
-          86-unit carriage the same width as the existing three) — same
-          height/nose/cab shape throughout, just one more run of
-          carriage, so it reads as a longer train rather than a bigger
-          one. Joint lines recomputed to keep four even carriages across
-          the new span. */}
+      {/* A fifth carriage added (body span 8-352 -> 8-438, one more
+          86-unit carriage the same width as the existing four; the nose
+          geometry past the body — both paths, plus the headlight circle
+          — shifted the same +86 as a block, same shape throughout, just
+          moved further right) — reads as a longer train rather than a
+          bigger one. viewBox widened 386 -> 472 (the same +86, keeping
+          the same padding past the nose tip as before) and a fourth
+          joint line added at the old body-end (352) to keep five even
+          carriages across the new span. Rendered width bumped to match
+          (w-56/sm:w-64 -> w-64/sm:w-72, the same +32px jump used for the
+          last +86-unit viewBox increase), so the extra length actually
+          shows on screen instead of just squeezing five carriages into
+          the same on-screen width as the previous four. */}
       <g fill="none" className="stroke-river" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M8 8 H352 Q372 8 378 24 Q380 32 374 40 H8 Z" />
-        <path d="M354 12 Q368 13 373 24 L358 24 Q356 18 354 12 Z" />
-        <circle cx="376" cy="34" r="1.4" className="fill-river" stroke="none" />
+        <path d="M8 8 H438 Q458 8 464 24 Q466 32 460 40 H8 Z" />
+        <path d="M440 12 Q454 13 459 24 L444 24 Q442 18 440 12 Z" />
+        <circle cx="462" cy="34" r="1.4" className="fill-river" stroke="none" />
         <line x1="94" y1="8" x2="94" y2="40" strokeWidth="1.3" />
         <line x1="180" y1="8" x2="180" y2="40" strokeWidth="1.3" />
         <line x1="266" y1="8" x2="266" y2="40" strokeWidth="1.3" />
+        <line x1="352" y1="8" x2="352" y2="40" strokeWidth="1.3" />
       </g>
     </svg>
   );
