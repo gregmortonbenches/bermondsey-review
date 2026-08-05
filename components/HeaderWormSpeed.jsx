@@ -17,14 +17,14 @@ import { useEffect } from "react";
 // couple of CSS custom properties on the document root, which every
 // `.header-worm` instance (mobile row, desktop row — only one is ever
 // visible at a time, both inherit from the same root) reads via
-// `var(...)` in globals.css. Falls back to the original fixed values
-// there before this runs (or if JS is disabled) — the speed a ~1280px
-// desktop already had, so nothing changes for the case this was tuned
-// against.
+// `var(...)` in globals.css. Falls back to fixed values there before
+// this runs (or if JS is disabled) — kept in sync with whatever
+// WORM_SPEED_PX_PER_S computes for a ~1280px desktop, see its own
+// comment.
 //
 // Renders nothing itself — this component's only job is setting those
 // two variables, once on mount and again on resize.
-const WORM_SPEED_PX_PER_S = 245.8; // (1280 * 1.1 + 288) / 6.9 — the original fixed animation's own speed at a 1280px-wide desktop with the sm:w-72 (288px) worm, kept as the reference so that case is unchanged
+const WORM_SPEED_PX_PER_S = 210; // slowed slightly from the original fixed animation's own ~245.8px/s (see git history) — applies equally on every screen size, since this one constant drives the whole calculation below regardless of viewport
 const HOLD_FRACTION = 0.77; // must match header-worm-cross's own 77%/100% keyframe split in globals.css
 const CROSS_FRACTION = 1 - HOLD_FRACTION;
 const FIRST_CROSSING_AT_S = 0.5; // must match the intent the fallback animation-delay in globals.css was tuned for
