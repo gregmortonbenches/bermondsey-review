@@ -265,7 +265,7 @@ export default function CrosswordGame({ crossword }) {
                       blocked
                         ? "bg-ink"
                         : isSelected
-                        ? "bg-brick/[0.28]"
+                        ? "bg-[#F5C518]"
                         : inActiveWord
                         ? "bg-river/[0.12]"
                         : "bg-paper hover:bg-steel/[0.08]"
