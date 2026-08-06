@@ -59,6 +59,10 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
   (`text-paper/80` → `text-paper`) instead — they're bare SVGs with no
   text content, so `text-decoration` has nothing to underline.
 
+## Crossword tagline: "an SE1 twist"
+
+- `app/crossword/page.jsx`: "A fortnightly crossword with a Bermondsey twist." → "A fortnightly crossword with an SE1 twist" — the postcode instead of the neighbourhood name, no trailing period. Updated in both spots it appeared: the page's own tagline text and its `generateMetadata` description.
+
 ## The Crossword: a full in-browser fillable grid
 
 - Built out `/crossword` from its old stub into a real NYT-style solver, backed by a new admin authoring UI — the `crosswords` table already existed in `supabase/schema.sql` (RLS-enabled, zero policies, so deny-all except `service_role`) but nothing wrote to or read from it. Follows "Guess the Spot"'s established shape wherever it applies: one row = one puzzle, "the current puzzle" is just the most recently created row (`getCurrentCrossword`, `lib/crossword.js` — same pattern as `getCurrentRound`), and the RLS policies are the same 4-policy split (public `select`, admin-only `insert`/`update`/`delete` gated on `profiles.role = 'admin'`) already used for `geoguesser_rounds`. Deliberately did *not* route this through the pre-existing `issues` table (which has an unused `crossword_id` column clearly meant for "bundle a crossword with a specific issue") — that's a real feature nothing else in the app uses yet, and building it out wasn't what was asked for.
