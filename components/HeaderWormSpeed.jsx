@@ -24,7 +24,7 @@ import { useEffect } from "react";
 //
 // Renders nothing itself — this component's only job is setting those
 // two variables, once on mount and again on resize.
-const WORM_SPEED_PX_PER_S = 210; // slowed slightly from the original fixed animation's own ~245.8px/s (see git history) — applies equally on every screen size, since this one constant drives the whole calculation below regardless of viewport
+const WORM_SPEED_PX_PER_S = 180; // slowed slightly again (was 210, originally 245.8px/s — see git history) — applies equally on every screen size, since this one constant drives the whole calculation below regardless of viewport
 const HOLD_FRACTION = 0.77; // must match header-worm-cross's own 77%/100% keyframe split in globals.css
 const CROSS_FRACTION = 1 - HOLD_FRACTION;
 const FIRST_CROSSING_AT_S = 0.5; // must match the intent the fallback animation-delay in globals.css was tuned for
