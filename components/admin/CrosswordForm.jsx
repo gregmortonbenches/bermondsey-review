@@ -63,6 +63,18 @@ export default function CrosswordForm({ mode, initialCrossword }) {
     gridRef.current?.focus();
   }
 
+  // A direct click-driven equivalent of the "." keyboard shortcut below —
+  // added after the keyboard-only version proved unreliable for admins on
+  // touch devices (no easy "." key without switching keyboards) and in
+  // browsers where a clicked <button> doesn't reliably hand focus to the
+  // grid container, both of which would silently make the "." shortcut
+  // seem to do nothing. This works the same way either way: toggle the
+  // currently selected cell between blocked and empty.
+  function toggleSelectedBlocked() {
+    const { row, col } = selected;
+    setCell(row, col, grid.cells[row][col] === "#" ? "" : "#");
+  }
+
   function handleGridKeyDown(e) {
     const { row, col } = selected;
     const blocked = grid.cells[row][col] === "#";
@@ -201,8 +213,8 @@ export default function CrosswordForm({ mode, initialCrossword }) {
             </button>
           </div>
           <p className="font-sans text-xs text-steel mb-4 max-w-[220px]">
-            Click a cell, then type a letter. Press <span className="font-mono">.</span> to toggle
-            it blocked. Arrow keys move around.
+            Click a cell, then type a letter. Arrow keys move around. Use the button below
+            (or press <span className="font-mono">.</span>) to block/unblock the selected cell.
           </p>
 
           <div
@@ -237,6 +249,14 @@ export default function CrosswordForm({ mode, initialCrossword }) {
               })
             )}
           </div>
+
+          <button
+            type="button"
+            onClick={toggleSelectedBlocked}
+            className="block mt-3 font-sans text-xs font-600 border border-steel/40 text-ink px-3 py-1.5 rounded-sm hover:border-river hover:text-river transition-colors"
+          >
+            {grid.cells[selected.row][selected.col] === "#" ? "Unblock" : "Block"} cell ({selected.row + 1}, {selected.col + 1})
+          </button>
         </div>
 
         <div>
