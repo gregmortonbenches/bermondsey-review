@@ -56,6 +56,16 @@ export function ChevronRightIcon({ className = "w-3.5 h-3.5" }) {
   );
 }
 
+export function MenuIcon({ className = "w-3.5 h-3.5" }) {
+  return (
+    <svg viewBox="0 0 16 16" className={className} fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round">
+      <path d="M2.5 4.5 H13.5" />
+      <path d="M2.5 8 H13.5" />
+      <path d="M2.5 11.5 H13.5" />
+    </svg>
+  );
+}
+
 export function CloseIcon({ className = "w-3.5 h-3.5" }) {
   return (
     <svg viewBox="0 0 16 16" className={className} fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">

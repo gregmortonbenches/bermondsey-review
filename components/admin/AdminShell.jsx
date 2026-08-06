@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { EditorOutlineProvider, useEditorOutline, jumpToElement } from "./EditorOutlineContext";
 import PageSwitcher from "./PageSwitcher";
+import { MenuIcon, CloseIcon } from "./icons";
 
 const SECTIONS = [
   {
@@ -96,16 +98,63 @@ function AdminShellInner({ role, children }) {
   const pathname = usePathname();
   const isAdmin = role === "admin";
   const { outline } = useEditorOutline();
+  // Sidebar is always visible from `lg:` up (a real column in the flex
+  // layout); below that it's an off-canvas panel toggled by this flag,
+  // since a fixed 224px-wide sidebar permanently eats a third or more of
+  // a phone-width viewport otherwise, leaving barely any room for the
+  // actual editing canvas next to it.
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Closes the mobile panel automatically once a nav link's navigation
+  // actually lands — simpler and more reliable than an onClick per link,
+  // since it also covers the outline/page-switcher links inside the panel.
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
 
   return (
     <div className="flex h-screen bg-paper">
-      <aside className="w-56 shrink-0 h-screen overflow-y-auto border-r border-steel/20 flex flex-col">
-        <Link href="/admin" className="block px-4 py-5 hover:bg-steel/[0.04] transition-colors">
-          <p className="font-display font-700 text-lg text-ink">The Worm</p>
-          <p className="font-sans text-[11px] uppercase tracking-[0.08em] text-steel mt-0.5">
-            {isAdmin ? "Admin" : "Contributor"}
-          </p>
-        </Link>
+      <div className="lg:hidden fixed top-0 inset-x-0 z-30 h-12 flex items-center gap-3 px-3 bg-paper border-b border-steel/20">
+        <button
+          type="button"
+          onClick={() => setSidebarOpen(true)}
+          aria-label="Open menu"
+          className="p-2 -ml-2 text-ink hover:bg-steel/[0.08] rounded-sm transition-colors"
+        >
+          <MenuIcon className="w-5 h-5" />
+        </button>
+        <p className="font-display font-700 text-base text-ink">The Worm</p>
+      </div>
+
+      {sidebarOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-ink/40 z-40"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside
+        className={`w-56 shrink-0 h-screen overflow-y-auto border-r border-steel/20 flex flex-col bg-paper fixed inset-y-0 left-0 z-50 transition-transform duration-200 lg:static lg:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex items-center justify-between pr-2">
+          <Link href="/admin" className="block px-4 py-5 hover:bg-steel/[0.04] transition-colors">
+            <p className="font-display font-700 text-lg text-ink">The Worm</p>
+            <p className="font-sans text-[11px] uppercase tracking-[0.08em] text-steel mt-0.5">
+              {isAdmin ? "Admin" : "Contributor"}
+            </p>
+          </Link>
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close menu"
+            className="lg:hidden p-2 text-steel hover:text-ink rounded-sm hover:bg-steel/[0.08] transition-colors"
+          >
+            <CloseIcon className="w-4 h-4" />
+          </button>
+        </div>
 
         <nav className="flex-1 px-2 space-y-5 overflow-y-auto">
           {SECTIONS.map((section, i) => {
@@ -147,7 +196,7 @@ function AdminShellInner({ role, children }) {
         </div>
       </aside>
 
-      <div className="flex-1 min-w-0 h-screen overflow-y-auto">{children}</div>
+      <div className="flex-1 min-w-0 h-screen overflow-y-auto pt-12 lg:pt-0">{children}</div>
     </div>
   );
 }
