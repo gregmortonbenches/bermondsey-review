@@ -59,6 +59,12 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
   (`text-paper/80` → `text-paper`) instead — they're bare SVGs with no
   text content, so `text-decoration` has nothing to underline.
 
+## "The Latest" renamed to "Articles"; its sub-heading removed
+
+- `lib/theme.js`'s `page_copy.archive.title` default: "The Latest" → "Articles" — the same admin-editable heading `components/ArchiveBody.jsx` renders at the top of `/latest`. The one-line description underneath it (`copy.description`) is gone from that page entirely, not just blanked — `ArchiveBody.jsx` no longer renders it at all.
+- **The admin's WYSIWYG editing canvas for this page (`PageCopyEditCanvas.jsx`, shared with Guess the Spot's own copy-editing tab) had to lose the description *field* too, not just the real page's paragraph.** That canvas's whole premise, per its own doc comment, is "click what you see" — leaving an editable description textarea there once the real page no longer shows one would mean editing something with no visible effect, silently orphaned. Added a `showDescription` prop (default `true`, so Guess the Spot's own description field is untouched) and pass `showDescription={false}` only from the "archive" tab in `AdminLayoutTabs.jsx`. Verified via a harness rendering both canvases side by side: the Articles one has no textarea, Guess the Spot's still does.
+- Every other on-page mention of the old name updated to match, so the rename doesn't leave stale references dotted around: the admin's tab strip and preview-frame switcher (both previously labelled "The Latest"), the 404 page's "Browse The Latest" link and body copy, and a hint string in the post editor's cover-image field. The nav link labelled "Reviews" (which also points at this same page) was deliberately left alone — that's a separate, already-intentional public label this request didn't touch.
+
 ## Crossword: Clear button, and an archive of past puzzles
 
 - **Clear** joins Check/Reveal puzzle under the grid (`CrosswordGame.jsx`'s `handleClear`) — resets every guess back to blank, clears any Check-marked wrong cells, and drops the `revealed` flag, the same three pieces of state `handleReveal` touches, just resetting them rather than filling them in.
