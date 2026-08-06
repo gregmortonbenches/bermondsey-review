@@ -17,7 +17,7 @@ export async function generateMetadata() {
   }
   return {
     title: `The Crossword — ${settings.site_title}`,
-    description: "A fortnightly crossword with a Bermondsey twist.",
+    description: "A fortnightly crossword with an SE1 twist",
   };
 }
 
@@ -43,7 +43,7 @@ export default async function CrosswordPage() {
           needs it — see the matching comment in HomePageBody.jsx. */}
       <div id="main-content" className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12 py-10 flex-1 w-full">
         <h1 className="font-display font-700 text-3xl sm:text-4xl text-ink mb-1">The Crossword</h1>
-        <p className="font-body text-steel mb-8">A fortnightly crossword with a Bermondsey twist.</p>
+        <p className="font-body text-steel mb-8">A fortnightly crossword with an SE1 twist</p>
 
         {crossword ? (
           <CrosswordGame crossword={crossword} />
