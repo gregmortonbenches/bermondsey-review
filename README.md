@@ -59,6 +59,10 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
   (`text-paper/80` → `text-paper`) instead — they're bare SVGs with no
   text content, so `text-decoration` has nothing to underline.
 
+## Worm slowed again
+
+- `components/HeaderWormSpeed.jsx`'s `WORM_SPEED_PX_PER_S` — `210` → `180` (another ~15% slower, same relative step as the previous slowdown). `app/globals.css`'s fallback values recalculated to match again: `40.966s` cycle, `-31.044s` delay. Verified the same way as both previous timing changes: ~172px/s at 375px, ~177px/s at 1280px — close to the new 180px/s target and still matched between viewport widths.
+
 ## Footer back to black; worm slowed slightly
 
 - **Footer reverted**: `bg-paper text-ink` → back to `bg-ink text-paper` (and every dark-on-light colour from that change back to its white-on-dark equivalent — `text-ink` nav links → `text-paper/80`, `text-steel hover:text-ink` social icons → `text-paper/80 hover:text-paper`, etc.), undoing the earlier "footer background to white" request — asked for, tried, didn't land, reverted back to the original exactly as it was.
