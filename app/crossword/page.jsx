@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Masthead from "@/components/Masthead";
 import Footer from "@/components/Footer";
 import ThemeVars from "@/components/ThemeVars";
@@ -52,6 +53,12 @@ export default async function CrosswordPage() {
             No puzzle published yet — check back soon.
           </p>
         )}
+
+        <p className="mt-10 pt-6 border-t border-steel/20">
+          <Link href="/crossword/archive" className="font-sans text-sm text-steel hover:text-brick underline underline-offset-4">
+            Play the archive of previous crosswords
+          </Link>
+        </p>
       </div>
       <Footer />
     </main>

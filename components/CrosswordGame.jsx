@@ -205,6 +205,12 @@ export default function CrosswordGame({ crossword }) {
     setRevealed(true);
   }
 
+  function handleClear() {
+    setGuesses(blankGuesses(grid.rows, grid.cols));
+    setWrongCells(new Set());
+    setRevealed(false);
+  }
+
   useEffect(() => {
     focusInput();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -297,6 +303,13 @@ export default function CrosswordGame({ crossword }) {
               className="font-sans text-sm text-steel hover:text-brick underline underline-offset-4"
             >
               Reveal puzzle
+            </button>
+            <button
+              type="button"
+              onClick={handleClear}
+              className="font-sans text-sm text-steel hover:text-brick underline underline-offset-4"
+            >
+              Clear
             </button>
           </div>
           {activeSlot && (

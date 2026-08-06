@@ -59,6 +59,11 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
   (`text-paper/80` → `text-paper`) instead — they're bare SVGs with no
   text content, so `text-decoration` has nothing to underline.
 
+## Crossword: Clear button, and an archive of past puzzles
+
+- **Clear** joins Check/Reveal puzzle under the grid (`CrosswordGame.jsx`'s `handleClear`) — resets every guess back to blank, clears any Check-marked wrong cells, and drops the `revealed` flag, the same three pieces of state `handleReveal` touches, just resetting them rather than filling them in.
+- **A public archive of every past puzzle**, not just the current one — `/crossword` only ever showed the single most-recently-published crossword (by design, see the "current puzzle = most recent row" note above), with no way to reach anything published before it. Added `/crossword/archive` (a listing, newest first, mirroring the admin list page's own row style — date, grid size, a "Current" pill on the top one) and `/crossword/archive/[id]` (the same `CrosswordGame` component, just fed a specific past puzzle via the id in the URL instead of always the most recent one), plus a link to the archive at the bottom of `/crossword` itself. `lib/crossword.js` gained `listCrosswordsForArchive` — the identical query `listCrosswordsForAdmin` already ran, exposed under its own name rather than reused directly, since a public page importing something named "ForAdmin" would read as a permissions bug even though RLS already makes the table public-read either way. `getCrosswordById` (already existed for the admin edit route) is what the `[id]` page reuses to fetch one specific puzzle. Verified via Playwright: Clear wipes guesses and wrong-marks in one click, the archive listing and a bogus `/crossword/archive/[id]` both fail gracefully (empty state / real `notFound()` 404) rather than crashing when Supabase is unreachable, and the archive link renders correctly on the main page.
+
 ## Crossword tagline: "an SE1 twist"
 
 - `app/crossword/page.jsx`: "A fortnightly crossword with a Bermondsey twist." → "A fortnightly crossword with an SE1 twist" — the postcode instead of the neighbourhood name, no trailing period. Updated in both spots it appeared: the page's own tagline text and its `generateMetadata` description.
