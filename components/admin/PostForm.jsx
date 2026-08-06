@@ -553,7 +553,7 @@ export default function PostForm({ mode, initialPost, themeVars }) {
           <p className="font-sans text-xs text-steel mb-2">
             {post.type === "cartoon"
               ? "This is the cartoon itself — shown full-size and uncropped on its own page; the homepage rail crops it to fit a thumbnail."
-              : "Shown wherever this post is listed — homepage, The Latest, and the top of the piece itself."}
+              : "Shown wherever this post is listed — homepage, Articles, and the top of the piece itself."}
           </p>
           <ImageDropzone
             url={post.cover_image_url}

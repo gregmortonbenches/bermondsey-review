@@ -26,6 +26,12 @@ export default function PageCopyEditCanvas({
   footer,
   themeVars,
   children,
+  // The Latest/Articles page dropped its on-page sub-heading — hiding
+  // the description field here too keeps this canvas's "click what you
+  // see" promise true; showing an editable field with no visible effect
+  // on the real page would be misleading. Defaults true since Guess the
+  // Spot still shows its description.
+  showDescription = true,
 }) {
   return (
     <div className="min-h-screen bg-paper flex flex-col">
@@ -61,13 +67,15 @@ export default function PageCopyEditCanvas({
             placeholder="Heading"
             className="w-full font-display font-700 text-3xl sm:text-4xl text-ink bg-transparent outline-none border-2 border-transparent hover:border-steel/20 focus:border-river rounded-sm px-2 -mx-2"
           />
-          <textarea
-            value={copy.description || ""}
-            onChange={(e) => onChange({ description: e.target.value })}
-            rows={2}
-            placeholder="One-line description"
-            className="w-full font-body text-steel mt-2 bg-transparent outline-none border-2 border-transparent hover:border-steel/20 focus:border-river rounded-sm px-2 -mx-2 resize-y"
-          />
+          {showDescription && (
+            <textarea
+              value={copy.description || ""}
+              onChange={(e) => onChange({ description: e.target.value })}
+              rows={2}
+              placeholder="One-line description"
+              className="w-full font-body text-steel mt-2 bg-transparent outline-none border-2 border-transparent hover:border-steel/20 focus:border-river rounded-sm px-2 -mx-2 resize-y"
+            />
+          )}
 
           {children && <div className="mt-6">{children}</div>}
         </div>

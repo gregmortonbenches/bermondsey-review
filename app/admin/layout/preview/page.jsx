@@ -7,7 +7,7 @@ import DevicePreview from "@/components/admin/DevicePreview";
 
 const FRAMES = {
   home: { label: "Home", src: "/admin/layout/preview/frame" },
-  archive: { label: "The Latest", src: "/admin/layout/preview/archive-frame" },
+  archive: { label: "Articles", src: "/admin/layout/preview/archive-frame" },
   geoguesser: { label: "Guess the Spot", src: "/admin/layout/preview/geoguesser-frame" },
 };
 
