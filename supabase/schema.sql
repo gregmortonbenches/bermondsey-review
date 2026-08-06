@@ -432,16 +432,20 @@ alter table forms enable row level security;
 alter table form_submissions enable row level security;
 alter table geoguesser_rounds enable row level security;
 
--- crosswords/issues have no policies yet (deliberately) — no page reads
--- or writes them today (/crossword is still a "coming in phase 2"
--- placeholder, see app/crossword/page.jsx), so there's no real access
--- pattern to design policies around yet. RLS-enabled-with-no-policies
--- locks both tables to service_role only in the meantime, rather than
--- leaving them world-readable/writable through the public REST API by
--- default (Supabase's PostgREST layer exposes every table to the
--- anon/authenticated keys unless RLS says otherwise — an empty policy
--- list is a deny-all, not a no-op).
 alter table crosswords enable row level security;
+
+-- `issues` has no policies yet (deliberately) — nothing reads or writes
+-- it: it exists for a future "bundle a crossword with a specific
+-- fortnightly issue's articles" feature, not needed now that the
+-- crossword itself follows the same "most recent row wins" current-
+-- puzzle model geoguesser_rounds already uses (see getCurrentCrossword
+-- in lib/crossword.js), so there's no real access pattern to design
+-- policies around yet. RLS-enabled-with-no-policies locks it to
+-- service_role only in the meantime, rather than leaving it world-
+-- readable/writable through the public REST API by default (Supabase's
+-- PostgREST layer exposes every table to the anon/authenticated keys
+-- unless RLS says otherwise — an empty policy list is a deny-all, not
+-- a no-op).
 alter table issues enable row level security;
 
 create trigger site_settings_set_updated_at
@@ -599,6 +603,37 @@ using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'))
 
 create policy "Admins can delete geoguesser rounds"
 on geoguesser_rounds for delete
+to authenticated
+using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
+
+-- Crosswords ship their solution to the browser (see the "answer
+-- handling" note in components/CrosswordGame.jsx) rather than staying
+-- server-only like geoguesser's coordinates — a crossword's fun is the
+-- solving, not the secrecy, and instant per-letter checking needs the
+-- answer available locally. Same read/write split as geoguesser rounds
+-- either way: public read, admin-only write.
+--
+-- Existing installs: the `crosswords` table itself already exists with
+-- RLS enabled and no policies (deny-all except service_role) — run
+-- just these four `create policy ... on crosswords` statements once to
+-- open it up; nothing else in this file needs re-running.
+create policy "Public can read crosswords"
+on crosswords for select
+to anon, authenticated
+using (true);
+
+create policy "Admins can create crosswords"
+on crosswords for insert
+to authenticated
+with check (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
+
+create policy "Admins can update crosswords"
+on crosswords for update
+to authenticated
+using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
+
+create policy "Admins can delete crosswords"
+on crosswords for delete
 to authenticated
 using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
 
