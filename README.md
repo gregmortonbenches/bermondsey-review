@@ -59,6 +59,11 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
   (`text-paper/80` → `text-paper`) instead — they're bare SVGs with no
   text content, so `text-decoration` has nothing to underline.
 
+## Crossword: Check/Reveal/Clear moved above the grid, one consistent style
+
+- The three action buttons moved from below the grid to just above it (still inside the same column, right after the hidden solving input) — a small layout change, not a functional one; `handleCheck`/`handleReveal`/`handleClear` are untouched. "Reveal puzzle" also shortened to just "Reveal", matching "Check" and "Clear"'s one-word labels.
+- **All three now share the same bordered-button styling** (`border border-steel/40 ... hover:border-river`) — Reveal and Clear used to be plain underlined text links, a lighter treatment that read as "secondary" next to Check's bordered button, even though all three are equally valid, equally reversible actions (Clear undoes Reveal, Check doesn't destroy anything). One consistent style for all three removes that implied hierarchy.
+
 ## "The Latest" renamed to "Articles"; its sub-heading removed
 
 - `lib/theme.js`'s `page_copy.archive.title` default: "The Latest" → "Articles" — the same admin-editable heading `components/ArchiveBody.jsx` renders at the top of `/latest`. The one-line description underneath it (`copy.description`) is gone from that page entirely, not just blanked — `ArchiveBody.jsx` no longer renders it at all.

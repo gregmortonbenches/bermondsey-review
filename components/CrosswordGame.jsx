@@ -250,6 +250,31 @@ export default function CrosswordGame({ crossword }) {
             spellCheck="false"
             aria-label="Type a letter for the selected crossword square"
           />
+
+          <div className="flex items-center gap-3 mb-4">
+            <button
+              type="button"
+              onClick={handleCheck}
+              className="font-sans text-sm font-600 border border-steel/40 text-ink px-4 py-2 rounded-sm hover:border-river hover:text-river transition-colors"
+            >
+              Check
+            </button>
+            <button
+              type="button"
+              onClick={handleReveal}
+              className="font-sans text-sm font-600 border border-steel/40 text-ink px-4 py-2 rounded-sm hover:border-river hover:text-river transition-colors"
+            >
+              Reveal
+            </button>
+            <button
+              type="button"
+              onClick={handleClear}
+              className="font-sans text-sm font-600 border border-steel/40 text-ink px-4 py-2 rounded-sm hover:border-river hover:text-river transition-colors"
+            >
+              Clear
+            </button>
+          </div>
+
           <div
             className="grid gap-[2px] bg-steel/25 p-[2px] rounded-sm w-full"
             style={{ gridTemplateColumns: `repeat(${grid.cols}, 1fr)`, aspectRatio: `${grid.cols} / ${grid.rows}` }}
@@ -289,29 +314,6 @@ export default function CrosswordGame({ crossword }) {
             )}
           </div>
 
-          <div className="flex items-center gap-3 mt-4">
-            <button
-              type="button"
-              onClick={handleCheck}
-              className="font-sans text-sm font-600 border border-steel/40 text-ink px-4 py-2 rounded-sm hover:border-river hover:text-river transition-colors"
-            >
-              Check
-            </button>
-            <button
-              type="button"
-              onClick={handleReveal}
-              className="font-sans text-sm text-steel hover:text-brick underline underline-offset-4"
-            >
-              Reveal puzzle
-            </button>
-            <button
-              type="button"
-              onClick={handleClear}
-              className="font-sans text-sm text-steel hover:text-brick underline underline-offset-4"
-            >
-              Clear
-            </button>
-          </div>
           {activeSlot && (
             <p className="font-body text-steel mt-4">
               <span className="font-600 text-ink">
