@@ -32,7 +32,7 @@ export default function CrosswordForm({ mode, initialCrossword }) {
   const [confirmResizeOpen, setConfirmResizeOpen] = useState(false);
   const [pendingSize, setPendingSize] = useState({ rows: grid.rows, cols: grid.cols });
   const [error, setError] = useState(null);
-  const gridRef = useRef(null);
+  const hiddenInputRef = useRef(null);
   const autosaveTimer = useRef(null);
   const lastSavedRef = useRef(JSON.stringify({ grid_json: initialCrossword?.grid_json, clues_json: initialCrossword?.clues_json }));
   const isFirstRender = useRef(true);
@@ -60,7 +60,7 @@ export default function CrosswordForm({ mode, initialCrossword }) {
 
   function handleCellClick(row, col) {
     setSelected({ row, col });
-    gridRef.current?.focus();
+    hiddenInputRef.current?.focus();
   }
 
   // A direct click-driven equivalent of the "." keyboard shortcut below —
@@ -75,19 +75,31 @@ export default function CrosswordForm({ mode, initialCrossword }) {
     setCell(row, col, grid.cells[row][col] === "#" ? "" : "#");
   }
 
-  function handleGridKeyDown(e) {
+  // Letters are captured via the hidden input's onChange, not onKeyDown —
+  // same reasoning as the public solver's CrosswordGame.jsx: a <div>'s
+  // keydown handler only ever sees a physical keyboard, so on a touch
+  // device (no Bluetooth keyboard attached) clicking a cell selected it
+  // but there was no way to actually type into it, since divs never
+  // trigger a mobile on-screen keyboard regardless of focus. Routing
+  // through a real, focusable <input> fixes that the same way it already
+  // does for solving a puzzle.
+  function handleHiddenInputChange(e) {
+    const raw = e.target.value;
+    const letter = raw.slice(-1).toUpperCase();
+    e.target.value = "";
+    if (!/^[A-Z]$/.test(letter)) return;
+    const { row, col } = selected;
+    setCell(row, col, letter);
+    if (col + 1 < grid.cols) setSelected({ row, col: col + 1 });
+  }
+
+  function handleHiddenInputKeyDown(e) {
     const { row, col } = selected;
     const blocked = grid.cells[row][col] === "#";
 
     if (e.key === "." || e.key === "#") {
       e.preventDefault();
       setCell(row, col, blocked ? "" : "#");
-      return;
-    }
-    if (/^[a-zA-Z]$/.test(e.key)) {
-      e.preventDefault();
-      setCell(row, col, e.key.toUpperCase());
-      if (col + 1 < grid.cols) setSelected({ row, col: col + 1 });
       return;
     }
     if (e.key === "Backspace") {
@@ -217,10 +229,23 @@ export default function CrosswordForm({ mode, initialCrossword }) {
             (or press <span className="font-mono">.</span>) to block/unblock the selected cell.
           </p>
 
+          <input
+            ref={hiddenInputRef}
+            onChange={handleHiddenInputChange}
+            onKeyDown={handleHiddenInputKeyDown}
+            // Hidden the same way as CrosswordGame.jsx's solving input —
+            // opacity, not Tailwind's sr-only, since sr-only hides via
+            // `clip: rect(0,0,0,0)`, which mobile browsers treat as not
+            // really on the page and won't raise a keyboard for.
+            className="absolute w-px h-px opacity-0 pointer-events-none -z-10"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="characters"
+            spellCheck="false"
+            aria-label="Type a letter for the selected crossword square"
+          />
+
           <div
-            ref={gridRef}
-            tabIndex={0}
-            onKeyDown={handleGridKeyDown}
             className="inline-grid gap-[2px] bg-steel/25 p-[2px] rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-river"
             style={{ gridTemplateColumns: `repeat(${grid.cols}, 28px)` }}
           >
