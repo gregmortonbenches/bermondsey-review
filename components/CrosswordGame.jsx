@@ -229,7 +229,19 @@ export default function CrosswordGame({ crossword }) {
             ref={hiddenInputRef}
             onChange={handleHiddenInputChange}
             onKeyDown={handleHiddenInputKeyDown}
-            className="sr-only"
+            // Deliberately not `sr-only` — Tailwind's sr-only hides via
+            // `clip: rect(0,0,0,0)`, which mobile Safari (and some Android
+            // browsers) treat as "not really on the page," so tapping a
+            // cell would call .focus() on this input successfully (it did
+            // become document.activeElement) without ever raising the
+            // on-screen keyboard. A real, unclipped 1px box hidden with
+            // opacity instead reads as a genuine focusable element, so the
+            // keyboard opens the same as it would for an ordinary input.
+            className="absolute w-px h-px opacity-0 pointer-events-none -z-10"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="characters"
+            spellCheck="false"
             aria-label="Type a letter for the selected crossword square"
           />
           <div
