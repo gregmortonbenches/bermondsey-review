@@ -32,10 +32,21 @@ export default function CrosswordForm({ mode, initialCrossword }) {
   const [confirmResizeOpen, setConfirmResizeOpen] = useState(false);
   const [pendingSize, setPendingSize] = useState({ rows: grid.rows, cols: grid.cols });
   const [error, setError] = useState(null);
+  // Which way typing auto-advances and Backspace retreats — "across" or
+  // "down". Named typeDirection rather than "direction" since setClue's
+  // own `direction` parameter (across/down as a *clues_json* key) already
+  // uses that name in this file.
+  const [typeDirection, setTypeDirection] = useState("across");
   const hiddenInputRef = useRef(null);
   const autosaveTimer = useRef(null);
   const lastSavedRef = useRef(JSON.stringify({ grid_json: initialCrossword?.grid_json, clues_json: initialCrossword?.clues_json }));
   const isFirstRender = useRef(true);
+  // Same reasoning as CrosswordGame.jsx's hasInteractedRef: `selected`
+  // defaults to (0,0) on mount, so without this guard an admin's very
+  // first click — if it happens to land on that default cell — would be
+  // read as "click the already-selected cell" and silently flip
+  // typeDirection before they've typed anything.
+  const hasInteractedRef = useRef(false);
 
   const layout = useMemo(() => computeCrosswordLayout(grid), [grid]);
 
@@ -58,8 +69,19 @@ export default function CrosswordForm({ mode, initialCrossword }) {
     setClues((c) => ({ ...c, [direction]: { ...c[direction], [number]: text } }));
   }
 
+  // Tapping the already-selected cell again switches which way typing
+  // advances — the same NYT-style convention the public solver uses
+  // (CrosswordGame.jsx's handleCellClick), so an admin can fill a down
+  // word by tapping its first cell twice rather than only ever being
+  // able to type rightward and having to arrow-key down one row at a
+  // time.
   function handleCellClick(row, col) {
-    setSelected({ row, col });
+    if (hasInteractedRef.current && selected.row === row && selected.col === col) {
+      setTypeDirection((d) => (d === "across" ? "down" : "across"));
+    } else {
+      setSelected({ row, col });
+    }
+    hasInteractedRef.current = true;
     hiddenInputRef.current?.focus();
   }
 
@@ -88,12 +110,18 @@ export default function CrosswordForm({ mode, initialCrossword }) {
     const letter = raw.slice(-1).toUpperCase();
     e.target.value = "";
     if (!/^[A-Z]$/.test(letter)) return;
+    hasInteractedRef.current = true;
     const { row, col } = selected;
     setCell(row, col, letter);
-    if (col + 1 < grid.cols) setSelected({ row, col: col + 1 });
+    if (typeDirection === "across") {
+      if (col + 1 < grid.cols) setSelected({ row, col: col + 1 });
+    } else if (row + 1 < grid.rows) {
+      setSelected({ row: row + 1, col });
+    }
   }
 
   function handleHiddenInputKeyDown(e) {
+    hasInteractedRef.current = true;
     const { row, col } = selected;
     const blocked = grid.cells[row][col] === "#";
 
@@ -105,13 +133,32 @@ export default function CrosswordForm({ mode, initialCrossword }) {
     if (e.key === "Backspace") {
       e.preventDefault();
       setCell(row, col, "");
-      if (col - 1 >= 0) setSelected({ row, col: col - 1 });
+      if (typeDirection === "across") {
+        if (col - 1 >= 0) setSelected({ row, col: col - 1 });
+      } else if (row - 1 >= 0) {
+        setSelected({ row: row - 1, col });
+      }
       return;
     }
-    if (e.key === "ArrowRight" && col + 1 < grid.cols) setSelected({ row, col: col + 1 });
-    if (e.key === "ArrowLeft" && col - 1 >= 0) setSelected({ row, col: col - 1 });
-    if (e.key === "ArrowDown" && row + 1 < grid.rows) setSelected({ row: row + 1, col });
-    if (e.key === "ArrowUp" && row - 1 >= 0) setSelected({ row: row - 1, col });
+    // Arrow keys also set typeDirection to match, so a letter typed right
+    // after arrowing continues the way you were just navigating rather
+    // than snapping back to across.
+    if (e.key === "ArrowRight" && col + 1 < grid.cols) {
+      setSelected({ row, col: col + 1 });
+      setTypeDirection("across");
+    }
+    if (e.key === "ArrowLeft" && col - 1 >= 0) {
+      setSelected({ row, col: col - 1 });
+      setTypeDirection("across");
+    }
+    if (e.key === "ArrowDown" && row + 1 < grid.rows) {
+      setSelected({ row: row + 1, col });
+      setTypeDirection("down");
+    }
+    if (e.key === "ArrowUp" && row - 1 >= 0) {
+      setSelected({ row: row - 1, col });
+      setTypeDirection("down");
+    }
   }
 
   function applyResize() {
@@ -225,8 +272,10 @@ export default function CrosswordForm({ mode, initialCrossword }) {
             </button>
           </div>
           <p className="font-sans text-xs text-steel mb-4 max-w-[220px]">
-            Click a cell, then type a letter. Arrow keys move around. Use the button below
-            (or press <span className="font-mono">.</span>) to block/unblock the selected cell.
+            Click a cell, then type a letter — typing advances {typeDirection}. Tap the
+            selected cell again to switch between across and down. Arrow keys move around
+            (and set the direction to match). Use the button below (or press{" "}
+            <span className="font-mono">.</span>) to block/unblock the selected cell.
           </p>
 
           <input
