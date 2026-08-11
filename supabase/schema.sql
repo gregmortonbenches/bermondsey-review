@@ -1,4 +1,4 @@
--- The Worm — database schema
+-- The Bermondsey Review of Books — database schema
 -- Run this once in the Supabase SQL editor for a fresh project.
 --
 -- If you ever reset with `drop schema public cascade; create schema
@@ -291,7 +291,7 @@ create table site_settings (
   body_font text not null default 'Source Serif 4',
   custom_css text,
   custom_js text,
-  site_title text not null default 'The Worm',
+  site_title text not null default 'The Bermondsey Review of Books',
   site_tagline text not null default 'Free, fortnightly, from SE16 & thereabouts',
   logo_url text,
   -- Array of { "label": "...", "href": "..." }, rendered in both the
@@ -316,7 +316,7 @@ insert into site_settings (id) values (true) on conflict (id) do nothing;
 -- Existing installs: run this once to add the new columns without
 -- losing your current brick/river/font/code settings.
 --   alter table site_settings
---     add column if not exists site_title text not null default 'The Worm',
+--     add column if not exists site_title text not null default 'The Bermondsey Review of Books',
 --     add column if not exists site_tagline text not null default 'Free, fortnightly, from SE16 & thereabouts',
 --     add column if not exists logo_url text,
 --     add column if not exists nav_links jsonb not null default '[]'::jsonb,

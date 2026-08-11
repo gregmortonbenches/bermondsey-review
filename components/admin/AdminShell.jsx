@@ -123,7 +123,7 @@ function AdminShellInner({ role, children }) {
         >
           <MenuIcon className="w-5 h-5" />
         </button>
-        <p className="font-display font-700 text-base text-ink">The Worm</p>
+        <p className="font-display font-700 text-base text-ink">The Bermondsey Review of Books</p>
       </div>
 
       {sidebarOpen && (
@@ -141,7 +141,7 @@ function AdminShellInner({ role, children }) {
       >
         <div className="flex items-center justify-between pr-2">
           <Link href="/admin" className="block px-4 py-5 hover:bg-steel/[0.04] transition-colors">
-            <p className="font-display font-700 text-lg text-ink">The Worm</p>
+            <p className="font-display font-700 text-lg text-ink">The Bermondsey Review of Books</p>
             <p className="font-sans text-[11px] uppercase tracking-[0.08em] text-steel mt-0.5">
               {isAdmin ? "Admin" : "Contributor"}
             </p>

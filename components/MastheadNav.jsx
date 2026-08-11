@@ -33,8 +33,17 @@ export default function MastheadNav({ logoUrl, siteTitle, links, isHomepage = fa
     // left for the title to look different on a phone than everywhere
     // else. text-2xl rather than matching desktop's 2.5rem exactly —
     // checked at 320px (the narrowest common phone width): 2.5rem and
-    // even text-3xl both wrap "The Bermondsey Review" onto two lines
-    // there, text-2xl is the largest size that still fits on one.
+    // text-3xl both wrap even the shorter "Bermy Review"-era names onto
+    // two lines there. Wrapping itself isn't broken, though: this row's
+    // pb-12 is padding *after* the title, so the row's own height (and
+    // the arch band bottom-anchored to it) grows to match however many
+    // lines the title takes, preserving the same ~8px gap above the arch
+    // band whether it's one line or two — confirmed by measuring both
+    // against the current site name, "The Bermondsey Review of Books"
+    // (which wraps to two lines here). text-2xl is just the largest
+    // size that still fits *this* name on one line; a longer `siteTitle`
+    // (it's admin-editable) wrapping to two is an accepted, handled
+    // outcome, not a bug — same as desktop's own row a bit further down.
     <div className="min-w-0 text-center">
       <p className="font-display font-700 text-2xl sm:text-[2.5rem] leading-tight sm:leading-none tracking-tight sm:tracking-[0.03em] sm:uppercase text-ink">
         {siteTitle}
