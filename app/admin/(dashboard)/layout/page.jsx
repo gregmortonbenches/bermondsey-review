@@ -9,7 +9,6 @@ import Masthead from "@/components/Masthead";
 import Footer from "@/components/Footer";
 import ThemeVars from "@/components/ThemeVars";
 import ArticleCard from "@/components/ArticleCard";
-import Newsletter from "@/components/Newsletter";
 import AdminLayoutTabs from "@/components/admin/AdminLayoutTabs";
 
 export default async function AdminLayoutPage() {
@@ -56,7 +55,6 @@ export default async function AdminLayoutPage() {
         )}
       </section>
     ),
-    newsletter: <Newsletter />,
   };
 
   // Read-only context shown below Archive's/Guess the Spot's own

@@ -4,7 +4,6 @@ import ArticleCard from "@/components/ArticleCard";
 import PuzzlesSection from "@/components/PuzzlesSection";
 import ArticleCarousel from "@/components/ArticleCarousel";
 import CartoonsSection from "@/components/CartoonsSection";
-import Newsletter from "@/components/Newsletter";
 import ThemeVars from "@/components/ThemeVars";
 import { createClient } from "@/lib/supabase/public";
 import { getPageLayoutSafe, DEFAULT_HOME_SECTIONS } from "@/lib/layout";
@@ -29,9 +28,16 @@ export default async function HomePageBody() {
   const articlePosts = posts.filter((p) => p.type !== "cartoon");
   const [featured, ...rest] = articlePosts;
 
-  const enabled = layout.filter((s) => s.enabled);
-  const newsletterOn = enabled.some((s) => s.type === "newsletter");
-  const mainSections = enabled.filter((s) => s.type !== "newsletter"); // newsletter is full-bleed, outside the constrained-width wrapper
+  // type !== "newsletter" is defensive, not load-bearing: newsletter
+  // stopped being a homepage section (it's a global drawer now, mounted
+  // by Masthead.jsx — see Newsletter.jsx/NewsletterDrawer.jsx), but an
+  // already-saved page_layouts row from before that change can still
+  // have one in its stored `sections` array. renderSection's switch
+  // below has no "newsletter" case any more anyway (falls through to
+  // `default: return null`), so this filter isn't strictly needed for
+  // correctness — it's here so a stale saved entry doesn't even get a
+  // no-op iteration.
+  const mainSections = layout.filter((s) => s.enabled && s.type !== "newsletter");
 
   function renderSection(section) {
     switch (section.type) {
@@ -96,7 +102,6 @@ export default async function HomePageBody() {
       <div id="main-content" className="max-w-wider mx-auto px-4 sm:px-6 lg:px-12 flex-1 w-full">
         {mainSections.map(renderSection)}
       </div>
-      {newsletterOn && <Newsletter />}
       <Footer />
     </main>
   );

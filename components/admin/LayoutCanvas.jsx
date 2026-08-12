@@ -23,11 +23,13 @@ const AUTOSAVE_DELAY_MS = 1200;
 
 /**
  * The homepage layout builder as a true canvas, same philosophy as
- * BlockEditor: this renders the actual homepage — real Masthead, real
- * ThemeVars (so accent colours match), real section content (the actual
- * featured post, actual carousel, actual newsletter band), real Footer —
- * with reorder/show-hide controls layered on hover, instead of a list on
- * one side and an iframe of the real thing on the other.
+ * BlockEditor: this renders the actual homepage — real Masthead (which
+ * means the real Subscribe button and the newsletter drawer it opens
+ * come along for free, same as on the live site), real ThemeVars (so
+ * accent colours match), real section content (the actual featured
+ * post, actual carousel), real Footer — with reorder/show-hide controls
+ * layered on hover, instead of a list on one side and an iframe of the
+ * real thing on the other.
  *
  * Masthead/Footer/ThemeVars and most sections' real content are Server
  * Components, so they're rendered by the server page (app/admin/(dashboard)/
@@ -122,13 +124,13 @@ export default function LayoutCanvas({ pageKey, initialSections, sectionContent,
   const statusCopy = { saved: "✓ Saved", unsaved: "Unsaved changes…", saving: "Saving…", error: "Couldn't save" };
   const statusColor = { saved: "text-river", unsaved: "text-steel", saving: "text-steel", error: "text-brick" };
 
-  // Newsletter always renders last on the real homepage regardless of its
-  // position here — it's full-bleed, outside the constrained-width column
-  // the other sections share (see components/HomePageBody.jsx) — so it's
-  // shown separately, toggleable but not reorderable, rather than offering
-  // a drag handle that wouldn't actually change anything.
+  // type !== "newsletter" is defensive, not load-bearing — see the
+  // matching comment in HomePageBody.jsx. Newsletter used to be a
+  // reorderable-but-fixed homepage section rendered separately below;
+  // now it's a global drawer mounted by `masthead` itself (Masthead.jsx
+  // → Newsletter.jsx → NewsletterDrawer.jsx), so there's nothing left
+  // here to show a row for.
   const orderable = sections.filter((s) => s.type !== "newsletter");
-  const newsletterSection = sections.find((s) => s.type === "newsletter");
 
   return (
     <div className="min-h-screen bg-paper flex flex-col">
@@ -210,12 +212,6 @@ export default function LayoutCanvas({ pageKey, initialSections, sectionContent,
           </DndContext>
         </div>
 
-        {newsletterSection && (
-          <SectionSlot section={newsletterSection} fixed onToggle={() => toggleEnabled(newsletterSection.id)}>
-            {sectionContent.newsletter}
-          </SectionSlot>
-        )}
-
         {footer}
       </div>
     </div>
@@ -232,12 +228,16 @@ function ControlButton({ className = "", ...props }) {
   );
 }
 
-// Every section's id doubles as its anchor — `/#puzzles`, `/#newsletter`,
-// etc. — so it can be linked to directly from a nav item, a footer link,
-// or a button block anywhere on the site (see components/PuzzlesSection.jsx
-// and Newsletter.jsx, which already had ids the masthead's own Puzzles nav
-// link and Subscribe button rely on; this just makes every section
-// linkable, and the link itself copyable without reading source to find it).
+// Every remaining section's id doubles as its anchor — `/#puzzles`, etc.
+// — so it can be linked to directly from a nav item, a footer link, or a
+// button block anywhere on the site (see components/PuzzlesSection.jsx,
+// which already had an id the masthead's own Puzzles nav link relies on;
+// this just makes every section linkable, and the link itself copyable
+// without reading source to find it). Newsletter used to be one of these
+// too, back when it was a homepage section with its own anchor — it's a
+// global drawer now (any `#newsletter` link on any page opens it, not
+// just one on the homepage), so it no longer needs — or has — a row here
+// to copy a link from.
 function CopyLinkButton({ anchor }) {
   const [copied, setCopied] = useState(false);
 
@@ -266,11 +266,11 @@ function CopyLinkButton({ anchor }) {
 }
 
 // Wraps SectionSlot with dnd-kit's sortable behaviour — split out from
-// SectionSlot itself because useSortable can only be called for a section
-// that's actually inside the SortableContext below, and the fixed
-// (non-reorderable) newsletter slot is rendered outside it entirely; a
-// single component that sometimes calls the hook and sometimes doesn't
-// would break the rules of hooks.
+// SectionSlot itself because every section rendered here is always
+// inside the SortableContext below (unlike the old fixed, non-reorderable
+// newsletter slot this used to also support — see git history), so
+// there's no longer a second, hook-free call site that would break the
+// rules of hooks if this were one component instead of two.
 function SortableSectionSlot(props) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: props.section.id,
@@ -302,7 +302,6 @@ function SectionSlot({
   onMoveUp,
   onMoveDown,
   onUpdateSection,
-  fixed,
   children,
   supabase,
 }) {
@@ -328,23 +327,19 @@ function SectionSlot({
         <span className="font-sans text-[10px] uppercase tracking-[0.06em] text-steel bg-paper border border-steel/25 rounded-sm px-1.5 py-1 mr-1 shadow-sm">
           {meta.label}
         </span>
-        {!fixed && (
-          <>
-            <ControlButton
-              {...dragHandleProps}
-              title="Drag to reorder"
-              className="cursor-grab active:cursor-grabbing touch-none"
-            >
-              <GripIcon />
-            </ControlButton>
-            <ControlButton onClick={onMoveUp} disabled={index === 0} title="Move up">
-              <ChevronUpIcon />
-            </ControlButton>
-            <ControlButton onClick={onMoveDown} disabled={index === total - 1} title="Move down">
-              <ChevronDownIcon />
-            </ControlButton>
-          </>
-        )}
+        <ControlButton
+          {...dragHandleProps}
+          title="Drag to reorder"
+          className="cursor-grab active:cursor-grabbing touch-none"
+        >
+          <GripIcon />
+        </ControlButton>
+        <ControlButton onClick={onMoveUp} disabled={index === 0} title="Move up">
+          <ChevronUpIcon />
+        </ControlButton>
+        <ControlButton onClick={onMoveDown} disabled={index === total - 1} title="Move down">
+          <ChevronDownIcon />
+        </ControlButton>
         {hasSettings && (
           <ControlButton
             onClick={() => setSettingsOpen((v) => !v)}

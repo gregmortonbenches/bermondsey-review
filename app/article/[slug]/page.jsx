@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import Masthead from "@/components/Masthead";
 import Footer from "@/components/Footer";
-import Newsletter from "@/components/Newsletter";
 import PageViewTracker from "@/components/PageViewTracker";
 import ThemeVars from "@/components/ThemeVars";
 import PostRenderer from "@/components/PostRenderer";
@@ -50,7 +49,6 @@ export default async function ArticlePage({ params }) {
       <div id="main-content" className="flex-1">
         <PostRenderer post={post} />
       </div>
-      <Newsletter />
       <Footer />
     </main>
   );

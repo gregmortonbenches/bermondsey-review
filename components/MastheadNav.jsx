@@ -107,23 +107,44 @@ export default function MastheadNav({ logoUrl, siteTitle, links, isHomepage = fa
               site. `text-ink`, not `text-paper` — white text on this
               light a yellow fails contrast; every other place this
               yellow is used as a background (the puzzles cards) already
-              pairs it with dark text, not white. */}
-          <Link
-            href="/#newsletter"
+              pairs it with dark text, not white.
+
+              `#newsletter`, not `/#newsletter` — a bare fragment stays on
+              whatever page you're already on (the browser resolves it
+              relative to the current URL), just updating the hash,
+              rather than navigating to the homepage the way a leading
+              `/` would. That matters now that this opens a drawer
+              (NewsletterDrawer.jsx, mounted by Masthead.jsx on every
+              page) instead of scrolling to a static homepage section —
+              Subscribe needs to work in place wherever you clicked it
+              from, not jump you to `/` first.
+
+              A plain `<a>`, not next/link's `Link` — deliberately, not
+              an oversight: Link intercepts the click and updates the
+              URL via history.pushState for same-page navigations like
+              this one, which changes `location.hash` without firing a
+              real `hashchange` event; NewsletterDrawer listens for
+              exactly that event to know when to open. A native anchor's
+              own same-document fragment navigation does fire it. */}
+          <a
+            href="#newsletter"
             className="font-sans text-sm font-600 bg-[#F5C518] text-ink px-4 py-2 hover:bg-ink hover:text-paper transition-colors whitespace-nowrap"
           >
             Subscribe
-          </Link>
+          </a>
         </div>
       </div>
 
-      {/* Nav — a centred row under its own hairline, serif to match the
-          wordmark rather than the sans used for body chrome elsewhere
-          (buttons, labels) — this is the paper's own section list, not
-          an interface control. Shown at every width now, same row as
-          desktop's; flex-wrap is what keeps four items fitting on a
-          narrow screen instead of needing a collapsible menu. */}
-      <nav className="flex flex-wrap items-center justify-center gap-x-6 sm:gap-x-8 gap-y-2 py-4 hairline-b font-display text-sm text-ink">
+      {/* Nav — a centred row, serif to match the wordmark rather than
+          the sans used for body chrome elsewhere (buttons, labels) —
+          this is the paper's own section list, not an interface
+          control. Shown at every width now, same row as desktop's;
+          flex-wrap is what keeps four items fitting on a narrow screen
+          instead of needing a collapsible menu. No hairline-b of its
+          own any more — the row above it already has one, and a second
+          rule directly under this one read as a stray leftover line
+          rather than a deliberate double border. */}
+      <nav className="flex flex-wrap items-center justify-center gap-x-6 sm:gap-x-8 gap-y-2 py-4 font-display text-sm text-ink">
         {links.map((link) => (
           <Link key={link.label} href={link.href} className="underline-offset-4 hover:underline active:underline">
             {link.label}

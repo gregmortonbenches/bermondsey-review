@@ -136,7 +136,7 @@ export default function ThemeEditor({ initialSettings }) {
           <div className="flex items-center justify-between">
             <div>
               <p className="font-sans text-sm font-600 text-ink">Secondary accent</p>
-              <p className="font-sans text-xs text-steel">Masthead, nav hover, newsletter band</p>
+              <p className="font-sans text-xs text-steel">Masthead, nav hover, newsletter drawer</p>
             </div>
             <ColorField value={settings.river_color} onChange={(v) => set("river_color", v)} />
           </div>

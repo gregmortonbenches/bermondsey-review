@@ -15,8 +15,7 @@ export default function ArticleCard({ article, size = "regular" }) {
     // content column rather than a true full-bleed band: "featured" is
     // one of several reorderable homepage sections (see LayoutCanvas.jsx),
     // and going full-bleed would mean pulling it out of that reorderable
-    // flow the way the newsletter band already is — a bigger structural
-    // change than this was asking for.
+    // flow — a bigger structural change than this was asking for.
     const heroTint = accent === "brick" ? "bg-brick/[0.12]" : "bg-river/[0.1]";
     return (
       <Link href={`/article/${article.slug}`} className={`group block overflow-hidden ${heroTint}`}>

@@ -1,6 +1,7 @@
 import Script from "next/script";
 import { createClient } from "@/lib/supabase/public";
 import { getSiteSettingsSafe, DEFAULT_SITE_SETTINGS } from "@/lib/theme";
+import NewsletterDrawer from "./NewsletterDrawer";
 
 // The actual subscribe form/button for embed 4462233900 — Supascribe's
 // own script (loaded below) finds this div by its data attribute and
@@ -32,11 +33,21 @@ function SupascribeEmbed() {
 
 // Async, like Masthead/Footer — same settings fetch, same reasoning: one
 // source of truth for the site's identity, not a prop threaded through
-// every call site (HomePageBody, the admin layout canvas's sectionContent,
-// the article page's own footer band).
+// every call site.
+//
+// Renders the drawer (NewsletterDrawer.jsx), not an in-page section —
+// this used to be a static full-width band, shown only on the homepage
+// (when enabled in the layout builder) and at the bottom of every
+// article. Mounted once now, from Masthead.jsx itself, right next to the
+// Subscribe button that opens it — so it's a fixed overlay present on
+// every page with a masthead, not just the two places the static band
+// used to live, and there's no separate on/off toggle for it any more
+// (see lib/sections.js/lib/layout.js's git history): Subscribe was
+// already unconditional chrome, not a reorderable homepage section, and
+// the drawer it opens is exactly the same kind of thing now.
 //
 // The site tagline used to show under the wordmark in the masthead and
-// again in the footer — moved here instead, as the one place it shows at
+// again in the footer — shows here instead, as the one place it shows at
 // all, right where "sign up" is the actual point being made.
 export default async function Newsletter() {
   let settings = DEFAULT_SITE_SETTINGS;
@@ -48,20 +59,8 @@ export default async function Newsletter() {
   }
 
   return (
-    <section id="newsletter" className="bg-river text-paper scroll-mt-24">
-      <div className="max-w-wider mx-auto px-4 sm:px-6 lg:px-12 py-12 sm:py-16 grid sm:grid-cols-[1fr_auto] gap-6 items-center">
-        <div>
-          <h2 className="font-display font-700 text-2xl sm:text-3xl">
-            Get the newsletter
-          </h2>
-          {settings.site_tagline && (
-            <p className="font-sans text-xs tracking-[0.1em] uppercase text-paper/70 mt-2">
-              {settings.site_tagline}
-            </p>
-          )}
-        </div>
-        <SupascribeEmbed />
-      </div>
-    </section>
+    <NewsletterDrawer tagline={settings.site_tagline}>
+      <SupascribeEmbed />
+    </NewsletterDrawer>
   );
 }
