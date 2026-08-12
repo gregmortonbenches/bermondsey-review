@@ -17,14 +17,14 @@ body {
 
 /* Drop cap for article openings */
 .drop-cap::first-letter {
-  font-family: var(--font-zilla), Georgia, serif;
+  font-family: var(--font-libre-baskerville), Georgia, serif;
   font-weight: 700;
   float: left;
   font-size: 4.2rem;
   line-height: 0.8;
   padding-right: 0.5rem;
   padding-top: 0.3rem;
-  color: var(--drop-cap-color, #9C6B42);
+  color: var(--drop-cap-color, #F5C518);
 }
 
 .hairline {

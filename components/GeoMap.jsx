@@ -52,8 +52,8 @@ function dotIcon(color) {
   });
 }
 
-const GUESS_COLOR = "#2B4C73"; // --color-river
-const CORRECT_COLOR = "#9C6B42"; // --color-brick
+const GUESS_COLOR = "#1D4ED8"; // --color-river
+const CORRECT_COLOR = "#F5C518"; // --color-brick
 
 function ClickHandler({ onClick }) {
   useMapEvents({
@@ -150,7 +150,7 @@ export default function GeoMap({
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 pointer-events-none z-[1000]"
           aria-hidden="true"
         >
-          <g fill="none" stroke="#2B4C73" strokeWidth="1.75" strokeLinecap="round">
+          <g fill="none" stroke="#1D4ED8" strokeWidth="1.75" strokeLinecap="round">
             <circle cx="12" cy="12" r="6" />
             <line x1="12" y1="1" x2="12" y2="6" />
             <line x1="12" y1="18" x2="12" y2="23" />

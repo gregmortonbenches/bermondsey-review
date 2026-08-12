@@ -23,7 +23,7 @@ import {
 } from "@/lib/blockStyle";
 import { MOBILE_ITEM_COUNT_OPTIONS, DESKTOP_ITEM_COUNT_OPTIONS } from "@/lib/carouselLayout";
 
-const DEFAULT_ACCENT = "var(--color-river, #2B4C73)";
+const DEFAULT_ACCENT = "var(--color-river, #1D4ED8)";
 
 const BLOCK_TYPES = [
   { type: "paragraph", label: "Text" },

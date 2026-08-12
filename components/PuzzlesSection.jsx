@@ -20,7 +20,7 @@ const GAMES = [
     title: "The Crossword",
     description: "Fourteen clues, all with a Bermondsey twist. New grid every issue.",
     cta: "Solve the latest puzzle",
-    bg: "color-mix(in srgb, var(--color-river, #2B4C73) 45%, white)",
+    bg: "color-mix(in srgb, var(--color-river, #1D4ED8) 45%, white)",
     Illustration: () => (
       <svg viewBox="0 0 120 120" className="w-24 h-24" aria-hidden="true">
         <g fill="none" stroke="#1C1B17" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -48,7 +48,7 @@ const GAMES = [
     title: "Bermy on the Map, SE1",
     description: "Five photos from around SE16. How many can you place?",
     cta: "Play today's round",
-    bg: "color-mix(in srgb, var(--color-brick, #9C6B42) 55%, white)",
+    bg: "color-mix(in srgb, var(--color-brick, #F5C518) 55%, white)",
     Illustration: () => (
       <svg viewBox="0 0 120 120" className="w-24 h-24" aria-hidden="true">
         <g fill="none" stroke="#1C1B17" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

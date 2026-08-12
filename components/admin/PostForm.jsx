@@ -343,7 +343,7 @@ export default function PostForm({ mode, initialPost, themeVars }) {
   // Same accent PostRenderer uses, so the block canvas's drop cap, quote
   // border, and buttons match how the published piece will actually look.
   const accent = categoryFamily(post.category);
-  const accentHex = accent === "brick" ? "var(--color-brick, #9C6B42)" : "var(--color-river, #2B4C73)";
+  const accentHex = accent === "brick" ? "var(--color-brick, #F5C518)" : "var(--color-river, #1D4ED8)";
 
   return (
     <div>

@@ -285,9 +285,9 @@ create index page_views_path_viewed_at_idx on page_views (path, viewed_at desc);
 -- app/layout.jsx. See components/Masthead.jsx and components/Footer.jsx.
 create table site_settings (
   id boolean primary key default true check (id),
-  brick_color text not null default '#9C6B42',
-  river_color text not null default '#2B4C73',
-  display_font text not null default 'Zilla Slab',
+  brick_color text not null default '#F5C518',
+  river_color text not null default '#1D4ED8',
+  display_font text not null default 'Libre Baskerville',
   body_font text not null default 'Source Serif 4',
   custom_css text,
   custom_js text,

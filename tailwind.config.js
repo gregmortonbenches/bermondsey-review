@@ -17,20 +17,20 @@ module.exports = {
         // included at all — see its own comment for why).
         //
         // Defined via the RGB-channels variable + <alpha-value>, not the
-        // plain hex `var(--color-brick, #9C6B42)` form, so that opacity
+        // plain hex `var(--color-brick, #F5C518)` form, so that opacity
         // modifiers (`bg-brick/[0.1]`, used all over the admin UI for
         // active/highlighted states) actually generate CSS — Tailwind can
         // only blend an arbitrary alpha into a colour it can decompose
         // into channels, and a colour given as a raw hex-valued CSS
         // variable string can't be decomposed, so every `/`-modified
         // brick/river utility silently produced nothing before this. The
-        // fallback numbers (156 107 66 / 43 76 115) are the RGB channels
+        // fallback numbers (245 197 24 / 29 78 216) are the RGB channels
         // of lib/theme.js's DEFAULT_SITE_SETTINGS hex values — keep them
         // in sync if those defaults ever change. See hexToRgbChannels in
         // lib/color.js and the --color-brick-rgb/--color-river-rgb
         // variables components/ThemeVars.jsx writes.
-        brick: "rgb(var(--color-brick-rgb, 156 107 66) / <alpha-value>)",
-        river: "rgb(var(--color-river-rgb, 43 76 115) / <alpha-value>)",
+        brick: "rgb(var(--color-brick-rgb, 245 197 24) / <alpha-value>)",
+        river: "rgb(var(--color-river-rgb, 29 78 216) / <alpha-value>)",
         mustard: "#D3A121", // dockside signage yellow, used sparingly
         steel: "#6E6C63",   // hairlines, captions — fixed, not admin-editable
       },
@@ -38,7 +38,7 @@ module.exports = {
         // --font-display/--font-body are only set when the theme editor
         // picks something other than the default — otherwise this falls
         // through to the next/font-loaded defaults from app/layout.jsx.
-        display: ["var(--font-display, var(--font-zilla))", "Georgia", "serif"],
+        display: ["var(--font-display, var(--font-libre-baskerville))", "Georgia", "serif"],
         body: ["var(--font-body, var(--font-source-serif))", "Georgia", "serif"],
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
       },
