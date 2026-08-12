@@ -38,7 +38,7 @@ export default function ArticleCarousel({ articles, mobileCount, desktopCount, h
               } ${i !== articles.length - 1 ? "border-r border-steel/25" : ""}`}
             >
               {article.cover_image_url ? (
-                <div className="relative overflow-hidden rounded-sm aspect-[4/3]">
+                <div className="relative overflow-hidden aspect-[4/3]">
                   <Image
                     src={article.cover_image_url}
                     alt={article.cover_image_alt || ""}
@@ -49,7 +49,7 @@ export default function ArticleCarousel({ articles, mobileCount, desktopCount, h
                   />
                 </div>
               ) : (
-                <CoverArt category={article.category} className="aspect-[4/3] rounded-sm" />
+                <CoverArt category={article.category} className="aspect-[4/3]" />
               )}
               <p className={`font-sans text-[11px] tracking-[0.12em] uppercase mt-3 ${accent === "brick" ? "text-brick" : "text-river"}`}>
                 {article.category}

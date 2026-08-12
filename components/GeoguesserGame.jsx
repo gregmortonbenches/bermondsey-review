@@ -10,7 +10,7 @@ import { formatDistance, scoreLabel } from "@/lib/geo";
 const GeoMap = dynamic(() => import("./GeoMap"), {
   ssr: false,
   loading: () => (
-    <div className="h-80 rounded-sm border border-steel/25 bg-steel/[0.06] flex items-center justify-center">
+    <div className="h-80 border border-steel/25 bg-steel/[0.06] flex items-center justify-center">
       <p className="font-sans text-sm text-steel">Loading map…</p>
     </div>
   ),
@@ -52,7 +52,7 @@ export default function GeoguesserGame({ round }) {
 
   return (
     <div>
-      <div className="relative aspect-[4/3] sm:aspect-[16/9] rounded-sm overflow-hidden bg-steel/[0.08] mb-4">
+      <div className="relative aspect-[4/3] sm:aspect-[16/9] overflow-hidden bg-steel/[0.08] mb-4">
         <Image
           src={round.photo_url}
           alt={round.photo_alt || ""}
@@ -75,20 +75,20 @@ export default function GeoguesserGame({ round }) {
           </p>
           <GeoMap center={BERMONDSEY_CENTER} marker={guess} onPick={(lat, lng) => setGuess({ lat, lng })} />
           {error && (
-            <p className="font-sans text-sm text-brick bg-brick/[0.08] rounded-sm px-3 py-2 mt-3">{error}</p>
+            <p className="font-sans text-sm text-brick bg-brick/[0.08] px-3 py-2 mt-3">{error}</p>
           )}
           <button
             type="button"
             onClick={handleSubmit}
             disabled={!guess || submitting}
-            className="mt-4 font-sans text-sm font-600 bg-brick text-paper px-5 py-2.5 rounded-sm hover:bg-ink transition-colors disabled:opacity-50"
+            className="mt-4 font-sans text-sm font-600 bg-brick text-paper px-5 py-2.5 hover:bg-ink transition-colors disabled:opacity-50"
           >
             {submitting ? "Scoring…" : guess ? "Submit guess" : "Click the map to guess first"}
           </button>
         </>
       ) : (
         <>
-          <div className="bg-river/[0.06] rounded-sm px-5 py-4 mb-4">
+          <div className="bg-river/[0.06] px-5 py-4 mb-4">
             <div className="flex items-baseline gap-3 flex-wrap">
               <p className="font-display font-700 text-4xl text-ink">
                 {result.score.toLocaleString()}
@@ -110,7 +110,7 @@ export default function GeoguesserGame({ round }) {
           <button
             type="button"
             onClick={handleTryAgain}
-            className="mt-4 font-sans text-sm font-600 text-ink border border-steel/30 px-5 py-2.5 rounded-sm hover:bg-steel/[0.08] transition-colors"
+            className="mt-4 font-sans text-sm font-600 text-ink border border-steel/30 px-5 py-2.5 hover:bg-steel/[0.08] transition-colors"
           >
             Guess again
           </button>

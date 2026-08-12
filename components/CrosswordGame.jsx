@@ -222,7 +222,7 @@ export default function CrosswordGame({ crossword }) {
   return (
     <div>
       {solved && (
-        <div className="bg-river/[0.08] border border-river/20 rounded-sm px-5 py-4 mb-6 text-center">
+        <div className="bg-river/[0.08] border border-river/20 px-5 py-4 mb-6 text-center">
           <p className="font-display font-700 text-xl text-river">
             {revealed ? "Here's the finished grid." : "Solved it! 🐛"}
           </p>
@@ -255,28 +255,28 @@ export default function CrosswordGame({ crossword }) {
             <button
               type="button"
               onClick={handleCheck}
-              className="font-sans text-sm font-600 border border-steel/40 text-ink px-4 py-2 rounded-sm hover:border-river hover:text-river transition-colors"
+              className="font-sans text-sm font-600 border border-steel/40 text-ink px-4 py-2 hover:border-river hover:text-river transition-colors"
             >
               Check
             </button>
             <button
               type="button"
               onClick={handleReveal}
-              className="font-sans text-sm font-600 border border-steel/40 text-ink px-4 py-2 rounded-sm hover:border-river hover:text-river transition-colors"
+              className="font-sans text-sm font-600 border border-steel/40 text-ink px-4 py-2 hover:border-river hover:text-river transition-colors"
             >
               Reveal
             </button>
             <button
               type="button"
               onClick={handleClear}
-              className="font-sans text-sm font-600 border border-steel/40 text-ink px-4 py-2 rounded-sm hover:border-river hover:text-river transition-colors"
+              className="font-sans text-sm font-600 border border-steel/40 text-ink px-4 py-2 hover:border-river hover:text-river transition-colors"
             >
               Clear
             </button>
           </div>
 
           <div
-            className="grid gap-[2px] bg-steel/25 p-[2px] rounded-sm w-full"
+            className="grid gap-[2px] bg-steel/25 p-[2px] w-full"
             style={{ gridTemplateColumns: `repeat(${grid.cols}, 1fr)`, aspectRatio: `${grid.cols} / ${grid.rows}` }}
           >
             {grid.cells.map((rowCells, r) =>
@@ -333,7 +333,7 @@ export default function CrosswordGame({ crossword }) {
                   key={slot.number}
                   type="button"
                   onClick={() => handleClueClick(slot)}
-                  className={`block text-left w-full font-body text-sm rounded-sm px-1.5 py-0.5 -mx-1.5 transition-colors ${
+                  className={`block text-left w-full font-body text-sm px-1.5 py-0.5 -mx-1.5 transition-colors ${
                     activeSlot?.number === slot.number && activeSlot?.direction === "across"
                       ? "bg-river/[0.1] text-ink font-600"
                       : "text-steel hover:text-ink"
@@ -352,7 +352,7 @@ export default function CrosswordGame({ crossword }) {
                   key={slot.number}
                   type="button"
                   onClick={() => handleClueClick(slot)}
-                  className={`block text-left w-full font-body text-sm rounded-sm px-1.5 py-0.5 -mx-1.5 transition-colors ${
+                  className={`block text-left w-full font-body text-sm px-1.5 py-0.5 -mx-1.5 transition-colors ${
                     activeSlot?.number === slot.number && activeSlot?.direction === "down"
                       ? "bg-river/[0.1] text-ink font-600"
                       : "text-steel hover:text-ink"

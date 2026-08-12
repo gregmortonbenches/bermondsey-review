@@ -99,7 +99,7 @@ export default function MastheadNav({ logoUrl, siteTitle, links, isHomepage = fa
         <div className="justify-self-end">
           <Link
             href="/#newsletter"
-            className="font-sans text-sm font-600 bg-brick text-paper px-4 py-2 rounded-sm hover:bg-ink transition-colors whitespace-nowrap"
+            className="font-sans text-sm font-600 bg-brick text-paper px-4 py-2 hover:bg-ink transition-colors whitespace-nowrap"
           >
             Subscribe
           </Link>

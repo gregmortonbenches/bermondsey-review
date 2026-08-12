@@ -106,7 +106,7 @@ function renderBlockBody(block, i, list, accentHex) {
   }
   if (block.type === "image" && block.url) {
     return (
-      <div className="relative w-full aspect-[3/2] rounded-sm overflow-hidden">
+      <div className="relative w-full aspect-[3/2] overflow-hidden">
         <Image src={block.url} alt={block.alt || ""} fill sizes="(max-width: 780px) 100vw, 780px" className="object-cover" />
       </div>
     );
@@ -132,7 +132,7 @@ function renderBlockBody(block, i, list, accentHex) {
       <div>
         <a
           href={sanitizeHref(block.url)}
-          className="inline-block font-sans text-sm font-600 text-paper px-5 py-2.5 rounded-sm hover:bg-ink transition-colors"
+          className="inline-block font-sans text-sm font-600 text-paper px-5 py-2.5 hover:bg-ink transition-colors"
           style={{ backgroundColor: accentHex }}
         >
           {block.label || "Learn more"}
@@ -147,7 +147,7 @@ function renderBlockBody(block, i, list, accentHex) {
     const embedUrl = getYouTubeEmbedUrl(block.url);
     if (!embedUrl) return null;
     return (
-      <div className="aspect-video rounded-sm overflow-hidden bg-ink/5">
+      <div className="aspect-video overflow-hidden bg-ink/5">
         <iframe
           src={embedUrl}
           className="w-full h-full"
@@ -172,7 +172,7 @@ function renderBlockBody(block, i, list, accentHex) {
         {images.map((img, j) => (
           <div
             key={j}
-            className={`relative shrink-0 aspect-video snap-start rounded-sm overflow-hidden ${
+            className={`relative shrink-0 aspect-video snap-start overflow-hidden ${
               widthVars ? "w-[var(--carousel-item-w-mobile)] sm:w-[var(--carousel-item-w-desktop)]" : "w-[85%] sm:w-[70%]"
             }`}
           >
@@ -186,7 +186,7 @@ function renderBlockBody(block, i, list, accentHex) {
     if (!block.html) return null;
     return (
       <div
-        className="[&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:rounded-sm"
+        className="[&_iframe]:w-full [&_iframe]:aspect-video"
         dangerouslySetInnerHTML={{ __html: sanitizeEmbedHtml(block.html) }}
       />
     );
