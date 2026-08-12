@@ -27,7 +27,7 @@ import { useEffect } from "react";
 const WORM_SPEED_PX_PER_S = 180; // slowed slightly again (was 210, originally 245.8px/s — see git history) — applies equally on every screen size, since this one constant drives the whole calculation below regardless of viewport
 const HOLD_FRACTION = 0.77; // must match header-worm-cross's own 77%/100% keyframe split in globals.css
 const CROSS_FRACTION = 1 - HOLD_FRACTION;
-const FIRST_CROSSING_AT_S = 0.5; // must match the intent the fallback animation-delay in globals.css was tuned for
+const FIRST_CROSSING_AT_S = 15; // must match the intent the fallback animation-delay in globals.css was tuned for
 
 function updateWormSpeedVars() {
   // Two instances exist (MastheadNav's mobile/desktop rows) but only
