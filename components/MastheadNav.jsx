@@ -97,9 +97,20 @@ export default function MastheadNav({ logoUrl, siteTitle, links, isHomepage = fa
           {wordmark}
         </Link>
         <div className="justify-self-end">
+          {/* Literal `#F5C518`, not `bg-brick` — this button used to
+              track the theme's brick colour, which defaults to this
+              exact bright yellow, but an admin-set (or stale-deployed)
+              theme value can drift away from it; a fixed value is the
+              only way to guarantee this specific button reads as bright
+              yellow regardless, matching the worm/crossword-highlight/
+              drop-cap precedent for this one accent elsewhere on the
+              site. `text-ink`, not `text-paper` — white text on this
+              light a yellow fails contrast; every other place this
+              yellow is used as a background (the puzzles cards) already
+              pairs it with dark text, not white. */}
           <Link
             href="/#newsletter"
-            className="font-sans text-sm font-600 bg-brick text-paper px-4 py-2 hover:bg-ink transition-colors whitespace-nowrap"
+            className="font-sans text-sm font-600 bg-[#F5C518] text-ink px-4 py-2 hover:bg-ink hover:text-paper transition-colors whitespace-nowrap"
           >
             Subscribe
           </Link>
