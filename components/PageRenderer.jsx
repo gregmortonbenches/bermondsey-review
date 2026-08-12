@@ -4,7 +4,7 @@ import BlockContent from "./BlockContent";
 // accent to pick — river is the site's general-purpose secondary colour
 // elsewhere (see categoryFamily's own fallback in lib/articles.js), so it
 // does the same job here for the drop cap, quote border, and buttons.
-const ACCENT_HEX = "var(--color-river, #2B4C73)";
+const ACCENT_HEX = "var(--color-river, #1D4ED8)";
 
 export default function PageRenderer({ page }) {
   return (

@@ -8,7 +8,7 @@ import { focalPointStyle } from "@/lib/media";
 export default function PostRenderer({ post }) {
   const accent = categoryFamily(post.category);
   const accentHex =
-    accent === "brick" ? "var(--color-brick, #9C6B42)" : "var(--color-river, #2B4C73)";
+    accent === "brick" ? "var(--color-brick, #F5C518)" : "var(--color-river, #1D4ED8)";
   const embedUrl = post.type === "video" ? getYouTubeEmbedUrl(post.media_url) : null;
   const heroTint = accent === "brick" ? "bg-brick/[0.12]" : "bg-river/[0.1]";
 

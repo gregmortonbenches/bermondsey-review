@@ -4,6 +4,37 @@ import { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Polyline, useMapEvents, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+// Named import, not the classic `L.esri.Vector.vectorBasemapLayer(...)`
+// global-namespace call — that pattern only exists on esri-leaflet's
+// plain <script>-tag UMD build (what a static site loading it from a CDN,
+// like github.com/gregmortonbenches/benches-map, gets). A bundler
+// resolves the package's ESM entry instead, which is just named exports
+// and never touches the L.esri namespace at all — confirmed by testing
+// this: the global-namespace version throws "Cannot read properties of
+// undefined (reading 'Vector')" under Next.js.
+import { vectorBasemapLayer } from "esri-leaflet-vector";
+
+// Esri's styled vector basemap (nicer-looking than plain OSM raster tiles
+// — same one github.com/gregmortonbenches/benches-map uses) needs an
+// ArcGIS Location Platform API token, which is metered/billed per
+// account. Rather than hardcode that project's own token into this
+// separate app and quietly share its quota, this reads its own token
+// from an env var and falls back to the existing free OSM tiles when
+// it's unset — see NEXT_PUBLIC_ESRI_TOKEN in .env.local.example.
+const ESRI_TOKEN = process.env.NEXT_PUBLIC_ESRI_TOKEN;
+
+// Mirrors GeoMap's onPick pattern (a Leaflet plugin that only has an
+// imperative API, wrapped as a component so it can live declaratively
+// inside <MapContainer>) — esri-leaflet-vector's basemap layer has no
+// react-leaflet equivalent, so it's added/removed via useMap() instead.
+function EsriVectorBasemap() {
+  const map = useMap();
+  useEffect(() => {
+    const layer = vectorBasemapLayer("arcgis/colored-pencil", { token: ESRI_TOKEN }).addTo(map);
+    return () => map.removeLayer(layer);
+  }, [map]);
+  return null;
+}
 
 // Simple coloured-dot markers instead of Leaflet's default pin icon —
 // its default icon references relative image paths that break once
@@ -21,8 +52,8 @@ function dotIcon(color) {
   });
 }
 
-const GUESS_COLOR = "#2B4C73"; // --color-river
-const CORRECT_COLOR = "#9C6B42"; // --color-brick
+const GUESS_COLOR = "#1D4ED8"; // --color-river
+const CORRECT_COLOR = "#F5C518"; // --color-brick
 
 function ClickHandler({ onClick }) {
   useMapEvents({
@@ -80,10 +111,14 @@ export default function GeoMap({
   return (
     <div className={`${heightClass} relative rounded-sm overflow-hidden border border-steel/25`}>
       <MapContainer center={center} zoom={zoom} style={{ height: "100%", width: "100%" }} scrollWheelZoom>
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        {ESRI_TOKEN ? (
+          <EsriVectorBasemap />
+        ) : (
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+        )}
         {onPick && <ClickHandler onClick={onPick} />}
         {onPick && <KeyboardPickHandler onPick={onPick} />}
         {marker && <Marker position={[marker.lat, marker.lng]} icon={dotIcon(GUESS_COLOR)} />}
@@ -115,7 +150,7 @@ export default function GeoMap({
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 pointer-events-none z-[1000]"
           aria-hidden="true"
         >
-          <g fill="none" stroke="#2B4C73" strokeWidth="1.75" strokeLinecap="round">
+          <g fill="none" stroke="#1D4ED8" strokeWidth="1.75" strokeLinecap="round">
             <circle cx="12" cy="12" r="6" />
             <line x1="12" y1="1" x2="12" y2="6" />
             <line x1="12" y1="18" x2="12" y2="23" />

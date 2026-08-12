@@ -1,10 +1,15 @@
-import { Zilla_Slab, Source_Serif_4, Inter } from "next/font/google";
+import { Libre_Baskerville, Source_Serif_4, Inter } from "next/font/google";
 import "./globals.css";
 
-const zilla = Zilla_Slab({
+// Libre Baskerville only actually ships 400/700 in Google's catalog (no
+// 600) — the site's own font-600 utility just renders at whatever the
+// browser does for a missing weight (synthesized/faux-bold in most
+// cases), same pre-existing limitation any of the other curated display-
+// font options without a true 600 weight already has.
+const libreBaskerville = Libre_Baskerville({
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
-  variable: "--font-zilla",
+  weight: ["400", "700"],
+  variable: "--font-libre-baskerville",
   display: "swap",
 });
 
@@ -23,7 +28,7 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "The Worm",
+  title: "The Bermondsey Review of Books",
   description:
     "A fortnightly, free publication about Bermondsey, London — plus books, film, and whatever else we're reading.",
 };
@@ -45,7 +50,7 @@ export const revalidate = 60;
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${zilla.variable} ${sourceSerif.variable} ${inter.variable}`}>
+    <html lang="en" className={`${libreBaskerville.variable} ${sourceSerif.variable} ${inter.variable}`}>
       <body className="font-body antialiased">{children}</body>
     </html>
   );

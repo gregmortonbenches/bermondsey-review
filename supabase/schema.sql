@@ -1,4 +1,4 @@
--- The Worm — database schema
+-- The Bermondsey Review of Books — database schema
 -- Run this once in the Supabase SQL editor for a fresh project.
 --
 -- If you ever reset with `drop schema public cascade; create schema
@@ -285,13 +285,13 @@ create index page_views_path_viewed_at_idx on page_views (path, viewed_at desc);
 -- app/layout.jsx. See components/Masthead.jsx and components/Footer.jsx.
 create table site_settings (
   id boolean primary key default true check (id),
-  brick_color text not null default '#9C6B42',
-  river_color text not null default '#2B4C73',
-  display_font text not null default 'Zilla Slab',
+  brick_color text not null default '#F5C518',
+  river_color text not null default '#1D4ED8',
+  display_font text not null default 'Libre Baskerville',
   body_font text not null default 'Source Serif 4',
   custom_css text,
   custom_js text,
-  site_title text not null default 'The Worm',
+  site_title text not null default 'The Bermondsey Review of Books',
   site_tagline text not null default 'Free, fortnightly, from SE16 & thereabouts',
   logo_url text,
   -- Array of { "label": "...", "href": "..." }, rendered in both the
@@ -316,7 +316,7 @@ insert into site_settings (id) values (true) on conflict (id) do nothing;
 -- Existing installs: run this once to add the new columns without
 -- losing your current brick/river/font/code settings.
 --   alter table site_settings
---     add column if not exists site_title text not null default 'The Worm',
+--     add column if not exists site_title text not null default 'The Bermondsey Review of Books',
 --     add column if not exists site_tagline text not null default 'Free, fortnightly, from SE16 & thereabouts',
 --     add column if not exists logo_url text,
 --     add column if not exists nav_links jsonb not null default '[]'::jsonb,

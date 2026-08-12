@@ -13,7 +13,7 @@ import { ChevronRightIcon } from "./icons";
 const AUTOSAVE_DELAY_MS = 1500;
 // Same fixed accent PageRenderer uses — pages aren't categorised the way
 // posts are, so there's no per-page colour to derive.
-const ACCENT_HEX = "var(--color-river, #2B4C73)";
+const ACCENT_HEX = "var(--color-river, #1D4ED8)";
 const emptyPage = {
   title: "",
   slug: "",
