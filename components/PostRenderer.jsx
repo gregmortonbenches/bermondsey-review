@@ -25,7 +25,7 @@ export default function PostRenderer({ post }) {
       <article className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center">
         <p className="font-sans text-xs tracking-[0.14em] uppercase mb-4 text-brick">Cartoon</p>
         {post.cover_image_url ? (
-          <div className="relative w-full aspect-[4/3] bg-steel/[0.05] rounded-sm overflow-hidden">
+          <div className="relative w-full aspect-[4/3] bg-steel/[0.05] overflow-hidden">
             <Image
               src={post.cover_image_url}
               alt={post.cover_image_alt || post.title || "Cartoon"}
@@ -36,7 +36,7 @@ export default function PostRenderer({ post }) {
             />
           </div>
         ) : (
-          <CoverArt category={post.category} className="aspect-[4/3] rounded-sm" />
+          <CoverArt category={post.category} className="aspect-[4/3]" />
         )}
         {post.title && <p className="font-display italic text-xl text-ink mt-6">{post.title}</p>}
         {post.author && <p className="font-sans text-sm text-steel mt-2">{post.author}</p>}
@@ -88,7 +88,7 @@ export default function PostRenderer({ post }) {
       <div className="max-w-content mx-auto px-4 sm:px-6 py-10">
         {/* Video / podcast player */}
         {post.type === "video" && (
-          <div className="aspect-video rounded-sm overflow-hidden bg-ink/5">
+          <div className="aspect-video overflow-hidden bg-ink/5">
             {embedUrl ? (
               <iframe
                 src={embedUrl}

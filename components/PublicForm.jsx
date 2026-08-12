@@ -27,7 +27,7 @@ export default function PublicForm({ form }) {
 
   if (status === "done") {
     return (
-      <div className="border border-river/30 bg-river/[0.06] rounded-sm p-6 text-center">
+      <div className="border border-river/30 bg-river/[0.06] p-6 text-center">
         <p className="font-display font-700 text-lg text-ink">Thanks — got it.</p>
       </div>
     );
@@ -58,7 +58,7 @@ export default function PublicForm({ form }) {
               required={field.required}
               value={values[field.id] || ""}
               onChange={(e) => set(field.id, e.target.value)}
-              className="w-full font-sans text-sm border border-steel/30 rounded-sm px-3 py-2 focus-visible:outline-2 focus-visible:outline-river"
+              className="w-full font-sans text-sm border border-steel/30 px-3 py-2 focus-visible:outline-2 focus-visible:outline-river"
             />
           )}
           {field.type === "email" && (
@@ -67,7 +67,7 @@ export default function PublicForm({ form }) {
               required={field.required}
               value={values[field.id] || ""}
               onChange={(e) => set(field.id, e.target.value)}
-              className="w-full font-sans text-sm border border-steel/30 rounded-sm px-3 py-2 focus-visible:outline-2 focus-visible:outline-river"
+              className="w-full font-sans text-sm border border-steel/30 px-3 py-2 focus-visible:outline-2 focus-visible:outline-river"
             />
           )}
           {field.type === "textarea" && (
@@ -76,7 +76,7 @@ export default function PublicForm({ form }) {
               value={values[field.id] || ""}
               onChange={(e) => set(field.id, e.target.value)}
               rows={4}
-              className="w-full font-sans text-sm border border-steel/30 rounded-sm px-3 py-2 focus-visible:outline-2 focus-visible:outline-river resize-y"
+              className="w-full font-sans text-sm border border-steel/30 px-3 py-2 focus-visible:outline-2 focus-visible:outline-river resize-y"
             />
           )}
           {field.type === "select" && (
@@ -84,7 +84,7 @@ export default function PublicForm({ form }) {
               required={field.required}
               value={values[field.id] || ""}
               onChange={(e) => set(field.id, e.target.value)}
-              className="w-full font-sans text-sm border border-steel/30 rounded-sm px-3 py-2"
+              className="w-full font-sans text-sm border border-steel/30 px-3 py-2"
             >
               <option value="" disabled>
                 Choose one
@@ -118,7 +118,7 @@ export default function PublicForm({ form }) {
       <button
         type="submit"
         disabled={status === "submitting"}
-        className="font-sans text-sm font-600 bg-brick text-paper px-5 py-2.5 rounded-sm hover:bg-ink transition-colors disabled:opacity-60"
+        className="font-sans text-sm font-600 bg-brick text-paper px-5 py-2.5 hover:bg-ink transition-colors disabled:opacity-60"
       >
         {status === "submitting" ? "Sending…" : "Submit"}
       </button>

@@ -19,7 +19,7 @@ export default function ArticleCard({ article, size = "regular" }) {
     // change than this was asking for.
     const heroTint = accent === "brick" ? "bg-brick/[0.12]" : "bg-river/[0.1]";
     return (
-      <Link href={`/article/${article.slug}`} className={`group block rounded-sm overflow-hidden ${heroTint}`}>
+      <Link href={`/article/${article.slug}`} className={`group block overflow-hidden ${heroTint}`}>
         <div className="grid sm:grid-cols-2 sm:min-h-[360px]">
           <div className="px-6 sm:px-10 py-8 sm:py-10 flex flex-col justify-center">
             <p className={`font-sans text-xs tracking-[0.14em] uppercase mb-3 ${accent === "brick" ? "text-brick" : "text-river"}`}>
@@ -50,35 +50,22 @@ export default function ArticleCard({ article, size = "regular" }) {
     );
   }
 
+  // Text-only, no thumbnail — NYRA's own listings read as a dense index,
+  // not a grid of photos. The one deliberate exception is "featured"
+  // above: a single lead image per page is a reasonable visual anchor,
+  // repeating one in every row of every listing isn't. Tighter py-4 (was
+  // py-6) since there's no longer a 96-140px-tall image setting the
+  // row's minimum height.
   return (
-    <Link
-      href={`/article/${article.slug}`}
-      className="group grid grid-cols-[96px_1fr] sm:grid-cols-[140px_1fr] gap-4 sm:gap-6 items-start py-6 hairline-b"
-    >
-      {article.cover_image_url ? (
-        <div className="relative overflow-hidden rounded-sm aspect-square">
-          <Image
-            src={article.cover_image_url}
-            alt={article.cover_image_alt || ""}
-            fill
-            sizes="140px"
-            className="object-cover"
-            style={focalPointStyle(article)}
-          />
-        </div>
-      ) : (
-        <CoverArt category={article.category} className="aspect-square" />
-      )}
-      <div>
-        <p className={`font-sans text-xs tracking-[0.14em] uppercase mb-2 ${accent === "brick" ? "text-brick" : "text-river"}`}>
-          {article.category}
-        </p>
-        <h3 className="font-display font-700 text-lg sm:text-xl text-ink leading-tight underline-offset-4 group-hover:underline group-active:underline">
-          {article.title}
-        </h3>
-        <p className="font-body text-sm text-steel mt-2 hidden sm:block">{article.dek}</p>
-        <p className="font-sans text-xs text-steel mt-3">{article.author}</p>
-      </div>
+    <Link href={`/article/${article.slug}`} className="group block py-4 hairline-b">
+      <p className={`font-sans text-xs tracking-[0.14em] uppercase mb-2 ${accent === "brick" ? "text-brick" : "text-river"}`}>
+        {article.category}
+      </p>
+      <h3 className="font-display font-700 text-lg sm:text-xl text-ink leading-tight underline-offset-4 group-hover:underline group-active:underline">
+        {article.title}
+      </h3>
+      <p className="font-body text-sm text-steel mt-2 hidden sm:block">{article.dek}</p>
+      <p className="font-sans text-xs text-steel mt-3">{article.author}</p>
     </Link>
   );
 }

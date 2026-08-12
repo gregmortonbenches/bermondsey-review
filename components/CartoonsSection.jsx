@@ -55,7 +55,7 @@ function ShareButton({ slug }) {
       onClick={handleClick}
       title="Copy a link to this cartoon"
       aria-label="Copy a link to this cartoon"
-      className={`absolute top-2 right-2 z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-colors ${
+      className={`absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center shadow-sm transition-colors ${
         copied ? "bg-river text-paper" : "bg-paper/90 text-ink hover:bg-paper"
       }`}
     >
@@ -85,7 +85,7 @@ export default function CartoonsSection({ cartoons, headerTitle, headerDescripti
       <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 -mx-4 px-4 sm:mx-0 sm:px-0 pb-4 [scrollbar-width:thin]">
         {cartoons.map((cartoon) => (
           <div key={cartoon.slug} className="shrink-0 snap-start w-full sm:w-[38%] lg:w-[30%]">
-            <div className="relative aspect-square rounded-sm overflow-hidden bg-steel/[0.08]">
+            <div className="relative aspect-square overflow-hidden bg-steel/[0.08]">
               <Link href={`/article/${cartoon.slug}`} className="absolute inset-0 block">
                 {cartoon.cover_image_url ? (
                   <Image

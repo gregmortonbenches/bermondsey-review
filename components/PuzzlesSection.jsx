@@ -99,7 +99,7 @@ export default function PuzzlesSection({ overrides, headerTitle, headerDescripti
             <Link
               key={slug}
               href={`/${slug}`}
-              className="group flex flex-col items-center justify-between text-center rounded-md p-6 min-h-[280px] transition-transform hover:-translate-y-1"
+              className="group flex flex-col items-center justify-between text-center p-6 min-h-[280px] transition-transform hover:-translate-y-1"
               style={{ backgroundColor: bg }}
             >
               <div>
@@ -107,7 +107,7 @@ export default function PuzzlesSection({ overrides, headerTitle, headerDescripti
                 <p className="font-body text-ink/80 mt-2 max-w-[26ch] mx-auto">{override?.description || description}</p>
               </div>
               {override?.imageUrl ? (
-                <div className="relative w-24 h-24 rounded-sm overflow-hidden">
+                <div className="relative w-24 h-24 overflow-hidden">
                   <Image src={override.imageUrl} alt="" fill sizes="96px" className="object-cover" />
                 </div>
               ) : (

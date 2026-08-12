@@ -109,7 +109,7 @@ export default function GeoMap({
   heightClass = "h-80",
 }) {
   return (
-    <div className={`${heightClass} relative rounded-sm overflow-hidden border border-steel/25`}>
+    <div className={`${heightClass} relative overflow-hidden border border-steel/25`}>
       <MapContainer center={center} zoom={zoom} style={{ height: "100%", width: "100%" }} scrollWheelZoom>
         {ESRI_TOKEN ? (
           <EsriVectorBasemap />

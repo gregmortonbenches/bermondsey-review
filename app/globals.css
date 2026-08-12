@@ -3,7 +3,12 @@
 @tailwind utilities;
 
 :root {
-  --rule: 1px solid #c9c1af;
+  /* Solid ink, not a soft warm grey — was #c9c1af. NYRA's own rule lines
+     read as genuine print hairlines (stark, near-black), not a gentle
+     web-design divider, and this is the one variable every hairline/
+     hairline-b border in the site (masthead, article cards, section
+     headers, the carousel) already shares. */
+  --rule: 1px solid #1C1B17;
 }
 
 html {
