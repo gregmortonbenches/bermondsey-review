@@ -61,17 +61,16 @@ button:focus-visible {
   outline-offset: 3px;
 }
 
-/* The worm crossing the header's viaduct arches — see
+/* The worm weaving through the header wordmark's own letters — see
    components/HeaderArches.jsx (was a train; redrawn as a worm, same
    size, crossing the same way — class/keyframe names renamed to match,
-   the actual timing values below untouched). Mostly holds off-screen to
-   the left, then takes ~9s to cross (slowed slightly twice now, from
-   an original ~7s — see components/HeaderWormSpeed.jsx's own
-   WORM_SPEED_PX_PER_S), once roughly every 41s — still a rare
-   flourish, not a distracting loop, all in one keyframes timeline
-   rather than something re-triggered on a client-side interval.
-   prefers-reduced-motion below already turns this (and every other
-   animation) off entirely.
+   the overall timing untouched). Mostly holds off-screen to the left,
+   then takes ~9s to cross (slowed slightly twice now, from an original
+   ~7s — see components/HeaderWormSpeed.jsx's own WORM_SPEED_PX_PER_S),
+   once roughly every 41s — still a rare flourish, not a distracting
+   loop, all in one keyframes timeline rather than something
+   re-triggered on a client-side interval. prefers-reduced-motion below
+   already turns this (and every other animation) off entirely.
 
    animation-duration/animation-delay read CSS custom properties, set by
    components/HeaderWormSpeed.jsx once on mount and again on resize, so
@@ -81,7 +80,10 @@ button:focus-visible {
    means a wide desktop window makes the worm travel much further than
    a narrow phone in that same fixed time, reading as faster on wide
    screens even though nothing about the animation changed. See that
-   component's own comment for the full derivation.
+   component's own comment for the full derivation. That derivation only
+   cares about the overall start (-100%) and end (110vw) X positions and
+   the 77%/100% hold/cross split below — untouched by the wobble stops
+   added in between, so it stays valid without its own changes.
 
    The var() fallbacks (40.966s / -31.044s) are what that same
    derivation gives for a ~1280px desktop — kept in sync by hand with
@@ -97,9 +99,36 @@ button:focus-visible {
    still one full cycle apart, since a negative delay only shifts the
    starting phase, not the loop's own period. */
 .header-worm {
+  /* Matches the animation's own resting (0%/77%) keyframe — never
+     visible while the animation is actually running (every frame of
+     it sets `transform` itself, fully replacing this), but it's what
+     the worm falls back to when prefers-reduced-motion below disables
+     the animation entirely. Without this, a reduced-motion visitor
+     would see the worm frozen at translate(0, 0) instead — sitting
+     fully visible over the left edge of the wordmark rather than
+     correctly parked off-screen and vertically centred. */
+  transform: translate(-100%, -50%);
   animation: header-worm-cross var(--worm-cycle-duration, 40.966s) linear infinite;
   animation-delay: var(--worm-cross-delay, -31.044s);
 }
+/* Every stop's Y component is `-50% + wobble`, not just `wobble` — the
+   worm's own top-1/2 (HeaderArches.jsx) only aligns its *top* edge to
+   its container's midpoint, so -50% is what actually centres it there;
+   folding that into the animated transform (rather than a separate
+   static one) is what avoids the animation clobbering it, per
+   HeaderWorm's own comment. Five stops across the 77%-100% crossing
+   window (77/82.75/88.5/94.25/100) bob the worm up/down by 14px twice
+   each way — enough to read as weaving through the wordmark's letters
+   as it passes, not a ruler-straight line underneath them — landing
+   back at dead centre (no wobble) at both the very start and end so it
+   doesn't visibly snap into a bobbed position the instant it enters or
+   leaves. X at each stop is a straight linear blend from -100% (own
+   width — see the 0%/77% comment below) to 110vw (viewport-relative)
+   at that stop's fraction of the crossing, expressed as its own
+   calc(): browsers already interpolate translateX smoothly across a
+   %-then-vw pair (that's what made the original two-stop version work
+   at all), so each hand-computed intermediate blend behaves the same
+   way piecewise. */
 @keyframes header-worm-cross {
   0%,
   77% {
@@ -108,13 +137,22 @@ button:focus-visible {
        size. -10vw (an earlier version of this) doesn't — it renders
        wider than 10vw of a typical desktop viewport, so part of it
        stayed visible even at rest. */
-    transform: translateX(-100%);
+    transform: translate(-100%, -50%);
+  }
+  82.75% {
+    transform: translate(calc(-75% + 27.5vw), calc(-50% - 14px));
+  }
+  88.5% {
+    transform: translate(calc(-50% + 55vw), calc(-50% + 14px));
+  }
+  94.25% {
+    transform: translate(calc(-25% + 82.5vw), calc(-50% - 14px));
   }
   100% {
     /* vw here is deliberate: the endpoint needs to clear the *strip's*
        width, which % (relative to the worm's own small box) can't
        express. */
-    transform: translateX(110vw);
+    transform: translate(110vw, -50%);
   }
 }
 

@@ -50,7 +50,15 @@ export default async function Footer() {
   const socialLinks = Object.entries(settings.social_links || {}).filter(([, url]) => url);
 
   return (
-    <footer className="bg-ink text-paper mt-auto">
+    // A warm charcoal grey, not the near-black `ink` — closer to NYRA's
+    // own footer treatment, which reads as grey rather than a solid
+    // black band. A literal arbitrary value rather than a new named
+    // theme colour (matching how the crossword's own one-off `#F5C518`
+    // highlight is handled) since this is the one place it's used;
+    // still dark enough that the existing text-paper/NN opacity
+    // hierarchy below (nav links, social icons, footer_text, copyright)
+    // stays legible against it without needing its own rework.
+    <footer className="bg-[#403E38] text-paper mt-auto">
       <div className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12 py-10">
         <div className="flex flex-wrap items-start justify-between gap-8">
           <div>
