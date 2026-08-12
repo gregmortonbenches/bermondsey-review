@@ -93,11 +93,15 @@ export function HeaderArchesBackground({ id }) {
 }
 
 // Was a five-carriage train (see git history) — same crossing, same
-// size, redrawn as a worm instead. "Moving like a train" meant keeping
-// every piece of *positioning/animation* infrastructure exactly as it
-// was (the viewBox, the rendered width, `bottom: BAND_H`, the `.header-
-// worm` class and its crossing keyframes) and changing only what's
-// actually drawn inside the `<g>` — a straight-sided body with a
+// size, redrawn as a worm instead, originally keeping every piece of
+// *positioning/animation* infrastructure exactly as it was (the
+// viewBox, the rendered width, the `.header-worm` class and its
+// crossing keyframes) and changing only what's actually drawn inside
+// the `<g>`. That positioning has since moved on again — see this
+// function's own comment below for how it now weaves through the
+// wordmark's letters instead of crossing below them — but the shape
+// itself, described here, hasn't changed since: a straight-sided body
+// with a
 // pointed nose became a rounded capsule: a soft taper at the tail (the
 // left end, trailing during the crossing) and a fuller, blunter round
 // at the head (the right end, leading — same "leading edge on the
@@ -112,24 +116,40 @@ export function HeaderArchesBackground({ id }) {
 // details (r 1.3 → 1.8) since a worm's eyes are more of its own
 // personality than a train's headlight ever was.
 //
-// Stroke colour is a literal pink (`#E8809B`), not `stroke-river`/
-// `stroke-brick` like the rest of the masthead's illustration — the
-// worm's own colour, not one of the site's two theme accents, so it
-// doesn't shift if someone changes the theme colours in /admin/theme
-// the way the arches or the wordmark link would.
+// Stroke colour is a literal bright yellow (`#F5C518` — the same bold
+// yellow the NYRA restyle already established as the site's accent, see
+// the crossword's selected-cell highlight and brick_color), not
+// `stroke-river`/`stroke-brick` like the rest of the masthead's
+// illustration — the worm's own colour, fixed, so it doesn't shift if
+// someone changes the theme colours in /admin/theme the way the arches
+// or the wordmark link would (brick happens to be this exact yellow by
+// default right now, but the worm isn't reading that variable — it's
+// its own literal value, matching on purpose rather than by reference).
 //
 // z-20 so it paints in front of the title text and the Subscribe
-// button, not just the arches behind them. `bottom: BAND_H` positions
-// its underside exactly on the parapet line (the arch band's own top
-// edge, BAND_H above the row's bottom) — a static CSS property distinct
-// from `transform`, so it doesn't conflict with `.header-worm`'s own
-// `transform: translateX(...)` crossing animation the way a static
-// `transform: translateY(...)` would (a CSS animation's own transform
-// value fully replaces whatever static value shared that property,
-// rather than composing with it — an earlier version needed a whole
-// second wrapper element just to work around that; positioning by
-// `bottom` instead of `transform: translateY` sidesteps the conflict
-// entirely, so one element can carry both).
+// button, not just the arches behind them.
+//
+// Positioned to weave through the wordmark's own letters, not cross
+// below them in the arch band the way the train/worm always used to:
+// MastheadNav.jsx now renders this *inside* the wordmark's own relative
+// wrapper (around the title text or the logo image, whichever is in
+// use) rather than as an independent sibling at the row level, so
+// `top-1/2` centres it vertically on the wordmark's own box specifically
+// — whatever that box's height actually is — instead of a fixed pixel
+// offset tuned for one specific text size. `top-1/2` (not `bottom`) is
+// still a static, non-transform property, so it still doesn't conflict
+// with `.header-worm`'s animated `transform` the way a static
+// `transform: translateY(...)` would — but centring via `top: 50%`
+// alone only aligns the SVG's own *top* edge to the container's
+// midpoint, not its centre, so every keyframe below folds a
+// `translateY(-50%)` into its own transform value to actually centre
+// it, alongside that same keyframe's crossing X position and any wobble
+// offset — see header-worm-cross in globals.css. (This only works
+// because a CSS animation's transform fully replaces whatever static
+// transform shares that property rather than composing with it — since
+// centring here is folded into the animated value itself instead of
+// being a separate static transform, there's nothing for the animation
+// to clobber.)
 //
 // viewBox height is 40, not 50: the drawn shape's lowest point (y=40)
 // needs to BE the bottom edge of the viewBox, not sit inside it with
@@ -140,15 +160,14 @@ export function HeaderArchesBackground({ id }) {
 export function HeaderWorm() {
   return (
     <svg
-      className="header-worm absolute left-0 z-20 w-64 sm:w-72 h-auto pointer-events-none"
-      style={{ bottom: BAND_H }}
+      className="header-worm absolute left-0 top-1/2 z-20 w-64 sm:w-72 h-auto pointer-events-none"
       viewBox="0 0 472 40"
       aria-hidden="true"
     >
-      <g fill="none" className="stroke-[#E8809B]" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
+      <g fill="none" className="stroke-[#F5C518]" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
         <path d="M8 24 Q8 8 24 8 H442 Q466 8 466 24 Q466 40 442 40 H24 Q8 40 8 24 Z" />
-        <circle cx="450" cy="16" r="1.8" className="fill-[#E8809B]" stroke="none" />
-        <circle cx="458" cy="17" r="1.8" className="fill-[#E8809B]" stroke="none" />
+        <circle cx="450" cy="16" r="1.8" className="fill-[#F5C518]" stroke="none" />
+        <circle cx="458" cy="17" r="1.8" className="fill-[#F5C518]" stroke="none" />
         <line x1="94" y1="8" x2="94" y2="40" strokeWidth="1.3" />
         <line x1="180" y1="8" x2="180" y2="40" strokeWidth="1.3" />
         <line x1="266" y1="8" x2="266" y2="40" strokeWidth="1.3" />

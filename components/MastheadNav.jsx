@@ -24,6 +24,7 @@ export default function MastheadNav({ logoUrl, siteTitle, links, isHomepage = fa
   const wordmark = logoUrl ? (
     <div className="relative h-10 sm:h-14 w-32 sm:w-44 shrink-0">
       <Image src={logoUrl} alt={siteTitle} fill sizes="176px" className="object-contain sm:object-center" priority />
+      <HeaderWorm />
     </div>
   ) : (
     // Centred and reasonably sized at every width now — mobile used to
@@ -44,10 +45,16 @@ export default function MastheadNav({ logoUrl, siteTitle, links, isHomepage = fa
     // size that still fits *this* name on one line; a longer `siteTitle`
     // (it's admin-editable) wrapping to two is an accepted, handled
     // outcome, not a bug — same as desktop's own row a bit further down.
-    <div className="min-w-0 text-center">
+    // relative: HeaderWorm below is positioned against *this* box now
+    // (top-1/2 centres on its height specifically), not the outer row —
+    // see HeaderWorm's own comment in HeaderArches.jsx for why, and how
+    // that still avoids the same static-transform-vs-animated-transform
+    // conflict the old bottom-anchored version sidestepped differently.
+    <div className="relative min-w-0 text-center">
       <p className="font-display font-700 text-2xl sm:text-[2.5rem] leading-tight sm:leading-none tracking-tight sm:tracking-[0.03em] sm:uppercase text-ink">
         {siteTitle}
       </p>
+      <HeaderWorm />
     </div>
   );
 
@@ -78,7 +85,6 @@ export default function MastheadNav({ logoUrl, siteTitle, links, isHomepage = fa
           background instead, invisible. */}
       <div className="relative isolate overflow-hidden flex sm:hidden items-center justify-center pt-4 pb-12 hairline-b gap-2">
         <HeaderArchesBackground id="mobile" />
-        <HeaderWorm />
         <Link href="/" className="group flex items-center gap-3 min-w-0">
           {wordmark}
         </Link>
@@ -91,7 +97,6 @@ export default function MastheadNav({ logoUrl, siteTitle, links, isHomepage = fa
           pb-14's 56px leaves a 16px gap above the arch band. */}
       <div className="relative isolate overflow-hidden hidden sm:grid grid-cols-[1fr_auto_1fr] items-center pt-6 pb-14 hairline-b gap-4">
         <HeaderArchesBackground id="desktop" />
-        <HeaderWorm />
         <span aria-hidden="true" />
         <Link href="/" className="group justify-self-center">
           {wordmark}
