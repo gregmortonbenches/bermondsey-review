@@ -49,7 +49,15 @@ export default async function Masthead({ isHomepage = false }) {
         Skip to content
       </a>
       <header className="bg-paper">
-        <div className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12">
+        {/* No max-w-wide/mx-auto here, unlike the rest of the page —
+            the masthead runs full-bleed edge-to-edge on purpose (the
+            arch illustration tiles to fill whatever width it's given,
+            and MastheadNav's own grid/flex centring already centres the
+            wordmark and nav links regardless of the container's actual
+            width), while everything below it stays in a boxed
+            max-w-wider column. Padding only, so the title/nav text
+            still keeps a margin from the literal edge of the screen. */}
+        <div className="px-4 sm:px-6 lg:px-12">
           <MastheadNav
             logoUrl={settings.logo_url}
             siteTitle={settings.site_title}

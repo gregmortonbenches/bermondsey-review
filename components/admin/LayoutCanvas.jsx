@@ -163,7 +163,7 @@ export default function LayoutCanvas({ pageKey, initialSections, sectionContent,
         {themeVars}
         {masthead}
 
-        <div className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12 flex-1 w-full">
+        <div className="max-w-wider mx-auto px-4 sm:px-6 lg:px-12 flex-1 w-full">
           <DndContext id={`layout-sections-${pageKey}`} sensors={reorderSensors} collisionDetection={closestCenter} onDragEnd={handleSectionDragEnd}>
             <SortableContext items={orderable.map((s) => s.id)} strategy={verticalListSortingStrategy}>
               {orderable.map((section, index) => (

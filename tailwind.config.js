@@ -49,6 +49,13 @@ module.exports = {
       maxWidth: {
         content: "780px",
         wide: "1180px",
+        // The page-shell width for public pages/sections that used to
+        // share `wide` with admin's own dashboard chrome (toolbars,
+        // media library, form pages) — split out so widening the public
+        // site doesn't also widen unrelated admin UI that happens to
+        // reuse the same token for its own internal consistency, not
+        // because it's meant to track the public site's width.
+        wider: "1440px",
       },
       // "xs" isn't one of Tailwind's default breakpoints — without this,
       // `xs:` was already in use (ArticleCarousel.jsx, CartoonsSection.jsx)

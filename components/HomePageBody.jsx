@@ -93,7 +93,7 @@ export default async function HomePageBody() {
           back to shrink-to-fit sizing based on the content instead of
           filling the available width, silently rendering everything
           inside narrower than the masthead/footer above and below it. */}
-      <div id="main-content" className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12 flex-1 w-full">
+      <div id="main-content" className="max-w-wider mx-auto px-4 sm:px-6 lg:px-12 flex-1 w-full">
         {mainSections.map(renderSection)}
       </div>
       {newsletterOn && <Newsletter />}

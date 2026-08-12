@@ -36,13 +36,13 @@ export default async function CrosswordPage() {
       <ThemeVars />
       <PageViewTracker path="/crossword" />
       <Masthead />
-      {/* max-w-wide, not the max-w-content most standalone pages use —
+      {/* max-w-wider, not the max-w-content most standalone pages use —
           this page's actual content is a grid plus a two-column clue
           list, not reading prose, so it wants the same wider column the
           homepage/footer already use rather than a reading-optimised
           line length. w-full for the same reason every other page here
           needs it — see the matching comment in HomePageBody.jsx. */}
-      <div id="main-content" className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12 py-10 flex-1 w-full">
+      <div id="main-content" className="max-w-wider mx-auto px-4 sm:px-6 lg:px-12 py-10 flex-1 w-full">
         <h1 className="font-display font-700 text-3xl sm:text-4xl text-ink mb-1">The crossword</h1>
         <p className="font-body text-steel mb-8">A fortnightly crossword with an SE1 twist</p>
 

@@ -52,7 +52,7 @@ export default async function CrosswordArchiveEntryPage({ params }) {
       <ThemeVars />
       <PageViewTracker path={`/crossword/archive/${id}`} />
       <Masthead />
-      <div id="main-content" className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12 py-10 flex-1 w-full">
+      <div id="main-content" className="max-w-wider mx-auto px-4 sm:px-6 lg:px-12 py-10 flex-1 w-full">
         <Link href="/crossword/archive" className="font-sans text-sm text-steel hover:text-ink underline underline-offset-4">
           ← Crossword archive
         </Link>
