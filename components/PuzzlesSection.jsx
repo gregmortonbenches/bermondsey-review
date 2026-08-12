@@ -17,7 +17,7 @@ import { SECTION_HEADER_DEFAULTS } from "@/lib/sections";
 const GAMES = [
   {
     slug: "crossword",
-    title: "The Crossword",
+    title: "The crossword",
     description: "Fourteen clues, all with a Bermondsey twist. New grid every issue.",
     cta: "Solve the latest puzzle",
     bg: "color-mix(in srgb, var(--color-river, #1D4ED8) 45%, white)",
@@ -45,7 +45,7 @@ const GAMES = [
   },
   {
     slug: "geoguesser",
-    title: "Bermy on the Map, SE1",
+    title: "Bermy on the map, SE1",
     description: "Five photos from around SE16. How many can you place?",
     cta: "Play today's round",
     bg: "color-mix(in srgb, var(--color-brick, #F5C518) 55%, white)",
