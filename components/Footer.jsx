@@ -50,15 +50,16 @@ export default async function Footer() {
   const socialLinks = Object.entries(settings.social_links || {}).filter(([, url]) => url);
 
   return (
-    // A warm charcoal grey, not the near-black `ink` — closer to NYRA's
-    // own footer treatment, which reads as grey rather than a solid
-    // black band. A literal arbitrary value rather than a new named
+    // A light, near-white grey — the previous warm charcoal (`#403E38`)
+    // read as black by contrast against the bold blue newsletter band
+    // right above it. A literal arbitrary value rather than a new named
     // theme colour (matching how the crossword's own one-off `#F5C518`
-    // highlight is handled) since this is the one place it's used;
-    // still dark enough that the existing text-paper/NN opacity
-    // hierarchy below (nav links, social icons, footer_text, copyright)
-    // stays legible against it without needing its own rework.
-    <footer className="bg-[#403E38] text-paper mt-auto">
+    // highlight is handled) since this is the one place it's used. Light
+    // enough that the old `text-paper` (white) hierarchy is illegible
+    // against it, so text/border colours below flipped to `ink`/NN
+    // opacity — the same dark-on-light hierarchy the rest of the page
+    // already uses, not a new one invented for the footer.
+    <footer className="bg-[#F5F5F5] text-ink mt-auto">
       <div className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12 py-10">
         <div className="flex flex-wrap items-start justify-between gap-8">
           <div>
@@ -67,7 +68,7 @@ export default async function Footer() {
 
           <nav className="flex flex-wrap gap-x-6 gap-y-2 font-sans text-sm">
             {navLinks.map((link) => (
-              <Link key={link.label} href={link.href} className="text-paper/80 underline-offset-4 hover:underline active:underline">
+              <Link key={link.label} href={link.href} className="text-ink/80 underline-offset-4 hover:underline active:underline">
                 {link.label}
               </Link>
             ))}
@@ -85,7 +86,7 @@ export default async function Footer() {
                     target="_blank"
                     rel="noreferrer noopener"
                     aria-label={key}
-                    className="text-paper/80 hover:text-paper transition-colors"
+                    className="text-ink/80 hover:text-ink transition-colors"
                   >
                     <Icon />
                   </a>
@@ -96,12 +97,12 @@ export default async function Footer() {
         </div>
 
         {settings.footer_text && (
-          <p className="font-sans text-sm text-paper/70 mt-8 pt-8 border-t border-paper/15">
+          <p className="font-sans text-sm text-ink/70 mt-8 pt-8 border-t border-ink/15">
             {settings.footer_text}
           </p>
         )}
 
-        <p className="font-sans text-xs text-paper/50 mt-6">
+        <p className="font-sans text-xs text-ink/50 mt-6">
           © {new Date().getFullYear()} {settings.site_title}
         </p>
       </div>
