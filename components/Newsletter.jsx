@@ -49,7 +49,7 @@ export default async function Newsletter() {
 
   return (
     <section id="newsletter" className="bg-river text-paper scroll-mt-24">
-      <div className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12 py-12 sm:py-16 grid sm:grid-cols-[1fr_auto] gap-6 items-center">
+      <div className="max-w-wider mx-auto px-4 sm:px-6 lg:px-12 py-12 sm:py-16 grid sm:grid-cols-[1fr_auto] gap-6 items-center">
         <div>
           <h2 className="font-display font-700 text-2xl sm:text-3xl">
             Get the newsletter

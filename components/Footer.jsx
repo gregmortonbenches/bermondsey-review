@@ -60,7 +60,7 @@ export default async function Footer() {
     // opacity — the same dark-on-light hierarchy the rest of the page
     // already uses, not a new one invented for the footer.
     <footer className="bg-[#F5F5F5] text-ink mt-auto">
-      <div className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12 py-10">
+      <div className="max-w-wider mx-auto px-4 sm:px-6 lg:px-12 py-10">
         <div className="flex flex-wrap items-start justify-between gap-8">
           <div>
             <p className="font-display font-700 text-xl">{settings.site_title}</p>

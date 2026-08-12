@@ -52,7 +52,7 @@ export default function PostRenderer({ post }) {
           desktop, stacking on mobile — a proper front-of-section lead
           rather than a plain white header sitting above the image. */}
       <div className={heroTint}>
-        <div className="max-w-wide mx-auto grid sm:grid-cols-2 sm:min-h-[420px]">
+        <div className="max-w-wider mx-auto grid sm:grid-cols-2 sm:min-h-[420px]">
           <div className="px-4 sm:px-6 lg:px-12 py-10 sm:py-16 flex flex-col justify-center">
             <p
               className={`font-sans text-xs tracking-[0.14em] uppercase mb-3 ${
