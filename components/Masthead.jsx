@@ -2,12 +2,17 @@ import { createClient } from "@/lib/supabase/public";
 import { getSiteSettingsSafe, DEFAULT_SITE_SETTINGS } from "@/lib/theme";
 import { getSiteNavLinks } from "@/lib/pages";
 import MastheadNav from "./MastheadNav";
+import Newsletter from "./Newsletter";
 
 // Fetches identity/nav from site_settings (title, logo, nav links — see
 // /admin/site) rather than hardcoding them, so the "Identity" admin
 // section actually controls what every visitor sees here. The tagline is fetched
 // separately, by Newsletter.jsx — see its own comment for where that
 // moved and why.
+//
+// Newsletter (the sign-up drawer MastheadNav's Subscribe button opens)
+// mounts here too, once per masthead — see its own comment for why this
+// is the right place for it rather than a per-page opt-in like Footer.
 //
 // The one illustrated flourish — brick viaduct arches, the actual
 // railway out of London Bridge through Bermondsey, with an occasional
@@ -66,6 +71,7 @@ export default async function Masthead({ isHomepage = false }) {
           />
         </div>
       </header>
+      <Newsletter />
     </>
   );
 }
