@@ -112,16 +112,13 @@ export function HeaderArchesBackground({ id }) {
 // details (r 1.3 → 1.8) since a worm's eyes are more of its own
 // personality than a train's headlight ever was.
 //
-// Stroke colour is a literal bright yellow (`#F5C518` — the same bold
-// yellow the NYRA restyle already established as the site's accent, see
-// the crossword's selected-cell highlight and brick_color), not
+// Stroke colour is a literal light sky blue (`#87D6FF` — the same value
+// the Subscribe button now uses, see MastheadNav.jsx), not
 // `stroke-river`/`stroke-brick` like the rest of the masthead's
 // illustration — the worm's own colour, fixed, so it doesn't shift if
 // someone changes the theme colours in /admin/theme the way the arches
-// or the wordmark link would (brick happens to be this exact yellow by
-// default right now, but the worm isn't reading that variable — it's
-// its own literal value, matching on purpose rather than by reference).
-// Was a literal pink (`#E8809B`) before this.
+// or the wordmark link would. Was a literal bright yellow (`#F5C518`)
+// before this, and a literal pink (`#E8809B`) before that.
 //
 // z-20 so it paints in front of the title text and the Subscribe
 // button, not just the arches behind them. `bottom: BAND_H` positions
@@ -155,10 +152,10 @@ export function HeaderWorm() {
       viewBox="0 0 472 40"
       aria-hidden="true"
     >
-      <g fill="none" className="stroke-[#F5C518]" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
+      <g fill="none" className="stroke-[#87D6FF]" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
         <path d="M8 24 Q8 8 24 8 H442 Q466 8 466 24 Q466 40 442 40 H24 Q8 40 8 24 Z" />
-        <circle cx="450" cy="16" r="1.8" className="fill-[#F5C518]" stroke="none" />
-        <circle cx="458" cy="17" r="1.8" className="fill-[#F5C518]" stroke="none" />
+        <circle cx="450" cy="16" r="1.8" className="fill-[#87D6FF]" stroke="none" />
+        <circle cx="458" cy="17" r="1.8" className="fill-[#87D6FF]" stroke="none" />
         <line x1="94" y1="8" x2="94" y2="40" strokeWidth="1.3" />
         <line x1="180" y1="8" x2="180" y2="40" strokeWidth="1.3" />
         <line x1="266" y1="8" x2="266" y2="40" strokeWidth="1.3" />
