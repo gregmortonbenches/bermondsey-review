@@ -82,7 +82,14 @@ export default function CartoonsSection({ cartoons, headerTitle, headerDescripti
         title={headerTitle || SECTION_HEADER_DEFAULTS.cartoons.title}
         description={hideHeaderDescription ? "" : headerDescription || SECTION_HEADER_DEFAULTS.cartoons.description}
       />
-      <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 -mx-4 px-4 sm:mx-0 sm:px-0 pb-4 [scrollbar-width:thin]">
+      {/* justify-safe-center (globals.css) — see the matching comment
+          in ArticleCarousel.jsx/globals.css for why this is plain CSS
+          rather than a Tailwind class, and why `safe center`: centres
+          this row when there are few enough cartoons to fit without
+          risking the classic flex-overflow trap where centring pushes
+          the first item(s) out of scroll reach once there are enough to
+          overflow. */}
+      <div className="flex justify-safe-center overflow-x-auto snap-x snap-mandatory gap-6 -mx-4 px-4 sm:mx-0 sm:px-0 pb-4 [scrollbar-width:thin]">
         {cartoons.map((cartoon) => (
           <div key={cartoon.slug} className="shrink-0 snap-start w-full sm:w-[38%] lg:w-[30%]">
             <div className="relative aspect-square overflow-hidden bg-steel/[0.08]">
