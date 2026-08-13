@@ -26,7 +26,15 @@ export default function ArticleCarousel({ articles, mobileCount, desktopCount, h
         title={headerTitle || SECTION_HEADER_DEFAULTS.carousel.title}
         description={hideHeaderDescription ? "" : headerDescription || SECTION_HEADER_DEFAULTS.carousel.description}
       />
-      <div className="flex overflow-x-auto snap-x snap-mandatory gap-0 -mx-4 px-4 sm:mx-0 sm:px-0 pb-4 [scrollbar-width:thin]">
+      {/* justify-safe-center (globals.css) — see its own comment for
+          why this needed to be plain CSS rather than a Tailwind
+          arbitrary value, and why `safe center` rather than plain
+          `center`: centres the row when it's short enough to fit (e.g.
+          only one or two articles published so far) without the
+          classic flex/overflow trap where centring pushes the first
+          item(s) out of scroll reach once there are enough to
+          overflow. */}
+      <div className="flex justify-safe-center overflow-x-auto snap-x snap-mandatory gap-0 -mx-4 px-4 sm:mx-0 sm:px-0 pb-4 [scrollbar-width:thin]">
         {articles.map((article, i) => {
           const accent = categoryFamily(article.category);
           return (

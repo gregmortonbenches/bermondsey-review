@@ -40,6 +40,43 @@ body {
   border-bottom: var(--rule);
 }
 
+/* Centres a horizontally-scrolling flex rail (ArticleCarousel.jsx,
+   CartoonsSection.jsx) when it's short enough to fit without
+   overflowing — e.g. only one or two articles published so far —
+   without the classic flex-overflow trap plain `justify-content:
+   center` has: once there ARE enough items to overflow, centring a
+   flex line normally splits the excess width evenly on both sides,
+   which can push the first item(s) off the start of the scrollable
+   area with no way to scroll back to them. `safe center` falls back to
+   start-alignment specifically when centring would do that, keeping an
+   overflowing row scrolling normally from item one.
+
+   Not a Tailwind arbitrary value (`justify-[safe_center]`) — Tailwind's
+   justify-content utilities are a fixed set (`corePlugins.js`'s
+   justifyContent uses `addUtilities`, not the `matchUtilities` that
+   arbitrary-bracket syntax needs), so that class silently generated no
+   CSS at all.
+
+   `@supports`, not two `justify-content` declarations in the same rule
+   (the usual way to fall back from an unsupported CSS value) — tried
+   that first, but Tailwind/PostCSS's own processing deduplicates
+   same-property declarations within one block down to just the last
+   one, discarding the `flex-start` fallback before a browser ever sees
+   it. Splitting the fallback into its own rule and gating the
+   enhancement behind a feature query sidesteps that: they're two
+   separate rules, so there's nothing to collapse, and a browser without
+   `safe`/`unsafe` support never matches the `@supports` block at all —
+   it just keeps the plain `flex-start` rule, identical to today's
+   behaviour. */
+.justify-safe-center {
+  justify-content: flex-start;
+}
+@supports (justify-content: safe center) {
+  .justify-safe-center {
+    justify-content: safe center;
+  }
+}
+
 /* Brief pulse when the admin sidebar's "on this page" outline jumps to a
    block/section — see jumpToElement in EditorOutlineContext.jsx. */
 .outline-jump-highlight {
