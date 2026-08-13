@@ -4,15 +4,20 @@ import SectionHeader from "./SectionHeader";
 import { SECTION_HEADER_DEFAULTS } from "@/lib/sections";
 
 /**
- * Colour-card format inspired by the New Yorker's "Puzzles & Games" rail:
- * a flat colour block, a simple line drawing of the thing itself (a
- * crossword grid, Tower Bridge), title, one-line description, and a
- * "Play" link pinned to the bottom. Card colours are tints pulled from
- * the site's own palette so it still reads as the Bermondsey Review, not
- * a copy of the reference. An admin can swap either illustration for an
- * uploaded photo from the homepage layout builder's Puzzles & Games
- * settings — see PuzzleCardFields in components/admin/LayoutCanvas.jsx —
- * the default line drawing only shows when no image has been set.
+ * Bordered, horizontal card format — icon beside the text rather than
+ * stacked above it, no filled background colour. A prior version used a
+ * New Yorker-style flat colour block per card (a tint pulled from the
+ * site's own brick/river palette); with only ever two games to show,
+ * that read as two oversized, overly prominent tiles rather than a
+ * modest "here are the games" module. This is shorter (no more forced
+ * min-height — the row sizes to its own content) and much quieter: a
+ * hairline border standing in for the colour block, tinting to that
+ * game's own accent only on hover (see `accent` below) rather than
+ * wearing it as a permanent fill. An admin can still swap either
+ * illustration for an uploaded photo from the homepage layout builder's
+ * Puzzles & Games settings — see PuzzleCardFields in
+ * components/admin/LayoutCanvas.jsx — the default line drawing only
+ * shows when no image has been set.
  */
 const GAMES = [
   {
@@ -20,9 +25,9 @@ const GAMES = [
     title: "The crossword",
     description: "Fourteen clues, all with a Bermondsey twist. New grid every issue.",
     cta: "Solve the latest puzzle",
-    bg: "color-mix(in srgb, var(--color-river, #1D4ED8) 45%, white)",
+    accent: "river",
     Illustration: () => (
-      <svg viewBox="0 0 120 120" className="w-24 h-24" aria-hidden="true">
+      <svg viewBox="0 0 120 120" className="w-16 h-16 sm:w-20 sm:h-20" aria-hidden="true">
         <g fill="none" stroke="#1C1B17" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           {/* a plain crossword grid — no character, just the puzzle itself */}
           <rect x="20" y="20" width="80" height="80" />
@@ -48,9 +53,9 @@ const GAMES = [
     title: "Bermy on the map, SE1",
     description: "Five photos from around SE16. How many can you place?",
     cta: "Play today's round",
-    bg: "color-mix(in srgb, var(--color-brick, #F5C518) 55%, white)",
+    accent: "brick",
     Illustration: () => (
-      <svg viewBox="0 0 120 120" className="w-24 h-24" aria-hidden="true">
+      <svg viewBox="0 0 120 120" className="w-16 h-16 sm:w-20 sm:h-20" aria-hidden="true">
         <g fill="none" stroke="#1C1B17" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           {/* Tower Bridge — the landmark most people would actually place
               near Bermondsey, rather than an unrelated character */}
@@ -93,29 +98,32 @@ export default function PuzzlesSection({ overrides, headerTitle, headerDescripti
         description={hideHeaderDescription ? "" : headerDescription || SECTION_HEADER_DEFAULTS.puzzles.description}
       />
       <div className="grid sm:grid-cols-2 gap-6">
-        {GAMES.map(({ slug, title, description, cta, bg, Illustration }) => {
+        {GAMES.map(({ slug, title, description, cta, accent, Illustration }) => {
           const override = overrides?.[slug];
           return (
             <Link
               key={slug}
               href={`/${slug}`}
-              className="group flex flex-col items-center justify-between text-center p-6 min-h-[280px] transition-transform hover:-translate-y-1"
-              style={{ backgroundColor: bg }}
+              className={`group flex items-center gap-5 sm:gap-6 p-5 sm:p-6 border border-steel/25 transition-colors ${
+                accent === "brick" ? "hover:border-brick" : "hover:border-river"
+              }`}
             >
-              <div>
-                <h3 className="font-display font-700 text-2xl text-ink">{override?.title || title}</h3>
-                <p className="font-body text-ink/80 mt-2 max-w-[26ch] mx-auto">{override?.description || description}</p>
+              <div className="shrink-0">
+                {override?.imageUrl ? (
+                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 overflow-hidden">
+                    <Image src={override.imageUrl} alt="" fill sizes="80px" className="object-cover" />
+                  </div>
+                ) : (
+                  <Illustration />
+                )}
               </div>
-              {override?.imageUrl ? (
-                <div className="relative w-24 h-24 overflow-hidden">
-                  <Image src={override.imageUrl} alt="" fill sizes="96px" className="object-cover" />
-                </div>
-              ) : (
-                <Illustration />
-              )}
-              <span className="font-sans text-sm font-600 text-ink underline-offset-4 group-hover:underline">
-                {override?.cta || cta} »
-              </span>
+              <div className="min-w-0">
+                <h3 className="font-display font-700 text-lg sm:text-xl text-ink">{override?.title || title}</h3>
+                <p className="font-body text-steel mt-1">{override?.description || description}</p>
+                <span className="font-sans text-sm font-600 text-ink underline-offset-4 group-hover:underline mt-2 inline-block">
+                  {override?.cta || cta} »
+                </span>
+              </div>
             </Link>
           );
         })}
