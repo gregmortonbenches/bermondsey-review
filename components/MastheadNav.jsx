@@ -97,17 +97,17 @@ export default function MastheadNav({ logoUrl, siteTitle, links, isHomepage = fa
           {wordmark}
         </Link>
         <div className="justify-self-end">
-          {/* Literal `#F5C518`, not `bg-brick` — this button used to
-              track the theme's brick colour, which defaults to this
-              exact bright yellow, but an admin-set (or stale-deployed)
-              theme value can drift away from it; a fixed value is the
-              only way to guarantee this specific button reads as bright
-              yellow regardless, matching the worm/crossword-highlight/
-              drop-cap precedent for this one accent elsewhere on the
-              site. `text-ink`, not `text-paper` — white text on this
-              light a yellow fails contrast; every other place this
-              yellow is used as a background (the puzzles cards) already
-              pairs it with dark text, not white.
+          {/* Literal `#87D6FF` (a light sky blue), not `bg-brick`/
+              `bg-river` — this button used to track the theme's brick
+              colour, but an admin-set (or stale-deployed) theme value
+              can drift away from whatever it's meant to look like; a
+              fixed value is the only way to guarantee this specific
+              button keeps this exact colour regardless, same reasoning
+              as the worm/crossword-highlight/drop-cap's own fixed
+              accents elsewhere on the site. Still `text-ink`, not
+              `text-paper` — light enough a background that white text
+              would fail contrast the same way it did on the previous
+              yellow.
 
               `#newsletter`, not `/#newsletter` — a bare fragment stays on
               whatever page you're already on (the browser resolves it
@@ -128,7 +128,7 @@ export default function MastheadNav({ logoUrl, siteTitle, links, isHomepage = fa
               own same-document fragment navigation does fire it. */}
           <a
             href="#newsletter"
-            className="font-sans text-sm font-600 bg-[#F5C518] text-ink px-4 py-2 hover:bg-ink hover:text-paper transition-colors whitespace-nowrap"
+            className="font-sans text-sm font-600 bg-[#87D6FF] text-ink px-4 py-2 hover:bg-ink hover:text-paper transition-colors whitespace-nowrap"
           >
             Subscribe
           </a>
