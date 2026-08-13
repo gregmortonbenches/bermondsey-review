@@ -59,6 +59,10 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
   (`text-paper/80` → `text-paper`) instead — they're bare SVGs with no
   text content, so `text-decoration` has nothing to underline.
 
+## Subscribe button: light sky blue instead of bright yellow
+
+- `MastheadNav.jsx`'s Subscribe button's literal fixed colour changed again — `#F5C518` (bright yellow) → `#87D6FF` (light sky blue). Same fixed-value reasoning as before (not `bg-brick`/`bg-river`, so it can't drift if the theme's own accent colours change): only the actual colour value changed, not the pattern. `text-ink` stayed as the button's text colour — light enough a background that dark text is still the legible choice, same as it was against the yellow.
+
 ## The homepage's carousels centre themselves when they're short
 
 - **`ArticleCarousel.jsx` and `CartoonsSection.jsx`'s horizontally-scrolling rails now centre their items when there are few enough to fit without overflowing** (e.g. only one or two articles/cartoons published so far, which is the actual current state of the live site) — they used to bunch up against the left edge under a centred section header, reading as misaligned rather than intentional. Once there are enough items to genuinely overflow and need scrolling, the row still starts from item one, unchanged.
