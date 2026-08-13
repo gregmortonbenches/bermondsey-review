@@ -58,8 +58,11 @@ export default async function Footer() {
     // enough that the old `text-paper` (white) hierarchy is illegible
     // against it, so text/border colours below flipped to `ink`/NN
     // opacity — the same dark-on-light hierarchy the rest of the page
-    // already uses, not a new one invented for the footer.
-    <footer className="bg-[#F5F5F5] text-ink mt-auto">
+    // already uses, not a new one invented for the footer. Nudged a
+    // touch lighter still since (`#F5F5F5` → `#F8F8F8`) — the ink/NN
+    // opacity text hierarchy has enough headroom against either value
+    // that the extra few points of lightness don't threaten legibility.
+    <footer className="bg-[#F8F8F8] text-ink mt-auto">
       <div className="max-w-wider mx-auto px-4 sm:px-6 lg:px-12 py-10">
         <div className="flex flex-wrap items-start justify-between gap-8">
           <div>

@@ -59,6 +59,10 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
   (`text-paper/80` → `text-paper`) instead — they're bare SVGs with no
   text content, so `text-decoration` has nothing to underline.
 
+## Footer: nudged a touch lighter still
+
+- `Footer.jsx`'s `bg-[#F5F5F5]` → `bg-[#F8F8F8]` — a small further step in the same direction as the previous footer-lightening change, not a new decision. The `text-ink`/NN opacity hierarchy (nav links, social icons, `footer_text`, copyright) already had enough contrast headroom against `#F5F5F5` that a few extra points of lightness don't threaten legibility of the lightest tier (`text-ink/50`, the copyright line) — confirmed by screenshotting rather than assuming.
+
 ## The worm: light sky blue, matching the Subscribe button
 
 - `HeaderArches.jsx`'s `HeaderWorm` — stroke and both eye fills changed from `#F5C518` (bright yellow) to `#87D6FF`, the same light sky blue the Subscribe button switched to. Still a literal fixed value, not a theme-token reference, same reasoning as before: the worm keeps its own colour regardless of what an admin sets the theme accents to. Third colour this has been now (pink, then yellow, then this) — each just a value swap in the same spot, nothing about the actual positioning/animation touched.
