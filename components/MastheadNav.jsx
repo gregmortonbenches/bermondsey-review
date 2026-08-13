@@ -31,21 +31,24 @@ export default function MastheadNav({ logoUrl, siteTitle, links, isHomepage = fa
     // to the Subscribe/hamburger button cluster; now that mobile has
     // neither (see below), that constraint's gone, so there's no reason
     // left for the title to look different on a phone than everywhere
-    // else. text-2xl rather than matching desktop's 2.5rem exactly —
-    // checked at 320px (the narrowest common phone width): 2.5rem and
-    // text-3xl both wrap even the shorter "Bermy Review"-era names onto
-    // two lines there. Wrapping itself isn't broken, though: this row's
-    // pb-12 is padding *after* the title, so the row's own height (and
-    // the arch band bottom-anchored to it) grows to match however many
-    // lines the title takes, preserving the same ~8px gap above the arch
-    // band whether it's one line or two — confirmed by measuring both
+    // else. text-xl rather than matching desktop's 2.25rem exactly —
+    // checked at 320px (the narrowest common phone width): 2.25rem
+    // wraps even the shorter "Bermy Review"-era names onto two lines
+    // there. Wrapping itself isn't broken, though: this row's pb-12 is
+    // padding *after* the title, so the row's own height (and the arch
+    // band bottom-anchored to it) grows to match however many lines the
+    // title takes, preserving the same ~8px gap above the arch band
+    // whether it's one line or two — confirmed by measuring both
     // against the current site name, "The Bermondsey Review of Books"
-    // (which wraps to two lines here). text-2xl is just the largest
-    // size that still fits *this* name on one line; a longer `siteTitle`
+    // (which wraps to two lines here). text-xl is just the largest size
+    // that still fits *this* name on one line; a longer `siteTitle`
     // (it's admin-editable) wrapping to two is an accepted, handled
     // outcome, not a bug — same as desktop's own row a bit further down.
+    // Both sizes brought down slightly from text-2xl/2.5rem — the site
+    // title was reading larger than the rest of the masthead's own type
+    // scale (nav links, Subscribe) really called for.
     <div className="min-w-0 text-center">
-      <p className="font-display font-700 text-2xl sm:text-[2.5rem] leading-tight sm:leading-none tracking-tight sm:tracking-[0.03em] sm:uppercase text-ink">
+      <p className="font-display font-700 text-xl sm:text-[2.25rem] leading-tight sm:leading-none tracking-tight sm:tracking-[0.03em] sm:uppercase text-ink">
         {siteTitle}
       </p>
     </div>

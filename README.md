@@ -59,6 +59,10 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
   (`text-paper/80` → `text-paper`) instead — they're bare SVGs with no
   text content, so `text-decoration` has nothing to underline.
 
+## Site title, sized down slightly
+
+- `MastheadNav.jsx`'s wordmark text: `text-2xl sm:text-[2.5rem]` → `text-xl sm:text-[2.25rem]` (20px/40px → 20px/36px on mobile/desktop — mobile's own size moved too, from 24px). The title was reading larger than the rest of the masthead's own type scale (nav links, Subscribe) really called for. Verified via Playwright, not just eyeballed: at 320px (the narrowest common phone width) the title still wraps to two lines at this smaller size too, same as it did before — updated the file's own comment to say so, since that comment specifically documents what happens at that width and it needed to keep being true, not just read like it still was.
+
 ## Puzzles & games cards: horizontal, borders instead of colour fills
 
 - **Prompted by a concrete complaint, worked through as options rather than a single fix:** the two "Puzzles & Games" cards (crossword, Bermy on the Map) read as too wide and too visually loud — solid colour tiles, each spanning half the homepage's own wide column, for just an icon and a couple of lines of text. Offered four different directions (narrower centred section; content-sized cards; horizontal icon-beside-text layout; one unified panel) rather than assuming which one; the user picked horizontal layout, then separately asked for the colour fill gone too — both landed in `PuzzlesSection.jsx`'s `GAMES` array and its render.
