@@ -12,10 +12,16 @@
 // to the actual title strings in lib/sections.js), which also meant
 // dropping the tracking-[0.06em] letter-spacing that was really tuned
 // for all-caps legibility, not mixed-case text.
+//
+// text-xl/sm:text-2xl, down from text-2xl/sm:text-3xl — checked against
+// NYRA's own section dividers, which stay modest even where the site's
+// actual headlines go big: a section label is signage ("here's where
+// puzzles start"), not a headline competing with the article titles
+// underneath it, and the previous size read closer to the latter.
 export default function SectionHeader({ title, description }) {
   return (
     <div className="hairline pt-10 pb-8 text-center">
-      <h2 className="font-display font-700 text-2xl sm:text-3xl text-ink">{title}</h2>
+      <h2 className="font-display font-700 text-xl sm:text-2xl text-ink">{title}</h2>
       {description && (
         <p className="font-body italic text-steel mt-2 max-w-md mx-auto">{description}</p>
       )}
