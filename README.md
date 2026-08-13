@@ -59,6 +59,10 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
   (`text-paper/80` → `text-paper`) instead — they're bare SVGs with no
   text content, so `text-decoration` has nothing to underline.
 
+## Homepage section headers, sized down a step
+
+- `SectionHeader.jsx`'s `<h2>` — `text-2xl sm:text-3xl` → `text-xl sm:text-2xl` (24px/30px → 20px/24px). Checked against NYRA's own section dividers for comparison, per the ask: a section header here ("Reviews", "Puzzles & games", "Cartoons") is signage marking where one part of the homepage ends and the next begins, not a headline competing with the actual article titles below it — the previous size read closer to the latter. Scoped to this one shared component only, so every section using it (Featured has none of its own — see the file's own comment — Article Carousel, Puzzles & Games, Cartoons) stepped down together; the newsletter drawer's own "Get the newsletter" heading is a different kind of heading entirely (a dialog title, not a homepage section divider) and stayed as it was.
+
 ## Subscribe button: light sky blue instead of bright yellow
 
 - `MastheadNav.jsx`'s Subscribe button's literal fixed colour changed again — `#F5C518` (bright yellow) → `#87D6FF` (light sky blue). Same fixed-value reasoning as before (not `bg-brick`/`bg-river`, so it can't drift if the theme's own accent colours change): only the actual colour value changed, not the pattern. `text-ink` stayed as the button's text colour — light enough a background that dark text is still the legible choice, same as it was against the yellow.
