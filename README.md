@@ -59,6 +59,10 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
   (`text-paper/80` → `text-paper`) instead — they're bare SVGs with no
   text content, so `text-decoration` has nothing to underline.
 
+## The worm: light sky blue, matching the Subscribe button
+
+- `HeaderArches.jsx`'s `HeaderWorm` — stroke and both eye fills changed from `#F5C518` (bright yellow) to `#87D6FF`, the same light sky blue the Subscribe button switched to. Still a literal fixed value, not a theme-token reference, same reasoning as before: the worm keeps its own colour regardless of what an admin sets the theme accents to. Third colour this has been now (pink, then yellow, then this) — each just a value swap in the same spot, nothing about the actual positioning/animation touched.
+
 ## Site title, sized down slightly
 
 - `MastheadNav.jsx`'s wordmark text: `text-2xl sm:text-[2.5rem]` → `text-xl sm:text-[2.25rem]` (20px/40px → 20px/36px on mobile/desktop — mobile's own size moved too, from 24px). The title was reading larger than the rest of the masthead's own type scale (nav links, Subscribe) really called for. Verified via Playwright, not just eyeballed: at 320px (the narrowest common phone width) the title still wraps to two lines at this smaller size too, same as it did before — updated the file's own comment to say so, since that comment specifically documents what happens at that width and it needed to keep being true, not just read like it still was.
