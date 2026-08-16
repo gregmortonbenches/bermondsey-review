@@ -59,6 +59,10 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
   (`text-paper/80` → `text-paper`) instead — they're bare SVGs with no
   text content, so `text-decoration` has nothing to underline.
 
+## Author no longer duplicated in the hero band
+
+- `PostRenderer.jsx`'s hero band (headline + image, the top of an article) dropped its own `post.author` line — now that `ArticleSidebar` shows it too, having it in both places meant the same byline printed twice on the same page. Scoped to the article/video/podcast hero band specifically: cartoons keep showing author under their own image, since they don't get a sidebar at all (no split hero band, no body blocks to make one relevant for) — that's still the only place it appears for them.
+
 ## Article sidebar follow-up: sentence case, reading progress removed
 
 - **The sidebar's own field labels** ("Author", "Illustration", "Text size", "Share") **dropped their forced `uppercase`/tracking** — sentence case, matching the case they were already written in as plain strings, just no longer forced all-caps by CSS. The category badge at the bottom of the sidebar deliberately stayed uppercase/tracked, unlike those — it's the same small kicker-label convention already used everywhere else a category shows on the site (the hero band's own category line, archive listings), not a field label like the others, so it wasn't in scope for the same reasoning the original site-wide sentence-case pass already drew that line on.

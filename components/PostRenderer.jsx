@@ -65,8 +65,14 @@ export default function PostRenderer({ post }) {
             <h1 className="font-display font-700 text-4xl sm:text-5xl text-ink leading-[1.05]">
               {post.title || "Untitled"}
             </h1>
+            {/* Author used to show here too — dropped once ArticleSidebar
+                started showing it (see below), which would have meant
+                the same byline twice on the same page. Cartoons still
+                show it under their own image (see the branch above,
+                before this return): they don't get a sidebar at all
+                (no split hero band, no body blocks to make one relevant
+                for), so that's still the only place it appears there. */}
             {post.dek && <p className="font-body text-lg sm:text-xl text-ink/70 mt-4">{post.dek}</p>}
-            {post.author && <p className="font-sans text-sm text-ink/70 mt-4">{post.author}</p>}
           </div>
           {post.cover_image_url ? (
             <div className="relative aspect-[4/3] sm:aspect-auto sm:h-full">
