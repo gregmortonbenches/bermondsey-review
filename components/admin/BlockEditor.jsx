@@ -8,6 +8,7 @@ import MediaPicker from "./MediaPicker";
 import CarouselCountControl from "./CarouselCountControl";
 import RankedListBlock from "../RankedListBlock";
 import { parseBulkRows } from "@/lib/rankedList";
+import { sanitizeGenericHtml, HTML_BLOCK_CLASS } from "../BlockContent";
 import { usePublishOutline } from "./EditorOutlineContext";
 import { GripIcon, ChevronUpIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CloseIcon, TrashIcon, LinkIcon, PaletteIcon } from "./icons";
 import { useReorderSensors } from "./dnd";
@@ -36,6 +37,7 @@ const BLOCK_TYPES = [
   { type: "quote", label: "Quote" },
   { type: "button", label: "Button" },
   { type: "embed", label: "Embed" },
+  { type: "html", label: "HTML" },
   { type: "ranked-list", label: "Ranked list" },
   { type: "spacer", label: "Spacer" },
   { type: "divider", label: "Divider" },
@@ -98,6 +100,8 @@ function emptyBlockFor(type) {
     case "button":
       return { type, label: "", url: "" };
     case "embed":
+      return { type, html: "" };
+    case "html":
       return { type, html: "" };
     case "ranked-list":
       return { type, title: "", totalResponses: 0, rows: [] };
@@ -661,6 +665,7 @@ function BlockCanvasItem({
         )}
         {block.type === "video" && <VideoField block={block} onChange={onChange} />}
         {block.type === "embed" && <EmbedField block={block} onChange={onChange} />}
+        {block.type === "html" && <HtmlField block={block} onChange={onChange} />}
         {block.type === "ranked-list" && (
           <RankedListField block={block} onChange={onChange} accentHex={accentHex} />
         )}
@@ -1064,6 +1069,44 @@ function RankedListField({ block, onChange, accentHex }) {
             totalResponses={block.totalResponses || 0}
             accentHex={accentHex}
           />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Raw-HTML block — a deliberately quicker, cruder alternative to the
+ * ranked-list block's own bulk-paste field: that one parses plain tab/
+ * comma-separated text, which is not what pasting a table out of Word or
+ * Google Docs actually produces (heavy inline mso-* styling, div/span
+ * wrapper soup, empty <o:p> tags). Rather than teach that parser to
+ * understand Word's own HTML export, this field accepts the raw HTML
+ * directly and lets sanitizeGenericHtml (BlockContent.jsx) do the actual
+ * cleanup — same function, same styling class, as what a reader gets, so
+ * the live preview below is exactly what would ship, not an approximation.
+ */
+function HtmlField({ block, onChange }) {
+  return (
+    <div>
+      <textarea
+        value={block.html || ""}
+        onChange={(e) => onChange({ html: e.target.value })}
+        placeholder="Paste a table (or other HTML) — from Word, Google Docs, a spreadsheet, or typed by hand…"
+        rows={6}
+        className="w-full font-mono text-xs border border-steel/25 rounded-sm px-3 py-2 outline-none focus:border-river resize-y"
+      />
+      <p className="font-sans text-xs text-steel mt-1">
+        Only tables, lists, links, and basic text formatting survive — scripts, inline styles, and
+        classes are always stripped, so pasted Word/Docs formatting won't carry over (the table
+        structure and text will).
+      </p>
+      {block.html && (
+        <div className="mt-3 pt-3 border-t border-dashed border-steel/25">
+          <p className="font-sans text-[10px] uppercase tracking-[0.08em] text-steel/70 mb-2">
+            Preview — what actually survives sanitisation
+          </p>
+          <div className={HTML_BLOCK_CLASS} dangerouslySetInnerHTML={{ __html: sanitizeGenericHtml(block.html) }} />
         </div>
       )}
     </div>
