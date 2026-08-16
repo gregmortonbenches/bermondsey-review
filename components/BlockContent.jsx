@@ -3,6 +3,7 @@ import sanitizeHtml from "sanitize-html";
 import { getYouTubeEmbedUrl } from "@/lib/youtube";
 import { blockStyleClasses } from "@/lib/blockStyle";
 import { carouselWidthVars } from "@/lib/carouselLayout";
+import RankedListBlock from "./RankedListBlock";
 
 // Paragraph blocks store raw HTML captured from the admin's contentEditable
 // canvas (see components/admin/BlockEditor.jsx) — but "captured" isn't
@@ -191,6 +192,17 @@ function renderBlockBody(block, i, list, accentHex) {
       />
     );
   }
+  if (block.type === "ranked-list") {
+    if (!block.rows || block.rows.length === 0) return null;
+    return (
+      <RankedListBlock
+        title={block.title}
+        rows={block.rows}
+        totalResponses={block.totalResponses || 0}
+        accentHex={accentHex}
+      />
+    );
+  }
   if (block.type === "columns") {
     const columns = block.columns && block.columns.length === 2 ? block.columns : [[], []];
     if (columns.every((col) => col.length === 0)) return null;
@@ -212,7 +224,7 @@ function renderBlockBody(block, i, list, accentHex) {
 /**
  * Renders the shared block-array shape used by both posts.body and
  * pages.body: paragraph, image, heading, quote, divider, button, video,
- * spacer, hero-carousel, embed. See components/admin/BlockEditor.jsx for
+ * spacer, hero-carousel, embed, ranked-list. See components/admin/BlockEditor.jsx for
  * how these are authored.
  *
  * `accentHex` drives the drop-cap letter, quote border, and button

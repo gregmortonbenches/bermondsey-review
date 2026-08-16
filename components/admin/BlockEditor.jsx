@@ -6,6 +6,7 @@ import { uploadMedia } from "@/lib/posts";
 import { getYouTubeEmbedUrl } from "@/lib/youtube";
 import MediaPicker from "./MediaPicker";
 import CarouselCountControl from "./CarouselCountControl";
+import RankedListBlock from "../RankedListBlock";
 import { usePublishOutline } from "./EditorOutlineContext";
 import { GripIcon, ChevronUpIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CloseIcon, TrashIcon, LinkIcon, PaletteIcon } from "./icons";
 import { useReorderSensors } from "./dnd";
@@ -34,6 +35,7 @@ const BLOCK_TYPES = [
   { type: "quote", label: "Quote" },
   { type: "button", label: "Button" },
   { type: "embed", label: "Embed" },
+  { type: "ranked-list", label: "Ranked list" },
   { type: "spacer", label: "Spacer" },
   { type: "divider", label: "Divider" },
   { type: "columns", label: "Columns" },
@@ -65,6 +67,10 @@ function outlineLabelFor(block) {
       return block.alt ? `Image: ${truncate(block.alt, 30)}` : typeLabel;
     case "hero-carousel":
       return `${typeLabel} (${(block.images || []).length})`;
+    case "ranked-list": {
+      const count = (block.rows || []).length;
+      return count ? `${block.title || typeLabel} (${count} rows)` : `${typeLabel} (empty)`;
+    }
     case "columns": {
       const count = (block.columns || []).reduce((n, col) => n + col.length, 0);
       return count ? `${typeLabel} (${count} blocks)` : `${typeLabel} (empty)`;
@@ -92,6 +98,8 @@ function emptyBlockFor(type) {
       return { type, label: "", url: "" };
     case "embed":
       return { type, html: "" };
+    case "ranked-list":
+      return { type, title: "", totalResponses: 0, rows: [] };
     case "spacer":
       return { type, size: "medium" };
     case "divider":
@@ -652,6 +660,9 @@ function BlockCanvasItem({
         )}
         {block.type === "video" && <VideoField block={block} onChange={onChange} />}
         {block.type === "embed" && <EmbedField block={block} onChange={onChange} />}
+        {block.type === "ranked-list" && (
+          <RankedListField block={block} onChange={onChange} accentHex={accentHex} />
+        )}
         {block.type === "spacer" && <SpacerField block={block} onChange={onChange} />}
         {block.type === "columns" && (
           <ColumnsField block={block} onChange={onChange} supabase={supabase} accentHex={accentHex} />
@@ -875,6 +886,125 @@ function SpacerField({ block, onChange }) {
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Rows editor for a "ranked-list" block — each row is just its raw
+ * name/category/count; rank and percentage are always derived (see
+ * lib/rankedList.js) from those plus the block's own totalResponses, so
+ * there's nothing here that can drift out of sync with what's actually
+ * stored the way a hand-entered rank or percentage could if reordering
+ * rows didn't also renumber them.
+ *
+ * The live preview underneath reuses RankedListBlock directly — the same
+ * "true visual canvas" reasoning as every other block, just more literal
+ * here: the whole point of this block is the sort/filter interaction
+ * itself, so previewing it as a static mockup would show what it looks
+ * like, not what it does.
+ */
+function RankedListField({ block, onChange, accentHex }) {
+  const rows = block.rows || [];
+
+  function updateRows(next) {
+    onChange({ rows: next });
+  }
+  function updateRow(index, updates) {
+    updateRows(rows.map((row, i) => (i === index ? { ...row, ...updates } : row)));
+  }
+  function addRow() {
+    updateRows([...rows, { name: "", category: "", count: 0 }]);
+  }
+  function removeRow(index) {
+    updateRows(rows.filter((_, i) => i !== index));
+  }
+  function moveRow(index, direction) {
+    const target = index + direction;
+    if (target < 0 || target >= rows.length) return;
+    const next = [...rows];
+    [next[index], next[target]] = [next[target], next[index]];
+    updateRows(next);
+  }
+
+  return (
+    <div>
+      <div className="flex flex-wrap gap-3 mb-3">
+        <input
+          value={block.title || ""}
+          onChange={(e) => onChange({ title: e.target.value })}
+          placeholder="Title (optional)…"
+          className="flex-1 min-w-[200px] font-display font-700 text-lg text-ink bg-transparent outline-none placeholder:text-steel/40 border-b border-steel/20 pb-1"
+        />
+        <label className="flex items-center gap-2 font-sans text-xs text-steel">
+          Out of
+          <input
+            type="number"
+            min="0"
+            value={block.totalResponses || 0}
+            onChange={(e) => onChange({ totalResponses: Number(e.target.value) || 0 })}
+            className="w-16 font-sans text-sm text-ink border border-steel/25 rounded-sm px-2 py-1 outline-none focus:border-river"
+          />
+          responses
+        </label>
+      </div>
+
+      <div className="space-y-1.5">
+        {rows.map((row, index) => (
+          <div key={index} className="flex items-center gap-1.5">
+            <input
+              value={row.name || ""}
+              onChange={(e) => updateRow(index, { name: e.target.value })}
+              placeholder="Venue name…"
+              className="flex-1 min-w-0 font-sans text-sm border border-steel/25 rounded-sm px-2 py-1.5 outline-none focus:border-river"
+            />
+            <input
+              value={row.category || ""}
+              onChange={(e) => updateRow(index, { category: e.target.value })}
+              placeholder="Type…"
+              className="w-28 shrink-0 font-sans text-sm border border-steel/25 rounded-sm px-2 py-1.5 outline-none focus:border-river"
+            />
+            <input
+              type="number"
+              min="0"
+              value={row.count || 0}
+              onChange={(e) => updateRow(index, { count: Number(e.target.value) || 0 })}
+              className="w-16 shrink-0 font-sans text-sm border border-steel/25 rounded-sm px-2 py-1.5 outline-none focus:border-river"
+            />
+            <ToolbarButton onClick={() => moveRow(index, -1)} disabled={index === 0} title="Move up">
+              <ChevronUpIcon />
+            </ToolbarButton>
+            <ToolbarButton onClick={() => moveRow(index, 1)} disabled={index === rows.length - 1} title="Move down">
+              <ChevronDownIcon />
+            </ToolbarButton>
+            <ToolbarButton onClick={() => removeRow(index)} title="Remove row" className="hover:text-brick hover:border-brick">
+              <TrashIcon />
+            </ToolbarButton>
+          </div>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={addRow}
+        className="mt-2 font-sans text-xs font-600 text-river hover:underline underline-offset-4"
+      >
+        + Add row
+      </button>
+
+      {rows.length > 0 && (
+        <div className="mt-6 pt-6 border-t border-dashed border-steel/25">
+          <p className="font-sans text-[10px] uppercase tracking-[0.08em] text-steel/70 mb-3">
+            Preview — try sorting/filtering it below
+          </p>
+          <RankedListBlock
+            title={block.title}
+            rows={rows}
+            totalResponses={block.totalResponses || 0}
+            accentHex={accentHex}
+          />
+        </div>
+      )}
     </div>
   );
 }
