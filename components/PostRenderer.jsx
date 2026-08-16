@@ -88,11 +88,11 @@ export default function PostRenderer({ post }) {
 
       {/* Sidebar + body as a two-column grid, not the plain single
           max-w-content column this used to be — ArticleSidebar is a
-          Client Component (text-size/reading-progress controls, a share
-          button), but this stays a Server Component: it's rendered as
-          a normal child here, no different from any other component
-          import, since everything handed to it (author/date/category/
-          etc.) is plain serializable data.
+          Client Component (the text-size control, a share button), but
+          this stays a Server Component: it's rendered as a normal child
+          here, no different from any other component import, since
+          everything handed to it (author/date/category/etc.) is plain
+          serializable data.
           lg:grid-cols-[220px_1fr]: below that, a single column, so the
           sidebar simply stacks above the body in DOM order — matches
           how it's meant to read on a phone, not a collapsed drawer.
@@ -114,7 +114,6 @@ export default function PostRenderer({ post }) {
             category={post.category}
             title={post.title}
             slug={post.slug}
-            accentHex={accentHex}
           />
         </aside>
 

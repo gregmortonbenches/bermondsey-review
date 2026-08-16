@@ -59,6 +59,11 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
   (`text-paper/80` → `text-paper`) instead — they're bare SVGs with no
   text content, so `text-decoration` has nothing to underline.
 
+## Article sidebar follow-up: sentence case, reading progress removed
+
+- **The sidebar's own field labels** ("Author", "Illustration", "Text size", "Share") **dropped their forced `uppercase`/tracking** — sentence case, matching the case they were already written in as plain strings, just no longer forced all-caps by CSS. The category badge at the bottom of the sidebar deliberately stayed uppercase/tracked, unlike those — it's the same small kicker-label convention already used everywhere else a category shows on the site (the hero band's own category line, archive listings), not a field label like the others, so it wasn't in scope for the same reasoning the original site-wide sentence-case pass already drew that line on.
+- **Reading progress removed entirely** — the on/off toggle, the fixed progress bar it controlled, its own `localStorage` key, and the scroll-listener effect that drove it. `ArticleSidebar`'s `accentHex` prop went with it (it existed solely to colour that bar) — removed from both the component's own signature and where `PostRenderer.jsx` passed it in, rather than leaving an now-unused prop sitting there. Text size and its own `localStorage`-backed preference are unaffected; that's the one piece of the original feature that's staying.
+
 ## Article sidebar: author/illustration credits, text size, reading progress, share
 
 - **A new metadata rail on article/video/podcast pages** (`components/ArticleSidebar.jsx`) — a true left rail on desktop, a stacked block above the body on mobile — showing the author, an illustration credit (new), a 3-step text-size control, a reading-progress on/off toggle (plus the actual progress bar it turns on), email/copy-link share buttons, the publish date, and the category. Modelled on a reference the user provided (a magazine site's own article sidebar), minus its magazine-issue promo module — that's advertising for their own print issue, not something that applies here. Cartoons keep their own separate centred layout (no split hero band, no body blocks) and don't get a sidebar; everything else does.
