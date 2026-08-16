@@ -114,6 +114,7 @@ create table posts (
   media_duration_seconds integer,
   category text,                -- "Bermondsey" | "Books" | "Film" | "Culture"
   author text,
+  illustrator text,             -- credited separately from `author` — shown in the article sidebar (components/ArticleSidebar.jsx) only when set
   meta_description text,        -- shown in search results; falls back to `dek` if empty
   og_image_url text,            -- social share image; falls back to cover_image_url if empty
   status post_status not null default 'draft',
@@ -130,6 +131,9 @@ create table posts (
 -- Existing installs: run this once to add the cover image focal point.
 --   alter table posts add column if not exists cover_image_focal_x numeric;
 --   alter table posts add column if not exists cover_image_focal_y numeric;
+
+-- Existing installs: run this once to add the illustrator credit.
+--   alter table posts add column if not exists illustrator text;
 
 create index posts_status_published_at_idx on posts (status, published_at desc);
 create index posts_slug_idx on posts (slug);

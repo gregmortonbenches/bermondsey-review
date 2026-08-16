@@ -3,6 +3,7 @@ import { categoryFamily } from "@/lib/articles";
 import { getYouTubeEmbedUrl } from "@/lib/youtube";
 import BlockContent from "./BlockContent";
 import CoverArt from "./CoverArt";
+import ArticleSidebar from "./ArticleSidebar";
 import { focalPointStyle } from "@/lib/media";
 
 export default function PostRenderer({ post }) {
@@ -85,38 +86,71 @@ export default function PostRenderer({ post }) {
         </div>
       </div>
 
-      <div className="max-w-content mx-auto px-4 sm:px-6 py-10">
-        {/* Video / podcast player */}
-        {post.type === "video" && (
-          <div className="aspect-video overflow-hidden bg-ink/5">
-            {embedUrl ? (
-              <iframe
-                src={embedUrl}
-                className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            ) : (
-              <p className="font-sans text-sm text-steel p-6">
-                Add a valid YouTube URL to see the player here.
-              </p>
-            )}
-          </div>
-        )}
-        {post.type === "podcast" && post.media_url && (
-          <audio controls className="w-full">
-            <source src={post.media_url} />
-          </audio>
-        )}
-
-        {/* Article body blocks */}
-        {post.type === "article" && (
-          <BlockContent
-            blocks={post.body}
+      {/* Sidebar + body as a two-column grid, not the plain single
+          max-w-content column this used to be — ArticleSidebar is a
+          Client Component (text-size/reading-progress controls, a share
+          button), but this stays a Server Component: it's rendered as
+          a normal child here, no different from any other component
+          import, since everything handed to it (author/date/category/
+          etc.) is plain serializable data.
+          lg:grid-cols-[220px_1fr]: below that, a single column, so the
+          sidebar simply stacks above the body in DOM order — matches
+          how it's meant to read on a phone, not a collapsed drawer.
+          The body's own max-w-content is unchanged from before (still
+          780px, the same reading measure every other standalone page
+          uses) — just no longer centred in the full page width, since
+          it now sits in the grid's second track alongside the rail
+          rather than filling it alone. */}
+      <div className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12 py-10 grid lg:grid-cols-[220px_1fr] gap-10 lg:gap-16">
+        {/* self-start: without it, a grid item stretches to match the
+            row's full height by default, which would defeat lg:sticky —
+            a sticky element needs a height shorter than its scroll
+            container to ever actually have room to "stick". */}
+        <aside className="lg:sticky lg:top-8 lg:self-start">
+          <ArticleSidebar
+            author={post.author}
+            illustrator={post.illustrator}
+            publishedAt={post.published_at}
+            category={post.category}
+            title={post.title}
+            slug={post.slug}
             accentHex={accentHex}
-            emptyText="This article doesn't have any content yet."
           />
-        )}
+        </aside>
+
+        <div className="max-w-content">
+          {/* Video / podcast player */}
+          {post.type === "video" && (
+            <div className="aspect-video overflow-hidden bg-ink/5">
+              {embedUrl ? (
+                <iframe
+                  src={embedUrl}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <p className="font-sans text-sm text-steel p-6">
+                  Add a valid YouTube URL to see the player here.
+                </p>
+              )}
+            </div>
+          )}
+          {post.type === "podcast" && post.media_url && (
+            <audio controls className="w-full">
+              <source src={post.media_url} />
+            </audio>
+          )}
+
+          {/* Article body blocks */}
+          {post.type === "article" && (
+            <BlockContent
+              blocks={post.body}
+              accentHex={accentHex}
+              emptyText="This article doesn't have any content yet."
+            />
+          )}
+        </div>
       </div>
     </article>
   );

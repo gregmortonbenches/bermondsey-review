@@ -81,6 +81,7 @@ const emptyPost = {
   media_url: "",
   category: "Bermondsey",
   author: "",
+  illustrator: "",
   status: "draft",
   scheduled_for: null,
   meta_description: "",
@@ -277,6 +278,7 @@ export default function PostForm({ mode, initialPost, themeVars }) {
       media_url: snapshot.media_url,
       category: snapshot.category,
       author: snapshot.author,
+      illustrator: snapshot.illustrator,
       meta_description: snapshot.meta_description,
       og_image_url: snapshot.og_image_url,
     };
@@ -541,6 +543,15 @@ export default function PostForm({ mode, initialPost, themeVars }) {
               value={post.author || ""}
               onChange={(e) => set("author", e.target.value)}
               placeholder="Who wrote or made this"
+              className="text-ink border-b border-steel/30 focus:border-river outline-none py-0.5 bg-transparent w-44"
+            />
+          </label>
+          <label className="flex items-center gap-2 text-steel">
+            Illustration
+            <input
+              value={post.illustrator || ""}
+              onChange={(e) => set("illustrator", e.target.value)}
+              placeholder="Who illustrated it, if anyone"
               className="text-ink border-b border-steel/30 focus:border-river outline-none py-0.5 bg-transparent w-44"
             />
           </label>
