@@ -140,18 +140,27 @@ function renderBlockBody(block, i, list, accentHex) {
     const isFirst = i === 0 || list.slice(0, i).every((b) => b.type !== "paragraph");
     return (
       <p
-        // A font-size arbitrary value reading the --article-font-size
-        // custom property, not the plain text-lg utility this was
-        // before — ArticleSidebar.jsx's text-size control writes that
-        // property onto document.documentElement, and this is the one
-        // place it actually changes anything (quotes/headings/captions
-        // stay their own fixed sizes on purpose, same "only the bulk
-        // reading content resizes" scoping most reading-mode controls
-        // use). The 1.125rem fallback is what text-lg itself resolves
-        // to, so a page with no ArticleSidebar mounted (any admin
-        // preview, or a page type that doesn't render one) looks
-        // identical to before this existed.
-        className={`font-body text-[length:var(--article-font-size,1.125rem)] leading-relaxed text-ink [&_a]:underline [&_a]:underline-offset-2 ${
+        // Two font-size arbitrary values, not one — base (mobile) reads
+        // --article-font-size-mobile, sm: (640px+) switches to
+        // --article-font-size-desktop, matching the breakpoint the rest
+        // of the site already treats as the mobile/desktop line. Two
+        // separate custom properties rather than one JS-computed value,
+        // because CSS's own media query is what decides which applies —
+        // ArticleSidebar.jsx's text-size control always writes both
+        // properties together, unconditionally, so it never needs to
+        // know or react to the current viewport width itself; resizing
+        // the window just changes which property the browser was
+        // already reading. Fallbacks (1.1875rem mobile / 1.125rem
+        // desktop) are "medium" at each width — a page with no
+        // ArticleSidebar mounted (any admin preview, or a page type
+        // that doesn't render one) still gets mobile's own slightly
+        // larger default, not desktop's.
+        //
+        // Neither variable is the plain text-lg utility this used to be
+        // — quotes/headings/captions stay their own fixed sizes on
+        // purpose, same "only the bulk reading content resizes" scoping
+        // most reading-mode controls use.
+        className={`font-body text-[length:var(--article-font-size-mobile,1.1875rem)] sm:text-[length:var(--article-font-size-desktop,1.125rem)] leading-relaxed text-ink [&_a]:underline [&_a]:underline-offset-2 ${
           isFirst ? "drop-cap" : ""
         }`}
         style={isFirst ? { "--drop-cap-color": accentHex } : undefined}
