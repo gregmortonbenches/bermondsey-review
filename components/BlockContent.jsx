@@ -140,7 +140,18 @@ function renderBlockBody(block, i, list, accentHex) {
     const isFirst = i === 0 || list.slice(0, i).every((b) => b.type !== "paragraph");
     return (
       <p
-        className={`font-body text-lg leading-relaxed text-ink [&_a]:underline [&_a]:underline-offset-2 ${
+        // A font-size arbitrary value reading the --article-font-size
+        // custom property, not the plain text-lg utility this was
+        // before — ArticleSidebar.jsx's text-size control writes that
+        // property onto document.documentElement, and this is the one
+        // place it actually changes anything (quotes/headings/captions
+        // stay their own fixed sizes on purpose, same "only the bulk
+        // reading content resizes" scoping most reading-mode controls
+        // use). The 1.125rem fallback is what text-lg itself resolves
+        // to, so a page with no ArticleSidebar mounted (any admin
+        // preview, or a page type that doesn't render one) looks
+        // identical to before this existed.
+        className={`font-body text-[length:var(--article-font-size,1.125rem)] leading-relaxed text-ink [&_a]:underline [&_a]:underline-offset-2 ${
           isFirst ? "drop-cap" : ""
         }`}
         style={isFirst ? { "--drop-cap-color": accentHex } : undefined}
