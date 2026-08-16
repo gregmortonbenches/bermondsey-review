@@ -1,12 +1,13 @@
 "use client";
 
-import { forwardRef, useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { uploadMedia } from "@/lib/posts";
 import { getYouTubeEmbedUrl } from "@/lib/youtube";
 import MediaPicker from "./MediaPicker";
 import CarouselCountControl from "./CarouselCountControl";
 import RankedListBlock from "../RankedListBlock";
+import { parseBulkRows } from "@/lib/rankedList";
 import { usePublishOutline } from "./EditorOutlineContext";
 import { GripIcon, ChevronUpIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CloseIcon, TrashIcon, LinkIcon, PaletteIcon } from "./icons";
 import { useReorderSensors } from "./dnd";
@@ -906,6 +907,9 @@ function SpacerField({ block, onChange }) {
  */
 function RankedListField({ block, onChange, accentHex }) {
   const rows = block.rows || [];
+  const [pasteOpen, setPasteOpen] = useState(false);
+  const [pasteText, setPasteText] = useState("");
+  const pasted = useMemo(() => parseBulkRows(pasteText), [pasteText]);
 
   function updateRows(next) {
     onChange({ rows: next });
@@ -925,6 +929,25 @@ function RankedListField({ block, onChange, accentHex }) {
     const next = [...rows];
     [next[index], next[target]] = [next[target], next[index]];
     updateRows(next);
+  }
+  // A single onChange call, not one for rows and a separate one for
+  // totalResponses — this component only gets `block` as a prop, and
+  // updateBlock (BlockEditor's own state setter, up in the parent) reads
+  // its current `items` synchronously, not via a functional updater. Two
+  // onChange calls back to back in the same handler would both read that
+  // same pre-update `items` snapshot, so the second call's spread would
+  // silently clobber whatever the first one just set — merging both
+  // updates into one object before the one onChange call sidesteps that
+  // rather than risking it.
+  function importPastedRows() {
+    if (pasted.rows.length === 0) return;
+    const updates = { rows: [...rows, ...pasted.rows] };
+    if (pasted.suggestedTotal > 0 && !block.totalResponses) {
+      updates.totalResponses = pasted.suggestedTotal;
+    }
+    onChange(updates);
+    setPasteText("");
+    setPasteOpen(false);
   }
 
   return (
@@ -947,6 +970,44 @@ function RankedListField({ block, onChange, accentHex }) {
           />
           responses
         </label>
+      </div>
+
+      <div className="mb-3">
+        <button
+          type="button"
+          onClick={() => setPasteOpen((v) => !v)}
+          className="font-sans text-xs font-600 text-river hover:underline underline-offset-4"
+        >
+          {pasteOpen ? "Cancel paste" : "Paste multiple rows…"}
+        </button>
+        {pasteOpen && (
+          <div className="mt-2">
+            <textarea
+              value={pasteText}
+              onChange={(e) => setPasteText(e.target.value)}
+              placeholder={
+                "One venue per line — paste straight out of a spreadsheet (tab-separated) or type comma-separated:\n" +
+                "St James of Bermondsey, Pub, 36\nThe Kernel, Beer Mile, 35/39"
+              }
+              rows={6}
+              className="w-full font-mono text-xs border border-steel/25 rounded-sm px-3 py-2 outline-none focus:border-river resize-y"
+            />
+            <div className="flex flex-wrap items-center gap-3 mt-1.5">
+              <button
+                type="button"
+                onClick={importPastedRows}
+                disabled={pasted.rows.length === 0}
+                className="font-sans text-xs font-600 bg-river text-paper px-3 py-1.5 hover:bg-ink transition-colors disabled:opacity-40 disabled:hover:bg-river"
+              >
+                Add {pasted.rows.length || ""} row{pasted.rows.length === 1 ? "" : "s"}
+              </button>
+              <p className="font-sans text-xs text-steel">
+                Name, Type, Count per line — Count can be a plain number or a fraction like "36/39"
+                (added to the existing rows below, not a replacement).
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="space-y-1.5">
