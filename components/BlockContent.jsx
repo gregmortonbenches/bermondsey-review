@@ -84,6 +84,49 @@ function sanitizeEmbedHtml(html) {
   });
 }
 
+// A generic "paste raw HTML" block — added as a quicker stopgap than
+// fighting the ranked-list block's bulk-paste parser through Word/Google
+// Docs' own copy-as-HTML output (heavy inline mso-* styling, empty
+// <o:p> tags, arbitrary div/span wrapping — none of it plain tab-
+// separated text, which is what that parser actually expects). Scoped
+// to table/list/basic-formatting markup, not "any HTML" — wide enough
+// to cover a pasted table (the actual case this exists for) or a list,
+// narrow enough that nothing here can carry a script, an inline event
+// handler, or a style/class attribute that would fight the site's own
+// typography. Every attribute except <a>'s href/target/rel and <td>/
+// <th>'s colspan/rowspan (structural, not styling) is stripped — sanitize-
+// html's default behaviour for a disallowed tag is to unwrap it (drop
+// the tag, keep its text/children) rather than delete the content too,
+// so Word's own div/span/o:p wrapper soup collapses down to plain
+// table structure instead of losing any of the actual pasted content.
+const HTML_BLOCK_ALLOWED_TAGS = [
+  "table", "thead", "tbody", "tfoot", "tr", "th", "td", "caption",
+  "p", "br", "strong", "em", "b", "i", "u", "ul", "ol", "li", "a", "h3", "h4",
+];
+// Both exported so the admin editor's own HtmlField (BlockEditor.jsx) can
+// show a live preview using the exact sanitizer output and styling a
+// reader would actually get, not a guess at what survived — same "true
+// visual canvas" reasoning as reusing RankedListBlock directly for that
+// block's own preview.
+export function sanitizeGenericHtml(html) {
+  return sanitizeHtml(html || "", {
+    allowedTags: HTML_BLOCK_ALLOWED_TAGS,
+    allowedAttributes: {
+      a: ["href", "target", "rel"],
+      td: ["colspan", "rowspan"],
+      th: ["colspan", "rowspan"],
+    },
+  });
+}
+
+// Baseline styling for whatever table/list/paragraph structure survives
+// sanitization — pasted HTML never carries its own usable styles by the
+// time it gets here (every inline style/class attribute was stripped on
+// purpose), so without this a pasted table would render as an unstyled
+// browser default: no borders, no spacing, default serif.
+export const HTML_BLOCK_CLASS =
+  "overflow-x-auto [&_table]:w-full [&_table]:border-collapse [&_th]:text-left [&_th]:font-sans [&_th]:text-xs [&_th]:uppercase [&_th]:tracking-[0.08em] [&_th]:font-600 [&_th]:text-steel [&_th]:border-b [&_th]:border-steel/25 [&_th]:py-2 [&_th]:pr-4 [&_th]:whitespace-nowrap [&_td]:font-body [&_td]:text-sm [&_td]:text-ink [&_td]:border-b [&_td]:border-steel/10 [&_td]:py-2 [&_td]:pr-4 [&_td]:align-top [&_p]:font-body [&_p]:text-ink [&_ul]:list-disc [&_ol]:list-decimal [&_li]:ml-5 [&_a]:underline [&_a]:underline-offset-2";
+
 const SPACER_HEIGHTS = { small: "h-6", medium: "h-12", large: "h-24" };
 
 // Returns the actual per-type markup for one block, unkeyed — the caller
@@ -192,6 +235,10 @@ function renderBlockBody(block, i, list, accentHex) {
       />
     );
   }
+  if (block.type === "html") {
+    if (!block.html) return null;
+    return <div className={HTML_BLOCK_CLASS} dangerouslySetInnerHTML={{ __html: sanitizeGenericHtml(block.html) }} />;
+  }
   if (block.type === "ranked-list") {
     if (!block.rows || block.rows.length === 0) return null;
     return (
@@ -224,7 +271,7 @@ function renderBlockBody(block, i, list, accentHex) {
 /**
  * Renders the shared block-array shape used by both posts.body and
  * pages.body: paragraph, image, heading, quote, divider, button, video,
- * spacer, hero-carousel, embed, ranked-list. See components/admin/BlockEditor.jsx for
+ * spacer, hero-carousel, embed, ranked-list, html. See components/admin/BlockEditor.jsx for
  * how these are authored.
  *
  * `accentHex` drives the drop-cap letter, quote border, and button
