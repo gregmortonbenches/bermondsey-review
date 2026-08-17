@@ -20,6 +20,14 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
 
 ## Design system
 
+## Homepage tiles: type-led, artwork at scale, rectangles on mobile
+
+- **The tiles were reading as placeholder rather than designed** — a small generic icon floating in a large empty grey square, with a headline and dek both sized like a card's. Mocked four directions against each other (current; type-led with the artwork as a faint watermark; artwork filling the lower half; a numbered index with no artwork) and took the third: it's the only one with no dead space in it, and it's the structure the reference sites actually use — the headline leads, the picture holds the rest.
+- **Headline up to `2rem` with tight tracking and near-solid leading**, so a two- or three-line title reads as one block rather than a stack of lines. **The dek is gone from the tile** — at that headline size it competed rather than supported, and the space buys the artwork room. **The byline is back**, which the tiles had lost when they stopped being carousel cards.
+- **Artwork fills its share of the tile** instead of sitting as a centred motif. Tried scaling it past its own box for a true bleed off the bottom edge first — at the scale that actually bled, it climbed into the headline, so it fills its own band cleanly instead, with a modest crop-in on mobile where the short rectangle otherwise left wide grey margins either side.
+- **Rectangles on mobile (`4/3`), squares on desktop.** A full-width square on a phone is enormous — four of them ran well past a screen and a half for four headlines — and the artwork never needed that height. Desktop keeps the square, where two side by side are only half a column each.
+- **The featured card's artwork was scaled up to match**, since at its old half-size it read as a small icon sitting next to the much larger artwork in the grid directly below it.
+
 ## Black, white and grey, with one blue accent
 
 - **The two-colour category palette is gone.** Pieces used to read in one of two colours depending on category — place-rooted (Bermondsey, cartoons) in `brick`, culture (books, film) in `river` — spent mostly as large pale background washes on hero bands, featured cards and cover art. The signal never really landed: it looked like decoration, it made every page read as colourful, and nobody had reason to learn what the two colours meant. The site is black, white and grey now, with colour spent deliberately and at full strength instead of spread thin.
