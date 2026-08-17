@@ -80,7 +80,32 @@ export function HeaderArchesBackground({ id }) {
           />
         </pattern>
       </defs>
-      <rect width="100%" height="100%" fill={`url(#${patternId})`} />
+      {/* The tiled pattern starts flush at x=0 (a full arch, since the
+          first pier sits PIER_X in from that edge), but the row's actual
+          width is never a clean multiple of TILE_W — so the *right* edge
+          always lands mid-tile, showing a arbitrarily-sliced partial
+          arch. Rather than chase an exact-fit width per viewport (the
+          row's width also moves with the site title's own length, which
+          is admin-editable), fading the pattern out over its last 80px
+          — roughly one tile — reads as the pattern deliberately trailing
+          off rather than a jagged crop. CSS mask-image, not an SVG
+          <mask>/gradientUnits setup: it operates in the same rendered
+          CSS pixel space as `calc(100% - 80px)` regardless of the SVG's
+          own coordinate system, so this needed no viewBox math. Only on
+          this <rect> (the pattern fill), not the whole <svg> — the
+          parapet line below stays full-strength edge-to-edge, as the one
+          line meant to read as structural rather than decorative. Both
+          prefixed and unprefixed: Safari (the iPhone browser this was
+          first spotted on) still needs -webkit-mask-image. */}
+      <rect
+        width="100%"
+        height="100%"
+        fill={`url(#${patternId})`}
+        style={{
+          maskImage: "linear-gradient(to right, black, black calc(100% - 80px), transparent 100%)",
+          WebkitMaskImage: "linear-gradient(to right, black, black calc(100% - 80px), transparent 100%)",
+        }}
+      />
       {/* The parapet — where the wordmark sits, like a building on top
           of the bridge deck. Right at the top of this band (y=0),
           SPRINGLINE_Y above where the arches themselves start. */}

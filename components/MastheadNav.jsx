@@ -46,8 +46,20 @@ export default function MastheadNav({ logoUrl, siteTitle, links, isHomepage = fa
     // Both sizes brought down slightly from text-2xl/2.5rem — the site
     // title was reading larger than the rest of the masthead's own type
     // scale (nav links, Subscribe) really called for.
+    //
+    // text-balance (CSS text-wrap: balance): a plain wrap on "The
+    // Bermondsey Review of Books" was breaking 4 words / 1 word ("The
+    // Bermondsey Review of" / "Books") — a normal browser wrap only ever
+    // breaks at the last word that still fits, with no regard for how
+    // lopsided that leaves the two lines. Balance re-picks the break
+    // point to even the lines out instead (here, "The Bermondsey Review"
+    // / "of Books"), at the cost of needing to lay the text out more than
+    // once to compare candidate breaks — the browser caps that at short
+    // runs of text for exactly this cost reason, which a masthead title
+    // safely is. Degrades to the previous plain wrap on browsers that
+    // don't support it yet (Tailwind 3.4+'s own utility for this).
     <div className="min-w-0 text-center">
-      <p className="font-display font-700 text-xl sm:text-[2.25rem] leading-tight sm:leading-none tracking-tight sm:tracking-[0.03em] sm:uppercase text-ink">
+      <p className="font-display font-700 text-xl sm:text-[2.25rem] leading-tight sm:leading-none tracking-tight sm:tracking-[0.03em] sm:uppercase text-ink text-balance">
         {siteTitle}
       </p>
     </div>

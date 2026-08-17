@@ -20,6 +20,19 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
 
 ## Design system
 
+## The site title wraps to a balanced two lines on mobile, instead of a lopsided one
+
+- **A plain browser wrap on "The Bermondsey Review of Books" was breaking 4 words / 1 word** ("The Bermondsey Review of" / "Books") on narrower phones — a normal wrap only ever breaks at the last word that still fits on the first line, with no regard for how lopsided that leaves the two lines against each other.
+- **Fixed with `text-balance` (Tailwind's utility for CSS `text-wrap: balance`)** on the title `<p>` — the browser re-picks the break point to even the two lines out instead, which for this title gives "The Bermondsey Review" / "of Books" at 320px, or lets it fit on one line entirely at slightly wider mobile widths (390px) where it used to still wrap. `text-wrap: balance` is capped by browsers to short runs of text specifically because it needs to lay a block out more than once to compare candidate breaks — a masthead title is well inside that limit. Applied to the one shared title element both the mobile and desktop wordmark rows use — desktop's own title doesn't currently wrap at all, so this has no visible effect there, but costs nothing to leave in for a longer future site name.
+- Degrades gracefully to the old plain wrap on any browser that doesn't yet support `text-wrap: balance` — not a functional dependency, just a nicer break point where it's available.
+- Verified via Playwright at 320px, 390px, and 1280px.
+
+## The arch pattern now fades out at its right edge instead of cutting off mid-arch
+
+- **The repeating arch pattern behind the wordmark starts flush at its left edge (a full arch, since the first pier sits a few pixels in) but ends wherever the row's actual width happens to land — which is essentially never a clean multiple of the tile width**, so the rightmost arch was getting sliced at an arbitrary point, reading as a jagged crop rather than anything intentional. Spotted on a live-site mobile screenshot, where it was especially visible against the row's plain white background.
+- **Fixed by fading the pattern out over its last 80px (roughly one tile) with `mask-image`**, rather than chasing an exact pixel-perfect fit — the row's width isn't fixed to begin with (it also moves with the site title's own admin-edited length), so there's no single width to target. A `linear-gradient` mask reading `black → black calc(100% - 80px) → transparent` applied only to the pattern's fill `<rect>`, both as `maskImage` and `WebkitMaskImage` (Safari, the browser this was first noticed on, still needs the prefix). Deliberately not applied to the whole `<svg>` — the parapet line above the arches stays full-strength edge-to-edge, as the one line in this illustration meant to read as structural rather than decorative texture.
+- Verified via Playwright at 320px, 390px, and 1280px: the trailing arch now tapers away smoothly at every width instead of stopping abruptly, and the parapet line's own full-width strength is unaffected.
+
 ## The worm, removed
 
 - **The header worm is gone — the whole feature, not just hidden or slowed down.** It had the longest running history of anything cosmetic in this codebase: a five-carriage train, redrawn into a worm with the same crossing infrastructure kept intact; a colour that moved pink → bright yellow → light sky blue (matching the Subscribe button, its last change before this one); a "weave up and down through the wordmark's own letters" version that shipped and then got reverted back to a simple straight crossing below the title, since the weave didn't read as intended in practice; and a first-crossing timing tweak (0.5s → 3s → 15s) along the way. All of that is deleted now, not archived behind a flag — `git log` is where the history lives if any of it's ever wanted back.
