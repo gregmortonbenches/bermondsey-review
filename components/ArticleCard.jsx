@@ -1,12 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import CoverArt from "./CoverArt";
-import { categoryFamily } from "@/lib/articles";
 import { focalPointStyle } from "@/lib/media";
 
 export default function ArticleCard({ article, size = "regular" }) {
-  const accent = categoryFamily(article.category); // "brick" | "river"
-
   if (size === "featured") {
     // Same lead treatment as the article's own page (PostRenderer.jsx) —
     // a category-tinted band with the headline block and image side by
@@ -16,12 +13,15 @@ export default function ArticleCard({ article, size = "regular" }) {
     // one of several reorderable homepage sections (see LayoutCanvas.jsx),
     // and going full-bleed would mean pulling it out of that reorderable
     // flow — a bigger structural change than this was asking for.
-    const heroTint = accent === "brick" ? "bg-brick/[0.12]" : "bg-river/[0.1]";
+    //
+    // The category-colour wash this band used to carry is gone, same as
+    // on the article page itself: a hairline box on paper instead, with
+    // colour left to the category label.
     return (
-      <Link href={`/article/${article.slug}`} className={`group block overflow-hidden ${heroTint}`}>
+      <Link href={`/article/${article.slug}`} className="group block overflow-hidden border border-steel/25 hover:border-ink transition-colors">
         <div className="grid sm:grid-cols-2 sm:min-h-[360px]">
           <div className="px-6 sm:px-10 py-8 sm:py-10 flex flex-col justify-center">
-            <p className={`font-sans text-xs tracking-[0.14em] uppercase mb-3 ${accent === "brick" ? "text-brick" : "text-river"}`}>
+            <p className="font-sans text-xs tracking-[0.14em] uppercase mb-3 text-river">
               {article.category}
             </p>
             <h3 className="font-display font-700 text-3xl sm:text-4xl text-ink leading-tight underline-offset-4 group-hover:underline group-active:underline">
@@ -57,7 +57,7 @@ export default function ArticleCard({ article, size = "regular" }) {
   // row's minimum height.
   return (
     <Link href={`/article/${article.slug}`} className="group block py-4 hairline-b">
-      <p className={`font-sans text-xs tracking-[0.14em] uppercase mb-2 ${accent === "brick" ? "text-brick" : "text-river"}`}>
+      <p className="font-sans text-xs tracking-[0.14em] uppercase mb-2 text-river">
         {article.category}
       </p>
       <h3 className="font-display font-700 text-lg sm:text-xl text-ink leading-tight underline-offset-4 group-hover:underline group-active:underline">

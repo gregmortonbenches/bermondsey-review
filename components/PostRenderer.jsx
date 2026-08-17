@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { categoryFamily } from "@/lib/articles";
 import { getYouTubeEmbedUrl } from "@/lib/youtube";
 import BlockContent from "./BlockContent";
 import CoverArt from "./CoverArt";
@@ -7,11 +6,13 @@ import ArticleSidebar from "./ArticleSidebar";
 import { focalPointStyle } from "@/lib/media";
 
 export default function PostRenderer({ post }) {
-  const accent = categoryFamily(post.category);
-  const accentHex =
-    accent === "brick" ? "var(--color-brick, #F5C518)" : "var(--color-river, #1D4ED8)";
+  // One accent for every piece now, not one per category family: the
+  // brick/river split tinted whole hero bands in two different colours
+  // and, at page scale, read as decoration rather than as a category
+  // signal anyone was reading. Colour is spent on small, deliberate
+  // marks instead — the category label, the drop cap, a quote's rule.
+  const accentHex = "var(--color-river, #1D4ED8)";
   const embedUrl = post.type === "video" ? getYouTubeEmbedUrl(post.media_url) : null;
-  const heroTint = accent === "brick" ? "bg-brick/[0.12]" : "bg-river/[0.1]";
 
   // A single illustration doesn't read as a headline-and-standfirst piece,
   // so cartoons skip the split hero band below entirely for their own
@@ -24,7 +25,7 @@ export default function PostRenderer({ post }) {
   if (post.type === "cartoon") {
     return (
       <article className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center">
-        <p className="font-sans text-xs tracking-[0.14em] uppercase mb-4 text-brick">Cartoon</p>
+        <p className="font-sans text-xs tracking-[0.14em] uppercase mb-4 text-river">Cartoon</p>
         {post.cover_image_url ? (
           <div className="relative w-full aspect-[4/3] bg-steel/[0.05] overflow-hidden">
             <Image
@@ -47,19 +48,18 @@ export default function PostRenderer({ post }) {
 
   return (
     <article>
-      {/* The lead: a full-width band tinted with the story's own category
-          colour (brick or river, the same accent the category label
-          already uses), headline block and cover image side by side on
-          desktop, stacking on mobile — a proper front-of-section lead
-          rather than a plain white header sitting above the image. */}
-      <div className={heroTint}>
+      {/* The lead: headline block and cover image side by side on desktop,
+          stacking on mobile — a proper front-of-section lead rather than
+          a plain header sitting above the image.
+          This band used to be filled with a pale wash of the story's
+          category colour. Plain paper with a hairline under it now: at
+          full width the tint was the loudest thing on the page, and it
+          was carrying almost no information — colour is spent on the
+          category label and the drop cap instead. */}
+      <div className="hairline-b">
         <div className="max-w-wider mx-auto grid sm:grid-cols-2 sm:min-h-[420px]">
           <div className="px-4 sm:px-6 lg:px-12 py-10 sm:py-16 flex flex-col justify-center">
-            <p
-              className={`font-sans text-xs tracking-[0.14em] uppercase mb-3 ${
-                accent === "brick" ? "text-brick" : "text-river"
-              }`}
-            >
+            <p className="font-sans text-xs tracking-[0.14em] uppercase mb-3 text-river">
               {post.category || "Uncategorised"}
             </p>
             <h1 className="font-display font-700 text-4xl sm:text-5xl text-ink leading-[1.05]">

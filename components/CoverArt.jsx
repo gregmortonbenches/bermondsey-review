@@ -1,4 +1,3 @@
-import { categoryFamily } from "@/lib/articles";
 
 // Simple, cute, single-colour line illustrations standing in for real
 // cover art per category. Swap for uploaded images in step 2 —
@@ -45,26 +44,25 @@ const ICONS = {
   ),
 };
 
-// Brown for place-rooted pieces, blue for culture pieces — see
-// categoryFamily in lib/articles.js for the reasoning. Uses currentColor
-// + a Tailwind text-* class (rather than a hardcoded hex) so this
-// responds automatically if the theme editor changes brick/river.
-const FAMILY_STYLES = {
-  brick: { tint: "bg-brick/[0.08]", textClass: "text-brick" },
-  river: { tint: "bg-river/[0.07]", textClass: "text-river" },
-};
+// Grey and ink, not a colour per category family. These used to be tinted
+// brick or river depending on the piece's category — but a cover-art
+// placeholder appears wherever an article has no photo, which on a
+// listing page means most of them, so "every illustration is coloured"
+// was most of what made the site read as colourful. Colour is spent on
+// small deliberate marks now (category labels, the drop cap, Subscribe);
+// the artwork itself is black on grey, like a printed page.
+const ART_TINT = "bg-steel/[0.05]";
+const ART_TONE = "text-ink";
 
-// `bare` drops this component's own background tint, for a caller that
-// already paints one behind it — ArticleGrid's tiles are a single
-// continuous coloured square with the illustration floating inside,
-// where a second tint stacked on the first would show up as a visible
-// darker panel rather than one flat colour.
-export default function CoverArt({ category, className = "", bare = false, artClass = "w-1/2 h-1/2" }) {
+// `bare` drops the background tint, for a caller that already paints one
+// behind it — ArticleGrid's tiles carry their own, and two stacked greys
+// would show as a visibly darker panel rather than one flat surface.
+// `toneClass` overrides the artwork's colour for the same sort of reason.
+export default function CoverArt({ category, className = "", bare = false, artClass = "w-1/2 h-1/2", toneClass }) {
   const icon = ICONS[category] || ICONS.Culture;
-  const { tint, textClass } = FAMILY_STYLES[categoryFamily(category)];
   return (
-    <div className={`${bare ? "" : tint} flex items-center justify-center ${className}`}>
-      <svg viewBox="0 0 72 68" className={`${artClass} ${textClass}`} aria-hidden="true">
+    <div className={`${bare ? "" : ART_TINT} flex items-center justify-center ${className}`}>
+      <svg viewBox="0 0 72 68" className={`${artClass} ${toneClass || ART_TONE}`} aria-hidden="true">
         <g fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           {icon}
         </g>

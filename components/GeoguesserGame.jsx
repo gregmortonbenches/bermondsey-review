@@ -81,7 +81,7 @@ export default function GeoguesserGame({ round }) {
             type="button"
             onClick={handleSubmit}
             disabled={!guess || submitting}
-            className="mt-4 font-sans text-sm font-600 bg-brick text-paper px-5 py-2.5 hover:bg-ink transition-colors disabled:opacity-50"
+            className="mt-4 font-sans text-sm font-600 bg-river text-paper px-5 py-2.5 hover:bg-ink transition-colors disabled:opacity-50"
           >
             {submitting ? "Scoring…" : guess ? "Submit guess" : "Click the map to guess first"}
           </button>
@@ -94,7 +94,7 @@ export default function GeoguesserGame({ round }) {
                 {result.score.toLocaleString()}
                 <span className="font-body font-400 text-lg text-steel"> / 5,000</span>
               </p>
-              <p className="font-sans text-sm font-600 uppercase tracking-[0.08em] text-brick">
+              <p className="font-sans text-sm font-600 uppercase tracking-[0.08em] text-river">
                 {scoreLabel(result.score)}
               </p>
             </div>

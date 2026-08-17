@@ -49,7 +49,7 @@ export default async function Masthead({ isHomepage = false }) {
           routes). */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-brick focus:text-paper focus:font-sans focus:text-sm focus:font-600 focus:px-4 focus:py-2"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-river focus:text-paper focus:font-sans focus:text-sm focus:font-600 focus:px-4 focus:py-2"
       >
         Skip to content
       </a>

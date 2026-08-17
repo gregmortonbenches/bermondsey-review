@@ -29,7 +29,7 @@ export default function NotFound() {
         <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
           <Link
             href="/"
-            className="font-sans text-sm font-600 bg-brick text-paper px-5 py-2.5 rounded-sm hover:bg-ink transition-colors"
+            className="font-sans text-sm font-600 bg-river text-paper px-5 py-2.5 rounded-sm hover:bg-ink transition-colors"
           >
             Back to the front page
           </Link>

@@ -52,8 +52,12 @@ function dotIcon(color) {
   });
 }
 
-const GUESS_COLOR = "#1D4ED8"; // --color-river
-const CORRECT_COLOR = "#F5C518"; // --color-brick
+// Your guess in ink, the real spot in the accent blue — the correct
+// marker used to be the old brick yellow, which no longer exists in the
+// palette. Two very different values rather than two hues, so the pair
+// stays legible against a colour map (and to a colour-blind reader).
+const GUESS_COLOR = "#1C1B17"; // --color-ink
+const CORRECT_COLOR = "#1D4ED8"; // --color-river
 
 function ClickHandler({ onClick }) {
   useMapEvents({

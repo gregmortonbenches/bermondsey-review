@@ -2,7 +2,6 @@ import Link from "next/link";
 import Image from "next/image";
 import CoverArt from "./CoverArt";
 import SectionHeader from "./SectionHeader";
-import { categoryFamily } from "@/lib/articles";
 import { carouselWidthVars } from "@/lib/carouselLayout";
 import { focalPointStyle } from "@/lib/media";
 import { SECTION_HEADER_DEFAULTS } from "@/lib/sections";
@@ -46,7 +45,6 @@ export default function ArticleCarousel({ articles, mobileCount, desktopCount, h
           overflow. */}
       <div className="flex justify-safe-center overflow-x-auto snap-x snap-mandatory gap-0 -mx-4 px-4 sm:mx-0 sm:px-0 pb-4 [scrollbar-width:thin]">
         {articles.map((article, i) => {
-          const accent = categoryFamily(article.category);
           return (
             <Link
               key={article.slug}
@@ -69,7 +67,7 @@ export default function ArticleCarousel({ articles, mobileCount, desktopCount, h
               ) : (
                 <CoverArt category={article.category} className="aspect-[4/3]" />
               )}
-              <p className={`font-sans text-[11px] tracking-[0.12em] uppercase mt-3 ${accent === "brick" ? "text-brick" : "text-river"}`}>
+              <p className="font-sans text-[11px] tracking-[0.12em] uppercase mt-3 text-river">
                 {article.category}
               </p>
               <h3 className="font-display font-700 text-lg text-ink leading-snug mt-1 underline-offset-4 group-hover:underline group-active:underline">
