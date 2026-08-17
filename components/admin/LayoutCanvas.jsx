@@ -5,13 +5,11 @@ import { createClient } from "@/lib/supabase/client";
 import { savePageLayout } from "@/lib/layout";
 import { SECTION_REGISTRY, SECTION_HEADER_DEFAULTS } from "@/lib/sections";
 import { usePublishOutline } from "./EditorOutlineContext";
-import ArticleCarousel from "@/components/ArticleCarousel";
+import ArticleGrid from "@/components/ArticleGrid";
 import PuzzlesSection, { PUZZLE_DEFAULTS } from "@/components/PuzzlesSection";
 import CartoonsSection from "@/components/CartoonsSection";
-import CarouselCountControl from "./CarouselCountControl";
 import { ImageDropzone } from "./BlockEditor";
 import { uploadMedia } from "@/lib/posts";
-import { MOBILE_ITEM_COUNT_OPTIONS, DESKTOP_ITEM_COUNT_OPTIONS } from "@/lib/carouselLayout";
 import { GripIcon, ChevronUpIcon, ChevronDownIcon, GearIcon } from "./icons";
 import { useReorderSensors } from "./dnd";
 import { suppressCanvasNavigation } from "./canvasNav";
@@ -27,7 +25,7 @@ const AUTOSAVE_DELAY_MS = 1200;
  * means the real Subscribe button and the newsletter drawer it opens
  * come along for free, same as on the live site), real ThemeVars (so
  * accent colours match), real section content (the actual featured
- * post, actual carousel), real Footer — with reorder/show-hide controls
+ * post, actual articles grid), real Footer — with reorder/show-hide controls
  * layered on hover, instead of a list on one side and an iframe of the
  * real thing on the other.
  *
@@ -35,13 +33,13 @@ const AUTOSAVE_DELAY_MS = 1200;
  * Components, so they're rendered by the server page (app/admin/(dashboard)/
  * layout/page.jsx) and passed in here as already-rendered elements — a
  * Client Component can't import and render a Server Component itself, but
- * it can place one it was handed. Carousel, puzzles, and cartoons are the
- * exceptions: ArticleCarousel, PuzzlesSection, and CartoonsSection all
- * have no server-only dependencies (just plain props — `articles`/
- * `cartoons` fetched once server-side and handed down; card/section
- * copy living directly on the section object), so all three are
- * rendered directly, here, from this section's own live state — their
- * settings panels (item counts, card copy, section headers) need to
+ * it can place one it was handed. The articles grid, puzzles, and
+ * cartoons are the exceptions: ArticleGrid, PuzzlesSection, and
+ * CartoonsSection all have no server-only dependencies (just plain
+ * props — `articles`/`cartoons` fetched once server-side and handed
+ * down; card/section copy living directly on the section object), so
+ * all three are rendered directly, here, from this section's own live
+ * state — their settings panels (card copy, section headers) need to
  * preview instantly as you type/click, which a pre-rendered opaque
  * element handed down as a prop can't do.
  */
@@ -181,10 +179,8 @@ export default function LayoutCanvas({ pageKey, initialSections, sectionContent,
                   supabase={supabase}
                 >
                   {section.type === "carousel" ? (
-                    <ArticleCarousel
+                    <ArticleGrid
                       articles={carouselArticles}
-                      mobileCount={section.mobileCount}
-                      desktopCount={section.desktopCount}
                       headerTitle={section.headerTitle}
                       headerDescription={section.headerDescription}
                       hideHeaderDescription={section.hideHeaderDescription}
@@ -310,7 +306,7 @@ function SectionSlot({
   const hasSettings = section.type === "carousel" || section.type === "puzzles" || section.type === "cartoons";
   const settingsTitle =
     section.type === "carousel"
-      ? "How many articles show at once, and this section's header"
+      ? "Edit this section's header"
       : section.type === "puzzles"
         ? "Edit the crossword/Bermy on the Map card text, and this section's header"
         : "Edit this section's header";
@@ -361,22 +357,17 @@ function SectionSlot({
 
       {settingsOpen && hasSettings && section.type === "carousel" && (
         <div className="absolute right-2 top-10 z-20 bg-paper border border-steel/25 rounded-sm shadow-lg p-3 w-64 space-y-3">
+          {/* Header fields only. The "articles visible on mobile/desktop"
+              controls that used to sit here were per-view counts for the
+              horizontal rail this section used to be — a fixed 2-up/1-up
+              grid of squares has no equivalent, so keeping them would
+              have left two settings that silently did nothing. A saved
+              layout may still carry their old mobileCount/desktopCount
+              values; nothing reads them any more. */}
           <SectionHeaderFields
             section={section}
             defaults={SECTION_HEADER_DEFAULTS.carousel}
             onUpdateSection={onUpdateSection}
-          />
-          <CarouselCountControl
-            label="Articles visible on mobile"
-            value={section.mobileCount}
-            options={MOBILE_ITEM_COUNT_OPTIONS}
-            onChange={(mobileCount) => onUpdateSection({ mobileCount })}
-          />
-          <CarouselCountControl
-            label="Articles visible on desktop"
-            value={section.desktopCount}
-            options={DESKTOP_ITEM_COUNT_OPTIONS}
-            onChange={(desktopCount) => onUpdateSection({ desktopCount })}
           />
         </div>
       )}
