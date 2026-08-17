@@ -64,19 +64,22 @@ export default function ArticleGrid({ articles, headerTitle, headerDescription, 
             <Link
               key={article.slug}
               href={`/article/${article.slug}`}
-              // A rectangle on mobile, a square on desktop. A full-width
-              // square on a phone is enormous — four of them ran to well
-              // over a screen and a half of scrolling for four headlines
-              // — and the artwork doesn't need that much height to read.
-              // Desktop keeps the square, where two side by side are only
-              // half the column each.
+              // Portrait on mobile, square on desktop. A tile taller than
+              // it is wide reads as a page rather than a panel, which is
+              // the right instinct for a paper — and it gives the artwork
+              // real vertical room, which matters most once the real
+              // per-article illustrations replace the placeholder marks.
+              // It costs scroll length, deliberately: four portrait tiles
+              // are a long section, but each one is worth stopping at.
+              // Desktop keeps the square, where two sit side by side at
+              // half a column each and portrait would run absurdly tall.
               //
               // No border: the grey fill is what defines the tile, and an
               // outline around it as well read as a hard box drawn on the
               // page. Hover deepens the fill instead of darkening a line;
               // the headline underlines on hover too, so the affordance
               // doesn't rest on the tile alone.
-              className="group flex flex-col aspect-[4/3] sm:aspect-square overflow-hidden transition-colors bg-steel/[0.05] hover:bg-steel/[0.09]"
+              className="group flex flex-col aspect-[3/4] sm:aspect-square overflow-hidden transition-colors bg-steel/[0.05] hover:bg-steel/[0.09]"
             >
               <div className="px-6 pt-6 sm:px-8 sm:pt-8">
                 {/* Bigger and tighter than a card headline would be: this
@@ -110,7 +113,7 @@ export default function ArticleGrid({ articles, headerTitle, headerDescription, 
                   category={article.category}
                   className="h-full w-full"
                   bare
-                  artClass="w-full h-full scale-[1.18] sm:scale-100"
+                  artClass="w-full h-full"
                   toneClass="text-ink"
                 />
               </div>
