@@ -18,7 +18,12 @@ export default function ArticleCard({ article, size = "regular" }) {
     // on the article page itself: a hairline box on paper instead, with
     // colour left to the category label.
     return (
-      <Link href={`/article/${article.slug}`} className="group block overflow-hidden border border-steel/25 hover:border-ink transition-colors">
+      <Link
+        href={`/article/${article.slug}`}
+        // Same treatment as the grid tiles below it: a faint grey block
+        // rather than an outlined box, so the two read as one family.
+        className="group block overflow-hidden bg-steel/[0.05] hover:bg-steel/[0.09] transition-colors"
+      >
         <div className="grid sm:grid-cols-2 sm:min-h-[360px]">
           <div className="px-6 sm:px-10 py-8 sm:py-10 flex flex-col justify-center">
             <p className="font-sans text-xs tracking-[0.14em] uppercase mb-3 text-river">
@@ -42,7 +47,10 @@ export default function ArticleCard({ article, size = "regular" }) {
               />
             </div>
           ) : (
-            <CoverArt category={article.category} className="aspect-[4/3] sm:h-full" />
+            // `bare`: the card itself now paints the grey, and CoverArt's
+            // own would stack on top of it — showing the image half as a
+            // visibly darker panel than the text half.
+            <CoverArt category={article.category} className="aspect-[4/3] sm:h-full" bare />
           )}
         </div>
       </Link>

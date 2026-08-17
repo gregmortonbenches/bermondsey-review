@@ -78,7 +78,12 @@ export default function ArticleGrid({ articles, headerTitle, headerDescription, 
               // aspect-square: two equal-width grid siblings sharing one
               // fixed ratio come out the same height for free, with no
               // need to stretch either to match its sibling.
-              className="group aspect-square flex flex-col items-start text-left px-6 pt-8 pb-4 sm:px-8 sm:pt-10 border border-steel/25 hover:border-ink transition-colors overflow-hidden bg-steel/[0.05]"
+              // No border: the grey fill is what defines the square, and
+              // an outline around it as well read as a hard box drawn on
+              // the page. Hover deepens the fill slightly instead of
+              // darkening a line — the headline underlines on hover too,
+              // so the affordance doesn't rest on the tile alone.
+              className="group aspect-square flex flex-col items-start text-left px-6 pt-8 pb-4 sm:px-8 sm:pt-10 transition-colors overflow-hidden bg-steel/[0.05] hover:bg-steel/[0.09]"
             >
               {/* line-clamped: a square is a fixed height budget, unlike
                   a card that can just grow — an unbounded title/dek would
