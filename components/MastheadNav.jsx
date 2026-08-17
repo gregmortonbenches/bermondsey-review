@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { HeaderArchesBackground, HeaderWorm } from "./HeaderArches";
-import HeaderWormSpeed from "./HeaderWormSpeed";
+import { HeaderArchesBackground } from "./HeaderArches";
 
 // No "use client" any more — the hamburger/collapsible-menu toggle was
 // the only reason this needed client-side state at all. Mobile now
@@ -56,12 +55,6 @@ export default function MastheadNav({ logoUrl, siteTitle, links, isHomepage = fa
 
   return (
     <>
-      {/* Renders nothing — just keeps .header-worm's crossing speed
-          constant across viewport widths. One instance covers both
-          wordmark rows below, since it only sets shared CSS variables
-          on the document root. See its own comment for why this needs
-          JS at all rather than being pure CSS. */}
-      <HeaderWormSpeed />
       {isHomepage && <h1 className="sr-only">{siteTitle}</h1>}
       {/* Mobile: just the title now — no Subscribe button, no hamburger —
           centred, same as desktop.
@@ -81,7 +74,6 @@ export default function MastheadNav({ logoUrl, siteTitle, links, isHomepage = fa
           background instead, invisible. */}
       <div className="relative isolate overflow-hidden flex sm:hidden items-center justify-center pt-4 pb-12 hairline-b gap-2">
         <HeaderArchesBackground id="mobile" />
-        <HeaderWorm />
         <Link href="/" className="group flex items-center gap-3 min-w-0">
           {wordmark}
         </Link>
@@ -94,7 +86,6 @@ export default function MastheadNav({ logoUrl, siteTitle, links, isHomepage = fa
           pb-14's 56px leaves a 16px gap above the arch band. */}
       <div className="relative isolate overflow-hidden hidden sm:grid grid-cols-[1fr_auto_1fr] items-center pt-6 pb-14 hairline-b gap-4">
         <HeaderArchesBackground id="desktop" />
-        <HeaderWorm />
         <span aria-hidden="true" />
         <Link href="/" className="group justify-self-center">
           {wordmark}
@@ -106,8 +97,8 @@ export default function MastheadNav({ logoUrl, siteTitle, links, isHomepage = fa
               can drift away from whatever it's meant to look like; a
               fixed value is the only way to guarantee this specific
               button keeps this exact colour regardless, same reasoning
-              as the worm/crossword-highlight/drop-cap's own fixed
-              accents elsewhere on the site. Still `text-ink`, not
+              as the crossword-highlight/drop-cap's own fixed accents
+              elsewhere on the site. Still `text-ink`, not
               `text-paper` — light enough a background that white text
               would fail contrast the same way it did on the previous
               yellow.

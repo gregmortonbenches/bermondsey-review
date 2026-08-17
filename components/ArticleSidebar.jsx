@@ -56,11 +56,10 @@ function CheckIcon() {
  * PostRenderer.jsx as a sibling of the article body, not a wrapper
  * around it — the two communicate only through a pair of CSS custom
  * properties (--article-font-size-mobile/-desktop) written to
- * document.documentElement (same technique HeaderWormSpeed.jsx already
- * uses for the header worm's animation speed), which BlockContent.jsx's
- * paragraph text reads regardless of where in the component tree either
- * one actually sits — plain DOM/CSS cascade, not React state, so this
- * needed no context or lifting state up into PostRenderer itself.
+ * document.documentElement, which BlockContent.jsx's paragraph text
+ * reads regardless of where in the component tree either one actually
+ * sits — plain DOM/CSS cascade, not React state, so this needed no
+ * context or lifting state up into PostRenderer itself.
  *
  * Text size only affects paragraph body text, not headings, quotes, or
  * captions — matches how most "reading mode" font-size controls work
