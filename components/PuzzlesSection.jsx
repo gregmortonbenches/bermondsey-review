@@ -11,9 +11,10 @@ import { SECTION_HEADER_DEFAULTS } from "@/lib/sections";
  * that read as two oversized, overly prominent tiles rather than a
  * modest "here are the games" module. This is shorter (no more forced
  * min-height — the row sizes to its own content) and much quieter: a
- * hairline border standing in for the colour block, tinting to that
- * game's own accent only on hover (see `accent` below) rather than
- * wearing it as a permanent fill. An admin can still swap either
+ * hairline border standing in for the colour block, picking up the
+ * accent only on hover rather than wearing colour as a permanent fill.
+ * Each card used to hover to its own colour (one brick, one river);
+ * there is one accent now, so both do the same thing. An admin can still swap either
  * illustration for an uploaded photo from the homepage layout builder's
  * Puzzles & Games settings — see PuzzleCardFields in
  * components/admin/LayoutCanvas.jsx — the default line drawing only
@@ -25,7 +26,6 @@ const GAMES = [
     title: "The crossword",
     description: "Fourteen clues, all with a Bermondsey twist. New grid every issue.",
     cta: "Solve the latest puzzle",
-    accent: "river",
     Illustration: () => (
       <svg viewBox="0 0 120 120" className="w-16 h-16 sm:w-20 sm:h-20" aria-hidden="true">
         <g fill="none" stroke="#1C1B17" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -53,7 +53,6 @@ const GAMES = [
     title: "Bermy on the map, SE1",
     description: "Five photos from around SE16. How many can you place?",
     cta: "Play today's round",
-    accent: "brick",
     Illustration: () => (
       <svg viewBox="0 0 120 120" className="w-16 h-16 sm:w-20 sm:h-20" aria-hidden="true">
         <g fill="none" stroke="#1C1B17" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -98,15 +97,13 @@ export default function PuzzlesSection({ overrides, headerTitle, headerDescripti
         description={hideHeaderDescription ? "" : headerDescription || SECTION_HEADER_DEFAULTS.puzzles.description}
       />
       <div className="grid sm:grid-cols-2 gap-6">
-        {GAMES.map(({ slug, title, description, cta, accent, Illustration }) => {
+        {GAMES.map(({ slug, title, description, cta, Illustration }) => {
           const override = overrides?.[slug];
           return (
             <Link
               key={slug}
               href={`/${slug}`}
-              className={`group flex items-center gap-5 sm:gap-6 p-5 sm:p-6 border border-steel/25 transition-colors ${
-                accent === "brick" ? "hover:border-brick" : "hover:border-river"
-              }`}
+              className="group flex items-center gap-5 sm:gap-6 p-5 sm:p-6 border border-steel/25 hover:border-river transition-colors"
             >
               <div className="shrink-0">
                 {override?.imageUrl ? (

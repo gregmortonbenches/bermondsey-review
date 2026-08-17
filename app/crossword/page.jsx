@@ -55,7 +55,7 @@ export default async function CrosswordPage() {
         )}
 
         <p className="mt-10 pt-6 border-t border-steel/20">
-          <Link href="/crossword/archive" className="font-sans text-sm text-steel hover:text-brick underline underline-offset-4">
+          <Link href="/crossword/archive" className="font-sans text-sm text-steel hover:text-river underline underline-offset-4">
             Play the archive of previous crosswords
           </Link>
         </p>

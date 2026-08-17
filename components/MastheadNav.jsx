@@ -103,17 +103,15 @@ export default function MastheadNav({ logoUrl, siteTitle, links, isHomepage = fa
           {wordmark}
         </Link>
         <div className="justify-self-end">
-          {/* Literal `#87D6FF` (a light sky blue), not `bg-brick`/
-              `bg-river` — this button used to track the theme's brick
-              colour, but an admin-set (or stale-deployed) theme value
-              can drift away from whatever it's meant to look like; a
-              fixed value is the only way to guarantee this specific
-              button keeps this exact colour regardless, same reasoning
-              as the crossword-highlight/drop-cap's own fixed accents
-              elsewhere on the site. Still `text-ink`, not
-              `text-paper` — light enough a background that white text
-              would fail contrast the same way it did on the previous
-              yellow.
+          {/* The accent, at full strength — `bg-river`, tracking the
+              theme token again rather than the fixed pale `#87D6FF`
+              this carried before. The pale blue was chosen back when
+              the button had to sit quietly among a lot of other
+              colour; now that the rest of the page is black, white and
+              grey, the one saturated thing on the masthead should be
+              this. `text-paper` on it, not `text-ink` — the accent is
+              dark enough for white to be the readable choice, which it
+              was not on the pale blue or the yellow before it.
 
               `#newsletter`, not `/#newsletter` — a bare fragment stays on
               whatever page you're already on (the browser resolves it
@@ -134,7 +132,7 @@ export default function MastheadNav({ logoUrl, siteTitle, links, isHomepage = fa
               own same-document fragment navigation does fire it. */}
           <a
             href="#newsletter"
-            className="font-sans text-sm font-600 bg-[#87D6FF] text-ink px-4 py-2 hover:bg-ink hover:text-paper transition-colors whitespace-nowrap"
+            className="font-sans text-sm font-600 bg-river text-paper px-4 py-2 hover:bg-ink transition-colors whitespace-nowrap"
           >
             Subscribe
           </a>

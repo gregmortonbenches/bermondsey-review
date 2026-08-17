@@ -29,7 +29,7 @@ body {
   line-height: 0.8;
   padding-right: 0.5rem;
   padding-top: 0.3rem;
-  color: var(--drop-cap-color, #F5C518);
+  color: var(--drop-cap-color, #1D4ED8);
 }
 
 .hairline {
@@ -91,10 +91,12 @@ body {
   }
 }
 
-/* visible keyboard focus, per accessibility floor */
+/* visible keyboard focus, per accessibility floor. The accent blue, not
+   brick — brick is the error/alert colour now, and a focus ring is not an
+   error. */
 a:focus-visible,
 button:focus-visible {
-  outline: 2px solid var(--color-brick, #9C6B42);
+  outline: 2px solid var(--color-river, #1D4ED8);
   outline-offset: 3px;
 }
 

@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { createPost, updatePost, deletePost, uploadMedia } from "@/lib/posts";
 import { slugify } from "@/lib/slugify";
-import { categoryFamily } from "@/lib/articles";
 import BlockEditor, { ImageDropzone } from "./BlockEditor";
 import RevisionHistory from "./RevisionHistory";
 import ConfirmDialog from "./ConfirmDialog";
@@ -344,8 +343,9 @@ export default function PostForm({ mode, initialPost, themeVars }) {
 
   // Same accent PostRenderer uses, so the block canvas's drop cap, quote
   // border, and buttons match how the published piece will actually look.
-  const accent = categoryFamily(post.category);
-  const accentHex = accent === "brick" ? "var(--color-brick, #F5C518)" : "var(--color-river, #1D4ED8)";
+  // One accent for every piece, matching PostRenderer.jsx — see its own
+  // comment for why this stopped branching on the category family.
+  const accentHex = "var(--color-river, #1D4ED8)";
 
   return (
     <div>

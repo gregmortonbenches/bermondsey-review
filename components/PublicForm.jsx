@@ -118,7 +118,7 @@ export default function PublicForm({ form }) {
       <button
         type="submit"
         disabled={status === "submitting"}
-        className="font-sans text-sm font-600 bg-brick text-paper px-5 py-2.5 hover:bg-ink transition-colors disabled:opacity-60"
+        className="font-sans text-sm font-600 bg-river text-paper px-5 py-2.5 hover:bg-ink transition-colors disabled:opacity-60"
       >
         {status === "submitting" ? "Sending…" : "Submit"}
       </button>

@@ -296,9 +296,9 @@ export default function CrosswordGame({ crossword }) {
                       blocked
                         ? "bg-ink"
                         : isSelected
-                        ? "bg-[#F5C518]"
+                        ? "bg-river/[0.3]"
                         : inActiveWord
-                        ? "bg-river/[0.12]"
+                        ? "bg-river/[0.1]"
                         : "bg-paper hover:bg-steel/[0.08]"
                     } ${isWrong ? "text-brick" : "text-ink"}`}
                   >
