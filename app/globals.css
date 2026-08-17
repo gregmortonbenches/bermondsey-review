@@ -98,69 +98,6 @@ button:focus-visible {
   outline-offset: 3px;
 }
 
-/* The worm crossing in front of the header wordmark — see
-   components/HeaderArches.jsx (was a train; redrawn as a worm, same
-   size, crossing the same way — class/keyframe names renamed to match,
-   the overall timing untouched). Mostly holds off-screen to the left,
-   then takes ~9s to cross (slowed slightly twice now, from an original
-   ~7s — see components/HeaderWormSpeed.jsx's own WORM_SPEED_PX_PER_S),
-   once roughly every 41s — still a rare flourish, not a distracting
-   loop, all in one keyframes timeline rather than something
-   re-triggered on a client-side interval. prefers-reduced-motion below
-   already turns this (and every other animation) off entirely.
-
-   A version of this that wove up/down through the wordmark's own
-   letters (worm nested inside the wordmark box, five keyframe stops
-   with a bobbing Y wobble) shipped and was reverted — didn't work as
-   intended in practice — back to this simpler, proven straight
-   horizontal crossing below the title. Only the worm's colour (see
-   HeaderArches.jsx) survived that detour.
-
-   animation-duration/animation-delay read CSS custom properties, set by
-   components/HeaderWormSpeed.jsx once on mount and again on resize, so
-   the crossing takes genuinely constant real-world speed regardless of
-   viewport width — otherwise, since the crossing endpoint is
-   necessarily vw-relative (see the keyframes below), a fixed duration
-   means a wide desktop window makes the worm travel much further than
-   a narrow phone in that same fixed time, reading as faster on wide
-   screens even though nothing about the animation changed. See that
-   component's own comment for the full derivation.
-
-   The var() fallbacks (40.966s / -16.544s) are what that same
-   derivation gives for a ~1280px desktop — kept in sync by hand with
-   HeaderWormSpeed.jsx's own constants, since a CSS fallback obviously
-   can't import a JS value — so that's also what renders before its
-   effect runs, or if JS is disabled. Whatever the *current* delay
-   value is (fixed here, or computed there), the underlying idea is
-   unchanged: a negative delay makes the animation act as though that
-   much of its cycle had already elapsed, so it begins already inside
-   the hold phase instead of at
-   0%, landing the first crossing at real time ~15s rather than
-   waiting out a full hold phase first. Every crossing after that is
-   still one full cycle apart, since a negative delay only shifts the
-   starting phase, not the loop's own period. */
-.header-worm {
-  animation: header-worm-cross var(--worm-cycle-duration, 40.966s) linear infinite;
-  animation-delay: var(--worm-cross-delay, -16.544s);
-}
-@keyframes header-worm-cross {
-  0%,
-  77% {
-    /* % here, not vw: % on translateX is relative to the worm's own
-       width, so -100% always clears it fully regardless of viewport
-       size. -10vw (an earlier version of this) doesn't — it renders
-       wider than 10vw of a typical desktop viewport, so part of it
-       stayed visible even at rest. */
-    transform: translateX(-100%);
-  }
-  100% {
-    /* vw here is deliberate: the endpoint needs to clear the *strip's*
-       width, which % (relative to the worm's own small box) can't
-       express. */
-    transform: translateX(110vw);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;

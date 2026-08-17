@@ -1,8 +1,7 @@
 // The masthead's one illustrated flourish: a repeating line of brick
 // viaduct arches — the actual railway out of London Bridge through
 // Bermondsey, a real local landmark rather than a generic skyline — with
-// the wordmark sitting on top of it (like a building on a bridge deck)
-// and a train that crosses in front of the title every so often.
+// the wordmark sitting on top of it (like a building on a bridge deck).
 //
 // Originally its own full-width strip stacked above the wordmark row —
 // that made the whole masthead noticeably taller for what was, in the
@@ -10,10 +9,10 @@
 // wordmark row instead of adding a new one: HeaderArchesBackground sits
 // behind the title as an absolutely-positioned fill (no extra layout
 // height, since absolutely-positioned elements don't affect their
-// parent's size), and HeaderWorm sits above it, in front of the actual
-// text — both rendered by MastheadNav.jsx inside its own wordmark rows.
-// (HeaderWorm crosses the same way, at the same size, as the train it
-// replaced — see its own comment below for what changed and what didn't.)
+// parent's size) — rendered by MastheadNav.jsx inside its own wordmark
+// rows. (A worm used to cross in front of the title here too — a
+// straight-sided train, redrawn as a worm, then removed entirely; see
+// git history if any of that positioning logic is ever needed again.)
 //
 // Two earlier full-strip passes got the arch *style* wrong before
 // landing here (see git history for the abandoned filled-shape
@@ -33,8 +32,6 @@ const STROKE = "1.75";
 // bottom edge (its hairline, right above the nav links) regardless of
 // how tall the row is, rather than floating with a gap above that
 // hairline that a percentage-based top offset couldn't reliably close.
-// HeaderWorm anchors the same way, offset `bottom: BAND_H` so its
-// underside lands exactly on the parapet line at the *top* of this band.
 //
 // These proportions are a straight scale-down (~0.6x) of the original
 // standalone-strip version's own geometry (TILE_W 130, ARCH_W 85,
@@ -88,79 +85,6 @@ export function HeaderArchesBackground({ id }) {
           of the bridge deck. Right at the top of this band (y=0),
           SPRINGLINE_Y above where the arches themselves start. */}
       <line x1="0" y1="0" x2="100%" y2="0" className="stroke-ink" strokeWidth={STROKE} strokeLinecap="round" />
-    </svg>
-  );
-}
-
-// Was a five-carriage train (see git history) — same crossing, same
-// size, redrawn as a worm instead. "Moving like a train" meant keeping
-// every piece of *positioning/animation* infrastructure exactly as it
-// was (the viewBox, the rendered width, `bottom: BAND_H`, the `.header-
-// worm` class and its crossing keyframes) and changing only what's
-// actually drawn inside the `<g>` — a straight-sided body with a
-// pointed nose became a rounded capsule: a soft taper at the tail (the
-// left end, trailing during the crossing) and a fuller, blunter round
-// at the head (the right end, leading — same "leading edge on the
-// right" convention the train used, so it still reads as moving
-// forward once it starts crossing). The train's four carriage-joint
-// lines became four segment rings instead, at the same x-positions —
-// this is what actually reads as "worm" at a glance rather than "blank
-// tube": a plain capsule outline alone looks like a pill, not a
-// creature. Two dots near the head stand in for eyes, replacing the
-// train's single headlight circle and cab-window detail (neither of
-// which has a worm equivalent) — sized up from the train's own small
-// details (r 1.3 → 1.8) since a worm's eyes are more of its own
-// personality than a train's headlight ever was.
-//
-// Stroke colour is a literal light sky blue (`#87D6FF` — the same value
-// the Subscribe button now uses, see MastheadNav.jsx), not
-// `stroke-river`/`stroke-brick` like the rest of the masthead's
-// illustration — the worm's own colour, fixed, so it doesn't shift if
-// someone changes the theme colours in /admin/theme the way the arches
-// or the wordmark link would. Was a literal bright yellow (`#F5C518`)
-// before this, and a literal pink (`#E8809B`) before that.
-//
-// z-20 so it paints in front of the title text and the Subscribe
-// button, not just the arches behind them. `bottom: BAND_H` positions
-// its underside exactly on the parapet line (the arch band's own top
-// edge, BAND_H above the row's bottom) — a static CSS property distinct
-// from `transform`, so it doesn't conflict with `.header-worm`'s own
-// `transform: translateX(...)` crossing animation the way a static
-// `transform: translateY(...)` would (a CSS animation's own transform
-// value fully replaces whatever static value shared that property,
-// rather than composing with it — an earlier version needed a whole
-// second wrapper element just to work around that; positioning by
-// `bottom` instead of `transform: translateY` sidesteps the conflict
-// entirely, so one element can carry both).
-//
-// A weaving-through-the-letters version of this (worm nested inside the
-// wordmark's own box, top-1/2 + per-keyframe translateY wobble) shipped
-// and was reverted — didn't read as intended in practice — back to this
-// simpler, proven crossing. Only the colour survived that detour.
-//
-// viewBox height is 40, not 50: the drawn shape's lowest point (y=40)
-// needs to BE the bottom edge of the viewBox, not sit inside it with
-// empty space below — otherwise the worm's own bounding box lands
-// exactly where intended, but the visibly drawn shape sits
-// proportionally higher than that box, floating above the line it's
-// meant to rest on.
-export function HeaderWorm() {
-  return (
-    <svg
-      className="header-worm absolute left-0 z-20 w-64 sm:w-72 h-auto pointer-events-none"
-      style={{ bottom: BAND_H }}
-      viewBox="0 0 472 40"
-      aria-hidden="true"
-    >
-      <g fill="none" className="stroke-[#87D6FF]" strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M8 24 Q8 8 24 8 H442 Q466 8 466 24 Q466 40 442 40 H24 Q8 40 8 24 Z" />
-        <circle cx="450" cy="16" r="1.8" className="fill-[#87D6FF]" stroke="none" />
-        <circle cx="458" cy="17" r="1.8" className="fill-[#87D6FF]" stroke="none" />
-        <line x1="94" y1="8" x2="94" y2="40" strokeWidth="1.3" />
-        <line x1="180" y1="8" x2="180" y2="40" strokeWidth="1.3" />
-        <line x1="266" y1="8" x2="266" y2="40" strokeWidth="1.3" />
-        <line x1="352" y1="8" x2="352" y2="40" strokeWidth="1.3" />
-      </g>
     </svg>
   );
 }
