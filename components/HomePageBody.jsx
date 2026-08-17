@@ -2,7 +2,7 @@ import Masthead from "@/components/Masthead";
 import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
 import PuzzlesSection from "@/components/PuzzlesSection";
-import ArticleCarousel from "@/components/ArticleCarousel";
+import ArticleGrid from "@/components/ArticleGrid";
 import CartoonsSection from "@/components/CartoonsSection";
 import ThemeVars from "@/components/ThemeVars";
 import { createClient } from "@/lib/supabase/public";
@@ -61,13 +61,18 @@ export default async function HomePageBody() {
             hideHeaderDescription={section.hideHeaderDescription}
           />
         );
+      // Still typed "carousel" in stored page_layouts rows — the section
+      // is the same one, it just renders as a grid of large squares now
+      // rather than a horizontal scroll rail. Renaming the type would
+      // orphan every already-saved layout, so only the rendering
+      // changed. mobileCount/desktopCount aren't passed any more: those
+      // were "how many items per view" for the rail, which a fixed
+      // 2-up/1-up grid has no equivalent for.
       case "carousel":
         return (
-          <ArticleCarousel
+          <ArticleGrid
             key={section.id}
             articles={rest}
-            mobileCount={section.mobileCount}
-            desktopCount={section.desktopCount}
             headerTitle={section.headerTitle}
             headerDescription={section.headerDescription}
             hideHeaderDescription={section.hideHeaderDescription}

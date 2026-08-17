@@ -8,6 +8,16 @@ import { focalPointStyle } from "@/lib/media";
 import { SECTION_HEADER_DEFAULTS } from "@/lib/sections";
 
 /**
+ * NO LONGER RENDERED ANYWHERE. The homepage section this used to fill
+ * (type "carousel") now renders ArticleGrid — a grid of large square
+ * tiles — instead, in both HomePageBody.jsx and the admin layout canvas.
+ * Kept in the tree rather than deleted because a couple of the site's
+ * shared conventions still point here as their explanation (the `xs:`
+ * breakpoint in tailwind.config.js, `justify-safe-center` in
+ * globals.css/CartoonsSection.jsx), and because switching the homepage
+ * back is otherwise a one-line change. Safe to delete once those
+ * comments are rehomed.
+ *
  * Horizontal scrolling rail: image on top, title below, byline below that,
  * with a hairline divider between items — same device as the reference
  * screenshot, built with native scroll-snap rather than a JS carousel
