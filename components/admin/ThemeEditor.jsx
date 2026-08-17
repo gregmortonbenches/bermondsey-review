@@ -125,20 +125,30 @@ export default function ThemeEditor({ initialSettings }) {
         </p>
 
         <div className="space-y-5">
+          {/* These two swapped jobs when the palette went black-and-white
+              with a single accent (see lib/theme.js): river is now the
+              one accent the whole site spends, and brick is only ever
+              an error/alert colour. The labels said the opposite, which
+              is worse than saying nothing — river is listed first now,
+              since it's the one anyone actually comes here to change. */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-sans text-sm font-600 text-ink">Primary accent</p>
-              <p className="font-sans text-xs text-steel">Buttons, links, the wharf line</p>
+              <p className="font-sans text-sm font-600 text-ink">Accent</p>
+              <p className="font-sans text-xs text-steel">
+                Category labels, links, drop caps, Subscribe, the newsletter drawer
+              </p>
             </div>
-            <ColorField value={settings.brick_color} onChange={(v) => set("brick_color", v)} />
+            <ColorField value={settings.river_color} onChange={(v) => set("river_color", v)} />
           </div>
 
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-sans text-sm font-600 text-ink">Secondary accent</p>
-              <p className="font-sans text-xs text-steel">Masthead, nav hover, newsletter drawer</p>
+              <p className="font-sans text-sm font-600 text-ink">Alerts</p>
+              <p className="font-sans text-xs text-steel">
+                Errors, required fields, a wrong crossword letter — nothing decorative
+              </p>
             </div>
-            <ColorField value={settings.river_color} onChange={(v) => set("river_color", v)} />
+            <ColorField value={settings.brick_color} onChange={(v) => set("brick_color", v)} />
           </div>
 
           {(settings.brick_color !== DEFAULT_SITE_SETTINGS.brick_color ||
