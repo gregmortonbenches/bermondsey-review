@@ -2,15 +2,21 @@
 
 import { useEffect, useState } from "react";
 
-// Three presets, not a continuous slider — "medium" is deliberately the
-// same 1.125rem paragraph text already used everywhere else (see
-// BlockContent.jsx's own comment on --article-font-size), so a visitor
-// who never touches this control sees exactly what always shipped; only
-// choosing "small" or "large" changes anything.
+// Three presets, not a continuous slider. Two rem values each, not one —
+// mobile's own "medium" reads slightly larger than desktop's (19px vs
+// 18px), matched by CSS media query rather than JS viewport-detection
+// (see BlockContent.jsx's own comment on the two --article-font-size-*
+// properties for why); small/large are the same ladder shifted by that
+// same one-step difference, not left at their old desktop-only values,
+// so choosing "small" or "large" on mobile still reads as one deliberate
+// step away from mobile's own baseline rather than from desktop's.
+// desktopRem is untouched from what this was before mobile got its own
+// values — a visitor on desktop who never touches this control still
+// sees exactly what always shipped.
 const TEXT_SIZES = [
-  { id: "small", rem: "1rem", glyphClass: "text-xs" },
-  { id: "medium", rem: "1.125rem", glyphClass: "text-sm" },
-  { id: "large", rem: "1.35rem", glyphClass: "text-base" },
+  { id: "small", mobileRem: "1.0625rem", desktopRem: "1rem", glyphClass: "text-xs" },
+  { id: "medium", mobileRem: "1.1875rem", desktopRem: "1.125rem", glyphClass: "text-sm" },
+  { id: "large", mobileRem: "1.375rem", desktopRem: "1.35rem", glyphClass: "text-base" },
 ];
 
 // First use of localStorage in this codebase — a genuinely per-visitor
@@ -48,13 +54,13 @@ function CheckIcon() {
  * The article's own metadata rail — author/illustrator credits, a text-
  * size control, share, and the publish date/category. Rendered by
  * PostRenderer.jsx as a sibling of the article body, not a wrapper
- * around it — the two communicate only through --article-font-size, a
- * CSS custom property written to document.documentElement (same
- * technique HeaderWormSpeed.jsx already uses for the header worm's
- * animation speed), which BlockContent.jsx's paragraph text reads
- * regardless of where in the component tree either one actually sits —
- * plain DOM/CSS cascade, not React state, so this needed no context or
- * lifting state up into PostRenderer itself.
+ * around it — the two communicate only through a pair of CSS custom
+ * properties (--article-font-size-mobile/-desktop) written to
+ * document.documentElement (same technique HeaderWormSpeed.jsx already
+ * uses for the header worm's animation speed), which BlockContent.jsx's
+ * paragraph text reads regardless of where in the component tree either
+ * one actually sits — plain DOM/CSS cascade, not React state, so this
+ * needed no context or lifting state up into PostRenderer itself.
  *
  * Text size only affects paragraph body text, not headings, quotes, or
  * captions — matches how most "reading mode" font-size controls work
@@ -80,9 +86,14 @@ export default function ArticleSidebar({ author, illustrator, publishedAt, categ
     if (TEXT_SIZES.some((s) => s.id === storedSize)) setTextSize(storedSize);
   }, []);
 
+  // Both variables set together, unconditionally, every time — which one
+  // actually applies is decided by BlockContent.jsx's own CSS media
+  // query, not here, so this never needs to know or react to the
+  // current viewport width itself.
   useEffect(() => {
     const size = TEXT_SIZES.find((s) => s.id === textSize) || TEXT_SIZES[1];
-    document.documentElement.style.setProperty("--article-font-size", size.rem);
+    document.documentElement.style.setProperty("--article-font-size-mobile", size.mobileRem);
+    document.documentElement.style.setProperty("--article-font-size-desktop", size.desktopRem);
     localStorage.setItem(STORAGE_KEY_SIZE, textSize);
   }, [textSize]);
 
