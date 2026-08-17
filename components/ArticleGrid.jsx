@@ -37,9 +37,10 @@ export default function ArticleGrid({ articles }) {
     // article carousel, etc).
     <div className="grid sm:grid-cols-2 gap-2 sm:gap-3">
       {articles.map((article) => {
+        // The category still drives the tile's tint and its illustration
+        // — it just isn't spelled out as a label any more.
         const accent = categoryFamily(article.category);
         const tint = accent === "brick" ? "bg-brick/[0.12]" : "bg-river/[0.1]";
-        const labelColor = accent === "brick" ? "text-brick" : "text-river";
 
         return (
           <Link
@@ -50,9 +51,6 @@ export default function ArticleGrid({ articles }) {
             // to stretch either to match its sibling.
             className={`group aspect-square flex flex-col items-center text-center px-6 pt-8 pb-4 sm:px-8 sm:pt-10 border border-steel/25 hover:border-ink transition-colors overflow-hidden ${tint}`}
           >
-            <p className={`font-sans text-xs tracking-[0.14em] uppercase mb-2 ${labelColor}`}>
-              {article.category || "Uncategorised"}
-            </p>
             {/* line-clamped: a square is a fixed height budget, unlike a
                 card that can just grow — an unbounded title/dek would
                 quietly eat the room the illustration needs. */}
