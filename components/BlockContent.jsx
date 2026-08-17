@@ -15,9 +15,24 @@ import BermondseyometerBlock from "./BermondseyometerBlock";
 // So this is sanitized right here, at the one place it's turned into
 // markup for a browser — not just trusted because it came from "the
 // editor."
+//
+// br's "pb" class specifically (not classes generally — allowedClasses
+// pins it to that one literal value) is the paragraph-break marker
+// EditableParagraph inserts on a plain Enter keypress: without it, a
+// writer's own paragraph breaks don't survive at all (see that
+// component's own comment for the full story — Chrome's native Enter
+// behaviour wraps the new line in a <div>, which isn't in this allowlist
+// and gets unwrapped, silently gluing the two paragraphs into one run-on
+// line with no space between them). A plain, unclassed <br> (Shift+Enter)
+// still renders as an ordinary line break — the [&_br.pb] rule below is
+// what gives only the classed marker its own paragraph-sized gap.
 const ALLOWED_TAGS = ["strong", "em", "a", "b", "i", "br"];
 function sanitizeBlockHtml(html) {
-  return sanitizeHtml(html || "", { allowedTags: ALLOWED_TAGS, allowedAttributes: { a: ["href", "target", "rel"] } });
+  return sanitizeHtml(html || "", {
+    allowedTags: ALLOWED_TAGS,
+    allowedAttributes: { a: ["href", "target", "rel"], br: ["class"] },
+    allowedClasses: { br: ["pb"] },
+  });
 }
 
 // Button blocks store a plain URL string, not markup, but it still comes
@@ -161,7 +176,7 @@ function renderBlockBody(block, i, list, accentHex) {
         // — quotes/headings/captions stay their own fixed sizes on
         // purpose, same "only the bulk reading content resizes" scoping
         // most reading-mode controls use.
-        className={`font-body text-[length:var(--article-font-size-mobile,1.1875rem)] sm:text-[length:var(--article-font-size-desktop,1.125rem)] leading-relaxed text-ink [&_a]:underline [&_a]:underline-offset-2 ${
+        className={`font-body text-[length:var(--article-font-size-mobile,1.1875rem)] sm:text-[length:var(--article-font-size-desktop,1.125rem)] leading-relaxed text-ink [&_a]:underline [&_a]:underline-offset-2 [&_br.pb]:block [&_br.pb]:mt-3 ${
           isFirst ? "drop-cap" : ""
         }`}
         style={isFirst ? { "--drop-cap-color": accentHex } : undefined}

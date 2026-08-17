@@ -725,6 +725,40 @@ function ColumnsField({ block, onChange, supabase, accentHex }) {
 // nothing to do), and the effect only writes `innerHTML` for changes
 // that came from somewhere else — initial mount, or an external replace
 // like a revision restore.
+//
+// Plain Enter is hand-rolled rather than left to the browser's own
+// default: Chrome's native behaviour wraps the new line in a bare <div>
+// (or <p>, depending on defaultParagraphSeparator, but inconsistently
+// where the very first line stays unwrapped) — and "div" isn't in
+// sanitizeBlockHtml's ALLOWED_TAGS (BlockContent.jsx), so sanitize-html
+// unwraps it on publish, silently deleting the only thing marking where
+// one paragraph ended and the next began. The two paragraphs a writer
+// typed as visibly separate would ship glued into one run-on sentence
+// with no space between them — this is exactly the bug being fixed
+// here, not a hypothetical one (confirmed by sanitizing real captured
+// output). Shift+Enter is left alone — the browser's own default there
+// (a plain <br>) is already in ALLOWED_TAGS and survives untouched, and
+// is exactly right for a soft line break within one paragraph rather
+// than a new one.
+//
+// The fix inserts a real <br class="pb"> node directly via the
+// Selection/Range API (not execCommand("insertHTML", ...): tried first,
+// but it reliably left the caret positioned *before* the inserted node
+// rather than after it, so continuing to type pushed new text in front
+// of the marker instead of behind it — confirmed by dumping innerHTML
+// after each keystroke). A zero-width-space text node placed right
+// after the <br> gives the caret an unambiguous place to land — "after
+// an element with nothing following it" turned out to be a genuinely
+// ambiguous position for a contentEditable's own caret logic, which is
+// what caused the same before-not-after symptom even after manually
+// setting the Range's boundary. The zero-width space is stripped out of
+// the string this component ever passes to onChange (see handleInput)
+// — it only exists to give the live DOM a caret anchor while typing,
+// never in what gets stored or published. See globals.css / BlockContent.jsx's
+// [&_br.pb] rules for how the marker actually renders as a paragraph
+// gap rather than a plain line break.
+const ZERO_WIDTH_SPACE = "\u200B";
+
 const EditableParagraph = forwardRef(function EditableParagraph({ html, onChange, isFirst, accentHex }, forwardedRef) {
   const innerRef = useRef(null);
   const skipNextSync = useRef(false);
@@ -749,7 +783,33 @@ const EditableParagraph = forwardRef(function EditableParagraph({ html, onChange
 
   function handleInput(e) {
     skipNextSync.current = true;
-    onChange(e.currentTarget.innerHTML);
+    onChange(e.currentTarget.innerHTML.split(ZERO_WIDTH_SPACE).join(""));
+  }
+
+  function handleKeyDown(e) {
+    if (e.key !== "Enter" || e.shiftKey) return;
+    e.preventDefault();
+    // An empty block has nothing yet for a break to separate — inserting
+    // the marker anyway would leave a floating <br class="pb"> with no
+    // text on either side, which also hides the "Write a paragraph…"
+    // placeholder (isEmpty only recognises a bare "<br>", not this).
+    if (!innerRef.current.textContent) return;
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+    const range = selection.getRangeAt(0);
+    range.deleteContents();
+    const br = document.createElement("br");
+    br.className = "pb";
+    range.insertNode(br);
+    const anchor = document.createTextNode(ZERO_WIDTH_SPACE);
+    br.after(anchor);
+    range.setStart(anchor, 1);
+    range.setEnd(anchor, 1);
+    range.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    skipNextSync.current = true;
+    onChange(innerRef.current.innerHTML.split(ZERO_WIDTH_SPACE).join(""));
   }
 
   return (
@@ -764,7 +824,8 @@ const EditableParagraph = forwardRef(function EditableParagraph({ html, onChange
         contentEditable
         suppressContentEditableWarning
         onInput={handleInput}
-        className={`font-body text-lg leading-relaxed text-ink outline-none [&_a]:underline [&_a]:underline-offset-2 ${
+        onKeyDown={handleKeyDown}
+        className={`font-body text-lg leading-relaxed text-ink outline-none [&_a]:underline [&_a]:underline-offset-2 [&_br.pb]:block [&_br.pb]:mt-3 ${
           isFirst ? "drop-cap" : ""
         }`}
         style={isFirst ? { "--drop-cap-color": accentHex } : undefined}
