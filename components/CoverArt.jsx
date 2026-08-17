@@ -59,12 +59,16 @@ const FAMILY_STYLES = {
 // continuous coloured square with the illustration floating inside,
 // where a second tint stacked on the first would show up as a visible
 // darker panel rather than one flat colour.
-export default function CoverArt({ category, className = "", bare = false, artClass = "w-1/2 h-1/2" }) {
+// `toneClass` overrides the category's own brick/river colour — the
+// homepage grid draws these in plain ink instead, so colour there is
+// something the design spends deliberately rather than the default state
+// of every illustration on the page.
+export default function CoverArt({ category, className = "", bare = false, artClass = "w-1/2 h-1/2", toneClass }) {
   const icon = ICONS[category] || ICONS.Culture;
   const { tint, textClass } = FAMILY_STYLES[categoryFamily(category)];
   return (
     <div className={`${bare ? "" : tint} flex items-center justify-center ${className}`}>
-      <svg viewBox="0 0 72 68" className={`${artClass} ${textClass}`} aria-hidden="true">
+      <svg viewBox="0 0 72 68" className={`${artClass} ${toneClass || textClass}`} aria-hidden="true">
         <g fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           {icon}
         </g>

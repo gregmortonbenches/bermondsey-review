@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { categoryFamily } from "@/lib/articles";
 import CoverArt from "./CoverArt";
 import SectionHeader from "./SectionHeader";
 import { SECTION_HEADER_DEFAULTS } from "@/lib/sections";
@@ -55,26 +54,31 @@ export default function ArticleGrid({ articles, headerTitle, headerDescription, 
       <SectionHeader
         title={headerTitle || SECTION_HEADER_DEFAULTS.carousel.title}
         description={hideHeaderDescription ? "" : headerDescription || SECTION_HEADER_DEFAULTS.carousel.description}
+        viewAllHref="/latest"
       />
-      {/* A thin gap, not the site's usual generous gap-6/gap-8 — Apple's
-          own tile grids run nearly edge-to-edge with barely a seam of
-          page background between them, a deliberately tighter feel than
-          this paper's normal whitespace-heavy spacing. */}
+      {/* A thin gap, not the site's usual generous gap-6/gap-8 — the
+          tiles read as one block of grid rather than four separate
+          cards floating apart from each other. */}
       <div className="grid sm:grid-cols-2 gap-2 sm:gap-3">
-        {tiles.map((article) => {
-          // The category still drives the tile's tint and its
-          // illustration — it just isn't spelled out as a label any more.
-          const accent = categoryFamily(article.category);
-          const tint = accent === "brick" ? "bg-brick/[0.12]" : "bg-river/[0.1]";
-
-          return (
+        {tiles.map((article) => (
             <Link
               key={article.slug}
               href={`/article/${article.slug}`}
+              // No category tint any more: those were pale washes of
+              // brick/river filling the whole square, which read as
+              // decoration rather than as colour meaning anything. A
+              // barely-there grey gives the tile presence without
+              // spending colour on it — grey is structure here, the way
+              // the hairlines are.
+              //
+              // Left-aligned, not centred: the section header above is
+              // left-aligned under its rule now, and centred tiles under
+              // a left-aligned header read as two different systems.
+              //
               // aspect-square: two equal-width grid siblings sharing one
               // fixed ratio come out the same height for free, with no
               // need to stretch either to match its sibling.
-              className={`group aspect-square flex flex-col items-center text-center px-6 pt-8 pb-4 sm:px-8 sm:pt-10 border border-steel/25 hover:border-ink transition-colors overflow-hidden ${tint}`}
+              className="group aspect-square flex flex-col items-start text-left px-6 pt-8 pb-4 sm:px-8 sm:pt-10 border border-steel/25 hover:border-ink transition-colors overflow-hidden bg-steel/[0.05]"
             >
               {/* line-clamped: a square is a fixed height budget, unlike
                   a card that can just grow — an unbounded title/dek would
@@ -92,12 +96,21 @@ export default function ArticleGrid({ articles, headerTitle, headerDescription, 
                   does in Apple's own tiles — the lower half of the tile
                   is the picture, not a small centred motif with dead
                   colour around it. */}
+              {/* Drawn in ink, not the category's brick/river — every
+                  illustration being coloured by default is what made the
+                  page read as colourful rather than as black and white
+                  with colour used for something. */}
               <div className="flex-1 min-h-0 w-full mt-4">
-                <CoverArt category={article.category} className="h-full" bare artClass="w-auto h-full max-w-[70%]" />
+                <CoverArt
+                  category={article.category}
+                  className="h-full"
+                  bare
+                  artClass="w-auto h-full max-w-[58%]"
+                  toneClass="text-ink"
+                />
               </div>
             </Link>
-          );
-        })}
+        ))}
       </div>
     </section>
   );

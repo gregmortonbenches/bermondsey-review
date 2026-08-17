@@ -20,6 +20,13 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
 
 ## Design system
 
+## Section headers left-aligned under a rule; homepage tiles stripped back to grey
+
+- **Section headers are no longer centred.** A rule across the full width, the section's name under its left end, and an optional "View all →" on the right — the banner treatment the magazines this paper takes after (The New York Review of Architecture, The Fence) use, rather than a centred title floating between two blocks of content. A centred label reads as a title card for a section; a left-aligned one under a rule reads as signage on a running page, which is what these are. `viewAllHref` is opt-in and only the articles grid passes one (`/latest`) — puzzles and cartoons have no "all of them" page to point at. Applies to every homepage section at once, since they all share `SectionHeader.jsx`.
+- **The homepage grid's category tints are gone.** Each square used to be filled with a pale wash of brick or river; those read as decoration rather than as colour meaning anything, and at four-squares-per-screen they dominated the page. Tiles are a barely-there grey (`bg-steel/[0.05]`) with a hairline now — grey as structure, the way the rules are, rather than colour spent on a background. Their illustrations are drawn in plain ink too, via a new `toneClass` override on `CoverArt`: every illustration being category-coloured by default was a large part of what made the page read as colourful rather than as black-and-white with colour used deliberately.
+- **Tile text is left-aligned**, following the header — centred tiles under a left-aligned header read as two different systems. Compared four treatments (white vs faint grey tile, black vs grey artwork, centred vs left) before settling here.
+- Note this only covers the homepage grid and the section headers. The category tints still fill the article hero band and the featured card, category labels and drop caps are still brick/river, cartoons still draw in yellow, and the Subscribe button is still a fixed light blue — the wider palette is a separate, larger change.
+
 ## The homepage's article rail is now a grid of large squares
 
 - **The horizontally-scrolling article carousel became a 2-up grid of big square tiles** (one per row on mobile), prompted by Apple's own homepage promo tiles. `components/ArticleGrid.jsx` renders it; `ArticleCarousel.jsx` is still in the tree but no longer rendered anywhere.
