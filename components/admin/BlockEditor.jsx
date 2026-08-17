@@ -7,6 +7,7 @@ import { getYouTubeEmbedUrl } from "@/lib/youtube";
 import MediaPicker from "./MediaPicker";
 import CarouselCountControl from "./CarouselCountControl";
 import RankedListBlock from "../RankedListBlock";
+import BermondseyometerBlock from "../BermondseyometerBlock";
 import { parseBulkRows } from "@/lib/rankedList";
 import { sanitizeGenericHtml, HTML_BLOCK_CLASS } from "../BlockContent";
 import { usePublishOutline } from "./EditorOutlineContext";
@@ -39,6 +40,7 @@ const BLOCK_TYPES = [
   { type: "embed", label: "Embed" },
   { type: "html", label: "HTML" },
   { type: "ranked-list", label: "Ranked list" },
+  { type: "bermondseyometer", label: "Postcode checker" },
   { type: "spacer", label: "Spacer" },
   { type: "divider", label: "Divider" },
   { type: "columns", label: "Columns" },
@@ -105,6 +107,8 @@ function emptyBlockFor(type) {
       return { type, html: "" };
     case "ranked-list":
       return { type, title: "", totalResponses: 0, rows: [] };
+    case "bermondseyometer":
+      return { type };
     case "spacer":
       return { type, size: "medium" };
     case "divider":
@@ -669,6 +673,7 @@ function BlockCanvasItem({
         {block.type === "ranked-list" && (
           <RankedListField block={block} onChange={onChange} accentHex={accentHex} />
         )}
+        {block.type === "bermondseyometer" && <BermondseyometerBlock accentHex={accentHex} />}
         {block.type === "spacer" && <SpacerField block={block} onChange={onChange} />}
         {block.type === "columns" && (
           <ColumnsField block={block} onChange={onChange} supabase={supabase} accentHex={accentHex} />
