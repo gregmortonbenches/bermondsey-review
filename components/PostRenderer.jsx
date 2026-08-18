@@ -41,7 +41,7 @@ export default function PostRenderer({ post }) {
           <CoverArt category={post.category} className="aspect-[4/3]" />
         )}
         {post.title && <p className="font-display italic text-xl text-ink mt-6">{post.title}</p>}
-        {post.author && <p className="font-sans text-sm text-steel mt-2">{post.author}</p>}
+        {post.author && <p className="font-sans text-sm uppercase tracking-[0.06em] text-steel mt-2">{post.author}</p>}
       </article>
     );
   }
@@ -72,7 +72,7 @@ export default function PostRenderer({ post }) {
                 before this return): they don't get a sidebar at all
                 (no split hero band, no body blocks to make one relevant
                 for), so that's still the only place it appears there. */}
-            {post.dek && <p className="font-body text-lg sm:text-xl text-ink/70 mt-4">{post.dek}</p>}
+            {post.dek && <p className="font-body italic text-lg sm:text-xl text-ink/70 mt-4">{post.dek}</p>}
           </div>
           {post.cover_image_url ? (
             <div className="relative aspect-[4/3] sm:aspect-auto sm:h-full">

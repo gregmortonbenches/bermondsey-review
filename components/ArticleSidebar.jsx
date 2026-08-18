@@ -122,13 +122,13 @@ export default function ArticleSidebar({ author, illustrator, publishedAt, categ
       {author && (
         <div>
           <p className="font-sans text-xs text-steel mb-1">Author</p>
-          <p className="font-display text-lg text-ink leading-snug">{author}</p>
+          <p className="font-display text-lg uppercase tracking-[0.03em] text-ink leading-snug">{author}</p>
         </div>
       )}
       {illustrator && (
         <div>
           <p className="font-sans text-xs text-steel mb-1">Illustration</p>
-          <p className="font-display text-lg text-ink leading-snug">{illustrator}</p>
+          <p className="font-display text-lg uppercase tracking-[0.03em] text-ink leading-snug">{illustrator}</p>
         </div>
       )}
 

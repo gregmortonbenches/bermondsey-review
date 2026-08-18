@@ -113,7 +113,7 @@ export default function CartoonsSection({ cartoons, headerTitle, headerDescripti
               <p className="font-display font-700 text-base text-ink underline-offset-4 group-hover:underline group-active:underline">
                 {cartoon.title}
               </p>
-              {cartoon.author && <p className="font-sans text-xs text-steel mt-0.5">{cartoon.author}</p>}
+              {cartoon.author && <p className="font-sans text-xs uppercase tracking-[0.06em] text-steel mt-0.5">{cartoon.author}</p>}
             </Link>
           </div>
         ))}
