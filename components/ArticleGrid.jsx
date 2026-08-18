@@ -3,45 +3,32 @@ import CoverArt from "./CoverArt";
 import SectionHeader from "./SectionHeader";
 import { SECTION_HEADER_DEFAULTS } from "@/lib/sections";
 
-// A grid of large squares is a lot taller per item than the scrolling
-// rail it replaced, where any number of articles cost the same vertical
-// space. Showing every past article as its own square would run the
-// homepage to many screens, so this shows a fixed handful — two clean
-// rows on desktop — and the full archive stays one click away behind the
-// nav's own Reviews link (/latest).
-const MAX_TILES = 4;
-
 /**
- * The homepage's "more articles" section: two large square tiles per row
- * on desktop, stacked on mobile. Replaced ArticleCarousel (a horizontal
- * scroll-snap rail) in that slot — that component is still in the tree
- * but no longer rendered anywhere.
+ * The homepage's "more articles" section: a horizontally-scrolling rail
+ * of large tiles, one row on desktop with two in view, two rows on
+ * mobile with the column peeking at the edge.
  *
- * Structured like Apple's own homepage promo tiles — one continuous
- * coloured square per item, headline at the top, artwork floating in the
- * space below it — rather than the split "text band above, photo band
- * below" a card usually gets here. That structure depends on the artwork
- * being a line illustration on a transparent ground (which reads as
- * floating *in* the tile's colour) rather than a rectangular photo
- * (which would need its own hard edge and re-introduce the seam). The
- * article's actual cover photo isn't used here at all — it stays at the
- * top of the piece itself.
+ * Laid out with `grid-auto-flow: column`, so items fill top-to-bottom
+ * then left-to-right — on mobile the first article is the top-left tile,
+ * the second sits under it, the third begins the next column, and so on.
+ * That's a genuine CSS grid doing the work, not a JS carousel: the
+ * scrolling is native overflow with scroll-snap, same approach the old
+ * ArticleCarousel used.
  *
- * Everything else stays in this paper's own visual language rather than
- * Apple's: square corners, flat category tints, a hairline border, no
- * gradients, shadows, or pill buttons.
+ * No cap on how many articles show. A wrapping grid of big tiles had one
+ * (four), because every extra article cost another row of page height; a
+ * rail costs none, so the limit came off with the wrapping.
  *
- * Trades breadth for presence: a capped 2-up grid shows far fewer
- * articles than the scrolling rail it replaced, so it reads as a
- * "recent highlights" spread rather than the site's way to reach older
- * content — /latest is that.
+ * Structurally this borrows from Apple's homepage promo tiles — headline
+ * leading, artwork holding the rest of the tile — but everything about
+ * how it *looks* is this paper's own: square corners, flat grey, no
+ * gradients, shadows or pill buttons. See CLAUDE.md.
  *
  * Takes the same header props as every other reorderable homepage
- * section, so the layout builder's own title/description fields keep
- * working exactly as they did for the carousel.
+ * section, so the layout builder's title/description fields keep working.
  */
 export default function ArticleGrid({ articles, headerTitle, headerDescription, hideHeaderDescription }) {
-  const tiles = (articles || []).slice(0, MAX_TILES);
+  const tiles = articles || [];
   if (tiles.length === 0) return null;
 
   return (
@@ -56,10 +43,23 @@ export default function ArticleGrid({ articles, headerTitle, headerDescription, 
         description={hideHeaderDescription ? "" : headerDescription || SECTION_HEADER_DEFAULTS.carousel.description}
         viewAllHref="/latest"
       />
-      {/* A thin gap, not the site's usual generous gap-6/gap-8 — the
-          tiles read as one block of grid rather than four separate
-          cards floating apart from each other. */}
-      <div className="grid sm:grid-cols-2 gap-2 sm:gap-3">
+      {/* grid-flow-col + a fixed row count is what makes this fill
+          column-major (top, bottom, next column) rather than wrapping
+          into new rows. auto-cols sets each column's width, which is
+          what decides how many are in view: 72% on mobile so the next
+          column peeks at the edge and the rail reads as scrollable,
+          and exactly half the container minus one gap on desktop, so
+          two sit in view and the third is cut cleanly at the edge.
+
+          The negative margin/padding pair lets the rail bleed to the
+          screen edge on mobile while its first tile still lines up with
+          the section header above it — same trick the old
+          ArticleCarousel used.
+
+          A thin gap, not the site's usual generous gap-6/gap-8: the
+          tiles should read as one run of grid rather than separate
+          cards floating apart. */}
+      <div className="grid grid-flow-col grid-rows-2 sm:grid-rows-1 auto-cols-[72%] sm:auto-cols-[calc(50%_-_0.375rem)] gap-2 sm:gap-3 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 pb-2 [scrollbar-width:thin]">
         {tiles.map((article) => (
             <Link
               key={article.slug}
@@ -79,7 +79,7 @@ export default function ArticleGrid({ articles, headerTitle, headerDescription, 
               // page. Hover deepens the fill instead of darkening a line;
               // the headline underlines on hover too, so the affordance
               // doesn't rest on the tile alone.
-              className="group flex flex-col aspect-[3/4] sm:aspect-square overflow-hidden transition-colors bg-steel/[0.05] hover:bg-steel/[0.09]"
+              className="group snap-start flex flex-col aspect-[3/4] sm:aspect-square overflow-hidden transition-colors bg-steel/[0.05] hover:bg-steel/[0.09]"
             >
               <div className="px-6 pt-6 sm:px-8 sm:pt-8">
                 {/* Bigger and tighter than a card headline would be: this
