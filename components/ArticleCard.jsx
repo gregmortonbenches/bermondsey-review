@@ -1,9 +1,18 @@
 import Link from "next/link";
 import Image from "next/image";
 import CoverArt from "./CoverArt";
+import Headline from "./Headline";
 import { focalPointStyle } from "@/lib/media";
+import { categoryInk } from "@/lib/categories";
+import { formatCardDate } from "@/lib/articles";
 
 export default function ArticleCard({ article, size = "regular" }) {
+  // Author and date share one credit line rather than getting a row
+  // each — a middle dot between them is the standard magazine dateline,
+  // and it costs no extra vertical rhythm in a card that's already
+  // stacking category, headline and dek above it.
+  const creditLine = [article.author, formatCardDate(article.published_at)].filter(Boolean).join(" · ");
+
   if (size === "featured") {
     // Same lead treatment as the article's own page (PostRenderer.jsx) —
     // a category-tinted band with the headline block and image side by
@@ -26,14 +35,16 @@ export default function ArticleCard({ article, size = "regular" }) {
       >
         <div className="grid sm:grid-cols-2 sm:min-h-[360px]">
           <div className="px-6 sm:px-10 py-8 sm:py-10 flex flex-col justify-center">
-            <p className="font-sans text-xs tracking-[0.14em] uppercase mb-3 text-river">
+            {/* Category ink, not the fixed river blue every kicker used to
+                share — see lib/categories.js. */}
+            <p className="font-sans text-xs tracking-[0.14em] uppercase mb-3" style={{ color: categoryInk(article.category) }}>
               {article.category}
             </p>
-            <h3 className="font-display font-700 text-3xl sm:text-4xl text-ink leading-tight underline-offset-4 group-hover:underline group-active:underline">
+            <Headline className="font-display font-700 text-3xl sm:text-4xl text-ink leading-tight">
               {article.title}
-            </h3>
+            </Headline>
             {article.dek && <p className="font-body italic text-base sm:text-lg text-ink/70 mt-3">{article.dek}</p>}
-            {article.author && <p className="font-sans text-sm uppercase tracking-[0.06em] text-ink/70 mt-3">{article.author}</p>}
+            {creditLine && <p className="font-sans text-sm uppercase tracking-[0.06em] text-ink/70 mt-3">{creditLine}</p>}
           </div>
           {article.cover_image_url ? (
             <div className="relative aspect-[4/3] sm:aspect-auto sm:h-full">
@@ -73,14 +84,14 @@ export default function ArticleCard({ article, size = "regular" }) {
   // row's minimum height.
   return (
     <Link href={`/article/${article.slug}`} className="group block py-4 hairline-b">
-      <p className="font-sans text-xs tracking-[0.14em] uppercase mb-2 text-river">
+      <p className="font-sans text-xs tracking-[0.14em] uppercase mb-2" style={{ color: categoryInk(article.category) }}>
         {article.category}
       </p>
-      <h3 className="font-display font-700 text-lg sm:text-xl text-ink leading-tight underline-offset-4 group-hover:underline group-active:underline">
+      <Headline className="font-display font-700 text-lg sm:text-xl text-ink leading-tight">
         {article.title}
-      </h3>
+      </Headline>
       <p className="font-body italic text-sm text-steel mt-2 hidden sm:block">{article.dek}</p>
-      <p className="font-sans text-xs uppercase tracking-[0.06em] text-steel mt-3">{article.author}</p>
+      {creditLine && <p className="font-sans text-xs uppercase tracking-[0.06em] text-steel mt-3">{creditLine}</p>}
     </Link>
   );
 }

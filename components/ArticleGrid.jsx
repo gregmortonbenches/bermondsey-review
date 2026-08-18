@@ -1,7 +1,10 @@
 import Link from "next/link";
 import CoverArt from "./CoverArt";
+import Headline from "./Headline";
 import SectionHeader from "./SectionHeader";
 import { SECTION_HEADER_DEFAULTS } from "@/lib/sections";
+import { categoryInk } from "@/lib/categories";
+import { formatCardDate } from "@/lib/articles";
 
 /**
  * The homepage's "more articles" section: a horizontally-scrolling rail
@@ -124,23 +127,37 @@ export default function ArticleGrid({ articles, headerTitle, headerDescription, 
                 />
               </div>
               <div className="px-6 mt-3 pb-5 sm:px-8 sm:pb-7">
+                {/* A flat colour rule, not the category name back again —
+                    that text was deliberately removed. But with no
+                    category tint left on the artwork either (CoverArt's
+                    own tone is fixed now, see its comment), these tiles
+                    had drifted to genuinely indistinguishable by category:
+                    a reader can no longer tell a Books piece from a Film
+                    piece without opening it. A 3px rule in that category's
+                    ink restores the sort-by-colour-at-a-glance the label
+                    used to give, at a fraction of the visual weight —
+                    closer to a printer's spot colour than a caption. */}
+                <div className="w-10 h-[3px] mb-3" style={{ backgroundColor: categoryInk(article.category) }} />
                 {/* Bigger and tighter than a card headline would be: this
                     is the tile's whole subject, and at this size it holds
                     the space the way a product name does in Apple's own
                     tiles. Tight tracking and near-solid leading keep a
                     two- or three-line headline reading as one block
                     rather than a stack of separate lines.
-                    The underline lives on an inner span, not the h3
-                    itself: line-clamp-3 puts the h3 in display:-webkit-box,
-                    and a hover underline painted directly on that box only
-                    renders under the first line in Chrome/Safari — a span
-                    is genuinely inline, so its underline follows every
-                    wrapped line correctly. */}
-                <h3 className="font-display font-700 text-[1.5rem] sm:text-[2rem] text-ink leading-[1.03] tracking-[-0.015em] line-clamp-3">
-                  <span className="group-hover:underline underline-offset-4">{article.title}</span>
-                </h3>
-                {article.author && (
-                  <p className="font-sans text-xs uppercase tracking-[0.06em] text-steel mt-2 sm:mt-3">{article.author}</p>
+                    Renders through Headline.jsx, not a hand-rolled h3 +
+                    span — see that component's own comment for why the
+                    clamp and the hover-underline have to live on two
+                    different elements. */}
+                <Headline
+                  className="font-display font-700 text-[1.5rem] sm:text-[2rem] text-ink leading-[1.03] tracking-[-0.015em]"
+                  lineClampClassName="line-clamp-3"
+                >
+                  {article.title}
+                </Headline>
+                {(article.author || article.published_at) && (
+                  <p className="font-sans text-xs uppercase tracking-[0.06em] text-steel mt-2 sm:mt-3">
+                    {[article.author, formatCardDate(article.published_at)].filter(Boolean).join(" · ")}
+                  </p>
                 )}
               </div>
             </Link>

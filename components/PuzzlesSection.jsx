@@ -4,21 +4,25 @@ import SectionHeader from "./SectionHeader";
 import { SECTION_HEADER_DEFAULTS } from "@/lib/sections";
 
 /**
- * Bordered, horizontal card format — icon beside the text rather than
- * stacked above it, no filled background colour. A prior version used a
- * New Yorker-style flat colour block per card (a tint pulled from the
+ * Horizontal card format — icon beside the text rather than stacked
+ * above it, no filled background colour. A prior version used a New
+ * Yorker-style flat colour block per card (a tint pulled from the
  * site's own brick/river palette); with only ever two games to show,
  * that read as two oversized, overly prominent tiles rather than a
  * modest "here are the games" module. This is shorter (no more forced
- * min-height — the row sizes to its own content) and much quieter: a
- * hairline border standing in for the colour block, picking up the
- * accent only on hover rather than wearing colour as a permanent fill.
- * Each card used to hover to its own colour (one brick, one river);
- * there is one accent now, so both do the same thing. An admin can still swap either
- * illustration for an uploaded photo from the homepage layout builder's
- * Puzzles & Games settings — see PuzzleCardFields in
- * components/admin/LayoutCanvas.jsx — the default line drawing only
- * shows when no image has been set.
+ * min-height — the row sizes to its own content) and much quieter.
+ *
+ * The flat grey fill matches the same `bg-steel/[0.05] hover:bg-steel/
+ * [0.09]` every other card and tile on the site uses now (ArticleCard,
+ * ArticleGrid) — this used to be a hairline border instead, from before
+ * that flat-fill idiom existed elsewhere. The border wasn't wrong on its
+ * own terms, but it had become the one card format on the page still
+ * drawing a line around itself while everything else defines its edge
+ * with fill alone.
+ * An admin can still swap either illustration for an uploaded photo from
+ * the homepage layout builder's Puzzles & Games settings — see
+ * PuzzleCardFields in components/admin/LayoutCanvas.jsx — the default
+ * line drawing only shows when no image has been set.
  */
 const GAMES = [
   {
@@ -103,7 +107,7 @@ export default function PuzzlesSection({ overrides, headerTitle, headerDescripti
             <Link
               key={slug}
               href={`/${slug}`}
-              className="group flex items-center gap-5 sm:gap-6 p-5 sm:p-6 border border-steel/25 hover:border-river transition-colors"
+              className="group flex items-center gap-5 sm:gap-6 p-5 sm:p-6 bg-steel/[0.05] hover:bg-steel/[0.09] transition-colors"
             >
               <div className="shrink-0">
                 {override?.imageUrl ? (
