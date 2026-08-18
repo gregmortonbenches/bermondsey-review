@@ -20,6 +20,12 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
 
 ## Design system
 
+## Homepage tiles: illustration now leads, headline follows
+
+- **Reversed the stacking order inside each `ArticleGrid` tile** — the artwork now sits above the headline/byline, where it used to sit below. On reflection, text-then-picture read as a caption card that happened to have art stapled underneath it; picture-then-text reads as what these tiles are actually meant to be, an image with a caption under it, and it means the first thing a scrolling thumb or a scanning eye hits is the artwork — the whole point of sizing these tiles generously in the first place, ahead of the real per-article illustrations landing (see `CLAUDE.md`).
+- **Padding moved with the reorder, not just the elements.** The artwork's wrapper now carries top padding only (`pt-6 sm:pt-8`) since it's first and has nothing above it to separate from; the text block below carries `mt-3` to hold that same gap from the artwork, plus its own bottom padding (`pb-5 sm:pb-7`), since it's now last. No horizontal padding on the artwork either way — it fills the tile edge to edge.
+- **Verified at both breakpoints with a disposable harness** (portrait `aspect-[3/4]` mobile tiles, square desktop tiles, four mock articles including a three-line headline to check clamping still holds) — artwork renders full-width above the text at both sizes, no overflow or clipping introduced by swapping which side carries which padding.
+
 ## Mobile article text bumped again, against a direct screenshot comparison
 
 - **Prompted by a side-by-side screenshot of this site's article page against The Fence's own mobile article view**, at the same viewport width — even after the previous round (font-size to 19px, leading to 8px over it), this site's body text still read noticeably smaller and denser than the reference. Two more changes, both mobile-only:

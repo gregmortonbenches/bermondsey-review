@@ -99,7 +99,31 @@ export default function ArticleGrid({ articles, headerTitle, headerDescription, 
               // doesn't rest on the tile alone.
               className="group snap-start flex flex-col aspect-[3/4] sm:aspect-square overflow-hidden transition-colors bg-steel/[0.05] hover:bg-steel/[0.09]"
             >
-              <div className="px-6 pt-6 sm:px-8 sm:pt-8">
+              {/* Illustration leads, headline follows — reversed from an
+                  earlier version with the text on top. Leading with the
+                  picture reads as a proper editorial tile (an image with
+                  a caption under it) rather than a text card that happens
+                  to have art stapled to the bottom, and it means the
+                  first thing a scrolling thumb hits is the artwork, which
+                  is the whole point of these tiles once real per-article
+                  illustrations replace the placeholder marks — see
+                  CLAUDE.md.
+                  min-h-0 lets this yield space to the text below rather
+                  than pushing the tile past its own aspect ratio. Only
+                  top padding, no horizontal or bottom padding: the
+                  artwork fills the width of the tile edge to edge, and
+                  the text block below supplies its own top margin instead
+                  of this needing a matching bottom one. */}
+              <div className="flex-1 min-h-0 w-full pt-6 sm:pt-8">
+                <CoverArt
+                  category={article.category}
+                  className="h-full w-full"
+                  bare
+                  artClass="w-full h-full"
+                  toneClass="text-ink"
+                />
+              </div>
+              <div className="px-6 mt-3 pb-5 sm:px-8 sm:pb-7">
                 {/* Bigger and tighter than a card headline would be: this
                     is the tile's whole subject, and at this size it holds
                     the space the way a product name does in Apple's own
@@ -112,28 +136,6 @@ export default function ArticleGrid({ articles, headerTitle, headerDescription, 
                 {article.author && (
                   <p className="font-sans text-xs text-steel mt-2 sm:mt-3">{article.author}</p>
                 )}
-              </div>
-              {/* The artwork fills the rest of the tile and bleeds off its
-                  bottom and sides rather than floating in the middle with
-                  dead grey around it — scaled past its own box and
-                  anchored to the bottom, so it reads as a picture the tile
-                  frames rather than an icon sitting on a panel. Tried
-                  scaling it past its box for a real bleed first — at the
-                  scale that actually bled, it climbed into the headline,
-                  so it fills its own share of the tile instead.
-                  The dek is gone: at this headline size it was competing
-                  rather than supporting, and the space buys the artwork
-                  room instead.
-                  min-h-0 lets this yield space to the text above rather
-                  than pushing the tile past its own aspect ratio. */}
-              <div className="flex-1 min-h-0 w-full mt-3 pb-5 sm:pb-7">
-                <CoverArt
-                  category={article.category}
-                  className="h-full w-full"
-                  bare
-                  artClass="w-full h-full"
-                  toneClass="text-ink"
-                />
               </div>
             </Link>
         ))}
