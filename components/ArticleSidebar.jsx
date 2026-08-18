@@ -3,20 +3,24 @@
 import { useEffect, useState } from "react";
 
 // Three presets, not a continuous slider. Two rem values each, not one —
-// mobile's own "medium" reads slightly larger than desktop's (19px vs
-// 18px), matched by CSS media query rather than JS viewport-detection
-// (see BlockContent.jsx's own comment on the two --article-font-size-*
-// properties for why); small/large are the same ladder shifted by that
-// same one-step difference, not left at their old desktop-only values,
-// so choosing "small" or "large" on mobile still reads as one deliberate
-// step away from mobile's own baseline rather than from desktop's.
-// desktopRem is untouched from what this was before mobile got its own
-// values — a visitor on desktop who never touches this control still
-// sees exactly what always shipped.
+// mobile's own "medium" reads larger than desktop's, matched by CSS
+// media query rather than JS viewport-detection (see BlockContent.jsx's
+// own comment on the two --article-font-size-* properties for why);
+// small/large are the same ladder shifted by that same difference, not
+// left at their old desktop-only values, so choosing "small" or "large"
+// on mobile still reads as one deliberate step away from mobile's own
+// baseline rather than from desktop's.
+// desktopRem is untouched — a visitor on desktop who never touches this
+// control still sees exactly what always shipped. mobileRem moved a
+// second time, from 17/19/22px to 19/21/24px, after a direct side-by-
+// side comparison against The Fence's own mobile article view showed
+// this site's body text reading noticeably smaller and denser at the
+// same viewport width — see BlockContent.jsx's own comment for the
+// matching leading increase that went with this.
 const TEXT_SIZES = [
-  { id: "small", mobileRem: "1.0625rem", desktopRem: "1rem", glyphClass: "text-xs" },
-  { id: "medium", mobileRem: "1.1875rem", desktopRem: "1.125rem", glyphClass: "text-sm" },
-  { id: "large", mobileRem: "1.375rem", desktopRem: "1.35rem", glyphClass: "text-base" },
+  { id: "small", mobileRem: "1.1875rem", desktopRem: "1rem", glyphClass: "text-xs" },
+  { id: "medium", mobileRem: "1.3125rem", desktopRem: "1.125rem", glyphClass: "text-sm" },
+  { id: "large", mobileRem: "1.5rem", desktopRem: "1.35rem", glyphClass: "text-base" },
 ];
 
 // First use of localStorage in this codebase — a genuinely per-visitor
