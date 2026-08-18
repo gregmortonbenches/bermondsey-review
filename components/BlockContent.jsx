@@ -166,11 +166,11 @@ function renderBlockBody(block, i, list, accentHex) {
         // properties together, unconditionally, so it never needs to
         // know or react to the current viewport width itself; resizing
         // the window just changes which property the browser was
-        // already reading. Fallbacks (1.1875rem mobile / 1.125rem
+        // already reading. Fallbacks (1.3125rem mobile / 1.125rem
         // desktop) are "medium" at each width — a page with no
         // ArticleSidebar mounted (any admin preview, or a page type
-        // that doesn't render one) still gets mobile's own slightly
-        // larger default, not desktop's.
+        // that doesn't render one) still gets mobile's own larger
+        // default, not desktop's.
         //
         // Neither variable is the plain text-lg utility this used to be
         // — quotes/headings/captions stay their own fixed sizes on
@@ -185,13 +185,18 @@ function renderBlockBody(block, i, list, accentHex) {
         // size, once font-size passed about 18px). Reading for an "airy,
         // open" block called for that gap to be constant instead, so
         // each calc() references the exact same custom property the
-        // font-size utility above it already reads, plus a fixed 8px —
-        // past the original 4-6px estimate, which turned out too
-        // conservative to actually read as open once it shipped; 8px is
-        // where it does, without the lines drifting apart from each
-        // other. Stays exactly 8px over whatever size is actually
-        // showing, not a growing gap as the text gets larger.
-        className={`font-body text-[length:var(--article-font-size-mobile,1.1875rem)] sm:text-[length:var(--article-font-size-desktop,1.125rem)] leading-[calc(var(--article-font-size-mobile,1.1875rem)_+_8px)] sm:leading-[calc(var(--article-font-size-desktop,1.125rem)_+_8px)] text-ink [&_a]:underline [&_a]:underline-offset-2 [&_br.pb]:block [&_br.pb]:mt-3 ${
+        // font-size utility above it already reads, plus a fixed extra
+        // amount.
+        //
+        // Mobile's own gap moved a second time, from 8px to 13px, in the
+        // same pass that bumped mobileRem up in ArticleSidebar.jsx — a
+        // direct side-by-side screenshot against The Fence's own mobile
+        // article view (same viewport width) showed this site still
+        // reading noticeably smaller and denser even after the first
+        // round, on both font-size and line spacing at once. Desktop's
+        // own +8px is untouched: the comparison, and the request behind
+        // this change, was mobile only.
+        className={`font-body text-[length:var(--article-font-size-mobile,1.3125rem)] sm:text-[length:var(--article-font-size-desktop,1.125rem)] leading-[calc(var(--article-font-size-mobile,1.3125rem)_+_13px)] sm:leading-[calc(var(--article-font-size-desktop,1.125rem)_+_8px)] text-ink [&_a]:underline [&_a]:underline-offset-2 [&_br.pb]:block [&_br.pb]:mt-3 ${
           isFirst ? "drop-cap" : ""
         }`}
         style={isFirst ? { "--drop-cap-color": accentHex } : undefined}

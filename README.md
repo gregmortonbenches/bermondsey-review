@@ -20,6 +20,13 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
 
 ## Design system
 
+## Mobile article text bumped again, against a direct screenshot comparison
+
+- **Prompted by a side-by-side screenshot of this site's article page against The Fence's own mobile article view**, at the same viewport width — even after the previous round (font-size to 19px, leading to 8px over it), this site's body text still read noticeably smaller and denser than the reference. Two more changes, both mobile-only:
+- **Mobile's font-size ladder moved from 17/19/22px to 19/21/24px** (`ArticleSidebar.jsx`'s `TEXT_SIZES`, `mobileRem`) — the whole three-step ladder shifted up together, same as the previous round, so "small"/"large" still read as one deliberate step from mobile's own baseline rather than drifting toward desktop's untouched values.
+- **Mobile's leading gap moved from 8px to 13px** (`BlockContent.jsx`'s `calc()` pair) — kept as a fixed additive amount over font-size, for the same reason as before: a ratio would have re-introduced a growing gap as the reader picks a bigger preset, where the actual goal is a constant one. Verified the gap holds at exactly 13px across all three text-size presets on mobile.
+- **Desktop is untouched by either change** — the comparison, and the request behind it, were mobile only. Its own font-size ladder (16/18/21.6px) and +8px leading gap are exactly what they were.
+
 ## Article body leading: a constant 8px over font-size, not a fixed ratio
 
 - **Replaced `leading-relaxed` (a fixed 1.625 line-height ratio) with a pair of `calc()` values** that read the exact same CSS custom properties the paragraph's own font-size already reads (`--article-font-size-mobile`/`-desktop`, written by `ArticleSidebar.jsx`'s text-size control), each plus a fixed extra amount. The point: a unitless ratio scales *proportionally* with font-size, so the gap between font-size and line-height grows as the reader picks a bigger size (roughly 11-12px of it at this site's font sizes) — asked for a constant gap instead, which only a calc() tied to the same variable can actually hold steady across every size the reader might choose, not just the default.
