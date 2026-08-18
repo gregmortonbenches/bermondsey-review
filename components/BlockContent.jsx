@@ -183,13 +183,15 @@ function renderBlockBody(block, i, list, accentHex) {
         // size in ArticleSidebar would have changed the *gap* between
         // font-size and line-height too (roughly 11-12px of it at every
         // size, once font-size passed about 18px). Reading for an "airy,
-        // open" block called for that gap to be small and constant
-        // instead — 5px, the middle of a 4-6px target — so each calc()
-        // references the exact same custom property the font-size
-        // utility above it already reads, plus a fixed 5px, and stays
-        // exactly 5px over whatever size is actually showing rather than
-        // drifting wider as the text gets larger.
-        className={`font-body text-[length:var(--article-font-size-mobile,1.1875rem)] sm:text-[length:var(--article-font-size-desktop,1.125rem)] leading-[calc(var(--article-font-size-mobile,1.1875rem)_+_5px)] sm:leading-[calc(var(--article-font-size-desktop,1.125rem)_+_5px)] text-ink [&_a]:underline [&_a]:underline-offset-2 [&_br.pb]:block [&_br.pb]:mt-3 ${
+        // open" block called for that gap to be constant instead, so
+        // each calc() references the exact same custom property the
+        // font-size utility above it already reads, plus a fixed 8px —
+        // past the original 4-6px estimate, which turned out too
+        // conservative to actually read as open once it shipped; 8px is
+        // where it does, without the lines drifting apart from each
+        // other. Stays exactly 8px over whatever size is actually
+        // showing, not a growing gap as the text gets larger.
+        className={`font-body text-[length:var(--article-font-size-mobile,1.1875rem)] sm:text-[length:var(--article-font-size-desktop,1.125rem)] leading-[calc(var(--article-font-size-mobile,1.1875rem)_+_8px)] sm:leading-[calc(var(--article-font-size-desktop,1.125rem)_+_8px)] text-ink [&_a]:underline [&_a]:underline-offset-2 [&_br.pb]:block [&_br.pb]:mt-3 ${
           isFirst ? "drop-cap" : ""
         }`}
         style={isFirst ? { "--drop-cap-color": accentHex } : undefined}
