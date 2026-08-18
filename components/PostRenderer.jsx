@@ -4,13 +4,15 @@ import BlockContent from "./BlockContent";
 import CoverArt from "./CoverArt";
 import ArticleSidebar from "./ArticleSidebar";
 import { focalPointStyle } from "@/lib/media";
+import { categoryInk } from "@/lib/categories";
 
 export default function PostRenderer({ post }) {
-  // One accent for every piece now, not one per category family: the
-  // brick/river split tinted whole hero bands in two different colours
-  // and, at page scale, read as decoration rather than as a category
-  // signal anyone was reading. Colour is spent on small, deliberate
-  // marks instead — the category label, the drop cap, a quote's rule.
+  // The drop cap and quote rule stay on the one standing accent
+  // (river) regardless of category — those are page furniture, not a
+  // category signal. The category kicker itself now uses that
+  // category's own ink (see lib/categories.js) rather than always
+  // being river too; the two used to be the same colour by coincidence
+  // more than intent.
   const accentHex = "var(--color-river, #1D4ED8)";
   const embedUrl = post.type === "video" ? getYouTubeEmbedUrl(post.media_url) : null;
 
@@ -25,7 +27,7 @@ export default function PostRenderer({ post }) {
   if (post.type === "cartoon") {
     return (
       <article className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center">
-        <p className="font-sans text-xs tracking-[0.14em] uppercase mb-4 text-river">Cartoon</p>
+        <p className="font-sans text-xs tracking-[0.14em] uppercase mb-4" style={{ color: categoryInk("Cartoon") }}>Cartoon</p>
         {post.cover_image_url ? (
           <div className="relative w-full aspect-[4/3] bg-steel/[0.05] overflow-hidden">
             <Image
@@ -59,7 +61,7 @@ export default function PostRenderer({ post }) {
       <div className="hairline-b">
         <div className="max-w-wider mx-auto grid sm:grid-cols-2 sm:min-h-[420px]">
           <div className="px-4 sm:px-6 lg:px-12 py-10 sm:py-16 flex flex-col justify-center">
-            <p className="font-sans text-xs tracking-[0.14em] uppercase mb-3 text-river">
+            <p className="font-sans text-xs tracking-[0.14em] uppercase mb-3" style={{ color: categoryInk(post.category) }}>
               {post.category || "Uncategorised"}
             </p>
             <h1 className="font-display font-700 text-4xl sm:text-5xl text-ink leading-[1.05]">

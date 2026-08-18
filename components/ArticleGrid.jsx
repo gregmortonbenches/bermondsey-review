@@ -2,6 +2,7 @@ import Link from "next/link";
 import CoverArt from "./CoverArt";
 import SectionHeader from "./SectionHeader";
 import { SECTION_HEADER_DEFAULTS } from "@/lib/sections";
+import { categoryInk } from "@/lib/categories";
 
 /**
  * The homepage's "more articles" section: a horizontally-scrolling rail
@@ -124,6 +125,17 @@ export default function ArticleGrid({ articles, headerTitle, headerDescription, 
                 />
               </div>
               <div className="px-6 mt-3 pb-5 sm:px-8 sm:pb-7">
+                {/* A flat colour rule, not the category name back again —
+                    that text was deliberately removed. But with no
+                    category tint left on the artwork either (CoverArt's
+                    own tone is fixed now, see its comment), these tiles
+                    had drifted to genuinely indistinguishable by category:
+                    a reader can no longer tell a Books piece from a Film
+                    piece without opening it. A 3px rule in that category's
+                    ink restores the sort-by-colour-at-a-glance the label
+                    used to give, at a fraction of the visual weight —
+                    closer to a printer's spot colour than a caption. */}
+                <div className="w-10 h-[3px] mb-3" style={{ backgroundColor: categoryInk(article.category) }} />
                 {/* Bigger and tighter than a card headline would be: this
                     is the tile's whole subject, and at this size it holds
                     the space the way a product name does in Apple's own

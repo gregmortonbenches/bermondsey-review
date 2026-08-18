@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import CoverArt from "./CoverArt";
 import { focalPointStyle } from "@/lib/media";
+import { categoryInk } from "@/lib/categories";
 
 export default function ArticleCard({ article, size = "regular" }) {
   if (size === "featured") {
@@ -26,7 +27,9 @@ export default function ArticleCard({ article, size = "regular" }) {
       >
         <div className="grid sm:grid-cols-2 sm:min-h-[360px]">
           <div className="px-6 sm:px-10 py-8 sm:py-10 flex flex-col justify-center">
-            <p className="font-sans text-xs tracking-[0.14em] uppercase mb-3 text-river">
+            {/* Category ink, not the fixed river blue every kicker used to
+                share — see lib/categories.js. */}
+            <p className="font-sans text-xs tracking-[0.14em] uppercase mb-3" style={{ color: categoryInk(article.category) }}>
               {article.category}
             </p>
             <h3 className="font-display font-700 text-3xl sm:text-4xl text-ink leading-tight underline-offset-4 group-hover:underline group-active:underline">
@@ -73,7 +76,7 @@ export default function ArticleCard({ article, size = "regular" }) {
   // row's minimum height.
   return (
     <Link href={`/article/${article.slug}`} className="group block py-4 hairline-b">
-      <p className="font-sans text-xs tracking-[0.14em] uppercase mb-2 text-river">
+      <p className="font-sans text-xs tracking-[0.14em] uppercase mb-2" style={{ color: categoryInk(article.category) }}>
         {article.category}
       </p>
       <h3 className="font-display font-700 text-lg sm:text-xl text-ink leading-tight underline-offset-4 group-hover:underline group-active:underline">
