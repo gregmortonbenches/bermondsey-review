@@ -6,7 +6,7 @@ import { SECTION_HEADER_DEFAULTS } from "@/lib/sections";
 /**
  * The homepage's "more articles" section: a horizontally-scrolling rail
  * of large tiles, one row on desktop with two in view, two rows on
- * mobile with the column peeking at the edge.
+ * mobile with one column in view at a time.
  *
  * Laid out with `grid-auto-flow: column`, so items fill top-to-bottom
  * then left-to-right — on mobile the first article is the top-left tile,
@@ -46,20 +46,38 @@ export default function ArticleGrid({ articles, headerTitle, headerDescription, 
       {/* grid-flow-col + a fixed row count is what makes this fill
           column-major (top, bottom, next column) rather than wrapping
           into new rows. auto-cols sets each column's width, which is
-          what decides how many are in view: 72% on mobile so the next
-          column peeks at the edge and the rail reads as scrollable,
-          and exactly half the container minus one gap on desktop, so
-          two sit in view and the third is cut cleanly at the edge.
+          what decides how many are in view: 100% on mobile, so exactly
+          one column (two tiles, stacked) shows at a time, and exactly
+          half the container minus one gap on desktop, so two sit in
+          view and the third is cut cleanly at the edge.
 
-          The negative margin/padding pair lets the rail bleed to the
-          screen edge on mobile while its first tile still lines up with
-          the section header above it — same trick the old
-          ArticleCarousel used.
+          No horizontal bleed on mobile any more (this used to be
+          -mx-4 px-4, matching the old ArticleCarousel, so the rail's
+          own edges lined up with the true screen edge rather than the
+          page's usual padded column). Tried that first, but it doesn't
+          actually give a clean cut: CSS padding never clips overflowing
+          content, it only positions the *laid-out* track relative to
+          the box, so the next column's grid track — which legitimately
+          overflows past the content box by design, that's what makes it
+          scrollable — kept rendering a few pixels into the reserved
+          padding-right space, and that overflow is exactly as visible
+          as the "real" content since only the element's own border-box
+          edge (not its padding edge) is what overflow-x-auto actually
+          clips. Confirmed directly: even after fixing the *initial*
+          scroll position (see below), a sliver the width of the gap
+          between columns kept showing on the right. Dropping the bleed
+          removes the problem at the root — the rail's own border-box
+          edge now *is* the padded column's edge, so there's no padding
+          area left for an overflowing track to show through, and the
+          cut is exact regardless of gap width. It costs the tiles their
+          old edge-to-edge feel on mobile; they now sit inset the same
+          amount as everything else on the page, including the section
+          header directly above them.
 
           A thin gap, not the site's usual generous gap-6/gap-8: the
           tiles should read as one run of grid rather than separate
           cards floating apart. */}
-      <div className="grid grid-flow-col grid-rows-2 sm:grid-rows-1 auto-cols-[72%] sm:auto-cols-[calc(50%_-_0.375rem)] gap-2 sm:gap-3 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 pb-2 [scrollbar-width:thin]">
+      <div className="grid grid-flow-col grid-rows-2 sm:grid-rows-1 auto-cols-[100%] sm:auto-cols-[calc(50%_-_0.375rem)] gap-2 sm:gap-3 overflow-x-auto snap-x snap-mandatory pb-2 [scrollbar-width:thin]">
         {tiles.map((article) => (
             <Link
               key={article.slug}
