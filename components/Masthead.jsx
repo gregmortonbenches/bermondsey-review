@@ -54,22 +54,23 @@ export default async function Masthead({ isHomepage = false }) {
         Skip to content
       </a>
       <header className="bg-paper">
-        {/* No max-w-wide/mx-auto here, unlike the rest of the page —
-            the masthead runs full-bleed edge-to-edge on purpose (the
-            arch illustration tiles to fill whatever width it's given,
-            and MastheadNav's own grid/flex centring already centres the
-            wordmark and nav links regardless of the container's actual
-            width), while everything below it stays in a boxed
-            max-w-wider column. Padding only, so the title/nav text
-            still keeps a margin from the literal edge of the screen. */}
-        <div className="px-4 sm:px-6 lg:px-12">
-          <MastheadNav
-            logoUrl={settings.logo_url}
-            siteTitle={settings.site_title}
-            links={navLinks}
-            isHomepage={isHomepage}
-          />
-        </div>
+        {/* No max-w-wide/mx-auto here, unlike the rest of the page — the
+            masthead runs full-bleed edge-to-edge on purpose, while
+            everything below it stays in a boxed max-w-wider column.
+            No padding here either any more: it used to live on this
+            wrapper, but that constrained the arch illustration to the
+            same padded width as the text, rather than letting it tile
+            all the way to the actual screen edge. MastheadNav now
+            applies that same horizontal padding itself, but only to its
+            row's text content — the arch background, a sibling
+            positioned absolutely within each row, is unaffected by it
+            and reaches the true edge. See MastheadNav.jsx's own comment. */}
+        <MastheadNav
+          logoUrl={settings.logo_url}
+          siteTitle={settings.site_title}
+          links={navLinks}
+          isHomepage={isHomepage}
+        />
       </header>
       <Newsletter />
     </>
