@@ -20,6 +20,11 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
 
 ## Design system
 
+## Reverted: the homepage grid's category rule
+
+- **The small 3px colour bar above each `ArticleGrid` tile headline (from the category-ink round) is gone again**, on request — asked for directly, on a screenshot of the live tile. The category kicker text elsewhere (`ArticleCard.jsx`, `PostRenderer.jsx`) is untouched; this was specifically about the bare rule on the homepage grid tiles.
+- **`lib/categories.js` and `categoryInk()` stay** — still driving the kicker colours on the featured card, listing rows, and the article page itself. Only the one call site (the tile rule) that had no text alongside it came out.
+
 ## Published date added to cards, and a shared Headline component to stop the hover-underline bug recurring
 
 - **Cards now show a publish date alongside the byline**, on one credit line separated by a middle dot ("IRIS CALLOWAY · 1 JUN 2026") rather than a row of its own — the standard magazine dateline, and it costs no extra vertical rhythm in a card that's already stacking category, headline and dek above it. New `formatCardDate()` in `lib/articles.js` gives a card-scale "1 Jun 2026", distinct from `ArticleSidebar.jsx`'s own fuller "1 June 2026" (day, full month, year), which stays as it was — a roomier, single-purpose slot, not a tight line shared with a name. Live on `ArticleCard.jsx` (both sizes) and `ArticleGrid.jsx`'s homepage tiles.
