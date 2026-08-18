@@ -20,6 +20,12 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
 
 ## Design system
 
+## Article body leading: a constant 5px over font-size, not a fixed ratio
+
+- **Replaced `leading-relaxed` (a fixed 1.625 line-height ratio) with a pair of `calc()` values** that read the exact same CSS custom properties the paragraph's own font-size already reads (`--article-font-size-mobile`/`-desktop`, written by `ArticleSidebar.jsx`'s text-size control), each plus a fixed `5px`. The point: a unitless ratio scales *proportionally* with font-size, so the gap between font-size and line-height grows as the reader picks a bigger size (roughly 11-12px of it at this site's font sizes) — asked for a constant, small gap instead ("4-6px greater than the font size"), which only a calc() tied to the same variable can actually hold steady across every size the reader might choose, not just the default. Verified directly: the computed `font-size`/`line-height` gap comes out to exactly 5px at all three text-size presets (small/medium/large) and both breakpoints — six combinations, all 5px, not just the default case.
+- **The admin block editor's own live canvas got a matching but simpler change** (`EditableParagraph` in `BlockEditor.jsx`): its paragraph text is a fixed `text-lg` (18px), not tied to the reader's adjustable size at all, so there's no variable to reference — it's just `leading-[1.4375rem]`, the same "18px + 5px" target spelled out directly, keeping the "what you edit is what ships" canvas actually matching the public render.
+- 5px is the middle of the requested 4-6px range, not a hard requirement of the math — reads tighter than "airy and open" might suggest at a glance (many magazine body settings run closer to 8-10px over size for that feel); an easy single number to change in both files if it wants opening up further.
+
 ## Fixed: the rail's mobile columns were leaking a sliver of the next one
 
 - **The "no peek" fix from the previous entry didn't fully work** — a thin sliver of the next column still showed on the right edge of the visible one. Root cause: the rail bled to the screen edge via `-mx-4 px-4` (cancel the page's own padding, then re-add it locally), and a scroll-snap container's own padding isn't part of what the browser treats as its "scrollport" — on load it was scrolling 16px to snap the first tile flush against the true edge, silently erasing the left gutter and, since the viewport window didn't move, revealing that same 16px more of the *next* column on the right.

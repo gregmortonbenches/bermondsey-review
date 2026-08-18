@@ -825,7 +825,15 @@ const EditableParagraph = forwardRef(function EditableParagraph({ html, onChange
         suppressContentEditableWarning
         onInput={handleInput}
         onKeyDown={handleKeyDown}
-        className={`font-body text-lg leading-relaxed text-ink outline-none [&_a]:underline [&_a]:underline-offset-2 [&_br.pb]:block [&_br.pb]:mt-3 ${
+        // leading-[1.4375rem]: 5px over this text-lg's fixed 18px, matching
+        // BlockContent.jsx's public paragraph rendering — that one uses a
+        // calc() tied to the reader's own adjustable text-size variable,
+        // which this fixed-size editing canvas has no equivalent of, so
+        // the same "font-size + 5px" target is just spelled out directly
+        // here instead. See that file's own comment for why 5px (not the
+        // old leading-relaxed's 1.625 ratio, which grows the gap between
+        // font-size and line-height rather than holding it constant).
+        className={`font-body text-lg leading-[1.4375rem] text-ink outline-none [&_a]:underline [&_a]:underline-offset-2 [&_br.pb]:block [&_br.pb]:mt-3 ${
           isFirst ? "drop-cap" : ""
         }`}
         style={isFirst ? { "--drop-cap-color": accentHex } : undefined}

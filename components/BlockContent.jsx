@@ -176,7 +176,20 @@ function renderBlockBody(block, i, list, accentHex) {
         // — quotes/headings/captions stay their own fixed sizes on
         // purpose, same "only the bulk reading content resizes" scoping
         // most reading-mode controls use.
-        className={`font-body text-[length:var(--article-font-size-mobile,1.1875rem)] sm:text-[length:var(--article-font-size-desktop,1.125rem)] leading-relaxed text-ink [&_a]:underline [&_a]:underline-offset-2 [&_br.pb]:block [&_br.pb]:mt-3 ${
+        //
+        // Leading is a matching pair of calc() values, not the old
+        // leading-relaxed (a fixed 1.625 ratio) — a unitless ratio scales
+        // proportionally with font-size, so switching the reader's text
+        // size in ArticleSidebar would have changed the *gap* between
+        // font-size and line-height too (roughly 11-12px of it at every
+        // size, once font-size passed about 18px). Reading for an "airy,
+        // open" block called for that gap to be small and constant
+        // instead — 5px, the middle of a 4-6px target — so each calc()
+        // references the exact same custom property the font-size
+        // utility above it already reads, plus a fixed 5px, and stays
+        // exactly 5px over whatever size is actually showing rather than
+        // drifting wider as the text gets larger.
+        className={`font-body text-[length:var(--article-font-size-mobile,1.1875rem)] sm:text-[length:var(--article-font-size-desktop,1.125rem)] leading-[calc(var(--article-font-size-mobile,1.1875rem)_+_5px)] sm:leading-[calc(var(--article-font-size-desktop,1.125rem)_+_5px)] text-ink [&_a]:underline [&_a]:underline-offset-2 [&_br.pb]:block [&_br.pb]:mt-3 ${
           isFirst ? "drop-cap" : ""
         }`}
         style={isFirst ? { "--drop-cap-color": accentHex } : undefined}
