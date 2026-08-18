@@ -32,8 +32,8 @@ export default function ArticleCard({ article, size = "regular" }) {
             <h3 className="font-display font-700 text-3xl sm:text-4xl text-ink leading-tight underline-offset-4 group-hover:underline group-active:underline">
               {article.title}
             </h3>
-            {article.dek && <p className="font-body text-base sm:text-lg text-ink/70 mt-3">{article.dek}</p>}
-            {article.author && <p className="font-sans text-sm text-ink/70 mt-3">{article.author}</p>}
+            {article.dek && <p className="font-body italic text-base sm:text-lg text-ink/70 mt-3">{article.dek}</p>}
+            {article.author && <p className="font-sans text-sm uppercase tracking-[0.06em] text-ink/70 mt-3">{article.author}</p>}
           </div>
           {article.cover_image_url ? (
             <div className="relative aspect-[4/3] sm:aspect-auto sm:h-full">
@@ -79,8 +79,8 @@ export default function ArticleCard({ article, size = "regular" }) {
       <h3 className="font-display font-700 text-lg sm:text-xl text-ink leading-tight underline-offset-4 group-hover:underline group-active:underline">
         {article.title}
       </h3>
-      <p className="font-body text-sm text-steel mt-2 hidden sm:block">{article.dek}</p>
-      <p className="font-sans text-xs text-steel mt-3">{article.author}</p>
+      <p className="font-body italic text-sm text-steel mt-2 hidden sm:block">{article.dek}</p>
+      <p className="font-sans text-xs uppercase tracking-[0.06em] text-steel mt-3">{article.author}</p>
     </Link>
   );
 }

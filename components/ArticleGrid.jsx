@@ -134,7 +134,7 @@ export default function ArticleGrid({ articles, headerTitle, headerDescription, 
                   {article.title}
                 </h3>
                 {article.author && (
-                  <p className="font-sans text-xs text-steel mt-2 sm:mt-3">{article.author}</p>
+                  <p className="font-sans text-xs uppercase tracking-[0.06em] text-steel mt-2 sm:mt-3">{article.author}</p>
                 )}
               </div>
             </Link>

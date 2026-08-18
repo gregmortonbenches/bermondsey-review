@@ -20,6 +20,14 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
 
 ## Design system
 
+## Deks italicised, bylines capitalised — a clearer text hierarchy wherever the two sit near each other
+
+- **The problem: a dek (subheading) and a byline sitting next to each other in the same weight of type read as one undifferentiated paragraph.** Both were plain roman text at a similar size and colour (`font-body`/`font-sans` in `text-ink/70` or `text-steel`) — nothing in the type itself said "this is what the piece is about" versus "this is who wrote it." Prompted by comparing the featured homepage card and the article page side by side: the dek and the byline underneath it blurred together at a glance.
+- **Deks now render in italic** (`ArticleCard.jsx`'s featured and regular variants, `PostRenderer.jsx`'s article hero) — the standard editorial convention for a standfirst, and it does the job with a single font-style declaration rather than a new colour or size. The cartoon caption on `PostRenderer.jsx`'s own cartoon branch was already italic before this change, so it's now consistent with everywhere else a dek-like line appears.
+- **Bylines now render uppercase, letter-spaced** everywhere one appears on a public page: `ArticleCard.jsx` (both sizes), `ArticleGrid.jsx`'s homepage tiles, `CartoonsSection.jsx`'s strip, and the cartoon-page byline in `PostRenderer.jsx` — all `font-sans uppercase tracking-[0.06em]`, a lighter tracking than the category kicker's `0.14em` since a full name needs less room to read clearly than a short label word does. `ArticleSidebar.jsx`'s own author/illustrator credit block (the article page's dedicated rail, not a plain byline line) keeps its larger serif treatment but picks up the same idea at a tighter `tracking-[0.03em]` — serif capitals need less spacing than sans ones to sit comfortably.
+- **`ArticleCarousel.jsx` was left untouched** — it's dead code (see its own `NO LONGER RENDERED ANYWHERE` comment), so there's no live byline there to fix.
+- **Verified across the featured card, a listing row, the homepage grid, and a full article page** (hero, sidebar credit block, sidebar illustrator credit) at both breakpoints — no wrapping or overflow introduced by either change, including on a two-word name at the sidebar's larger serif size.
+
 ## Homepage tiles: illustration now leads, headline follows
 
 - **Reversed the stacking order inside each `ArticleGrid` tile** — the artwork now sits above the headline/byline, where it used to sit below. On reflection, text-then-picture read as a caption card that happened to have art stapled underneath it; picture-then-text reads as what these tiles are actually meant to be, an image with a caption under it, and it means the first thing a scrolling thumb or a scanning eye hits is the artwork — the whole point of sizing these tiles generously in the first place, ahead of the real per-article illustrations landing (see `CLAUDE.md`).
