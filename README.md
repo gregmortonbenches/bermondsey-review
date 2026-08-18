@@ -20,6 +20,12 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
 
 ## Design system
 
+## Fixed: homepage tile headlines only underlined their first line on hover
+
+- **`line-clamp-3` puts the `<h3>` in `display: -webkit-box`** (that's how the webkit line-clamp hack works), and a `hover:underline` painted directly on that box only reliably renders under the first line in Chrome/Safari — a genuine, well-known interaction between the two, not a typo in either utility on its own. Reported after the illustration-leads-headline reorder made a wrapped headline easy to hover and notice the gap.
+- **Fix: moved the underline onto an inline `<span>` wrapping the headline text, instead of the clamped `<h3>` itself.** `line-clamp-3` stays on the `<h3>`; `group-hover:underline underline-offset-4` moved to the `<span>` inside it. A span is genuinely inline, so its text-decoration follows every wrapped line correctly, clamped or not.
+- **Verified with a three-line headline** (the same test case used for the earlier text-order swap) — all three lines underline together on hover now, confirmed via a direct Playwright hover rather than a `:hover` CSS override, so the check reflects real pointer behaviour.
+
 ## Deks italicised, bylines capitalised — a clearer text hierarchy wherever the two sit near each other
 
 - **The problem: a dek (subheading) and a byline sitting next to each other in the same weight of type read as one undifferentiated paragraph.** Both were plain roman text at a similar size and colour (`font-body`/`font-sans` in `text-ink/70` or `text-steel`) — nothing in the type itself said "this is what the piece is about" versus "this is who wrote it." Prompted by comparing the featured homepage card and the article page side by side: the dek and the byline underneath it blurred together at a glance.
