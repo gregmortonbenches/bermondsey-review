@@ -20,6 +20,12 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
 
 ## Design system
 
+## Published date added to cards, and a shared Headline component to stop the hover-underline bug recurring
+
+- **Cards now show a publish date alongside the byline**, on one credit line separated by a middle dot ("IRIS CALLOWAY · 1 JUN 2026") rather than a row of its own — the standard magazine dateline, and it costs no extra vertical rhythm in a card that's already stacking category, headline and dek above it. New `formatCardDate()` in `lib/articles.js` gives a card-scale "1 Jun 2026", distinct from `ArticleSidebar.jsx`'s own fuller "1 June 2026" (day, full month, year), which stays as it was — a roomier, single-purpose slot, not a tight line shared with a name. Live on `ArticleCard.jsx` (both sizes) and `ArticleGrid.jsx`'s homepage tiles.
+- **New `components/Headline.jsx`** — a shared "linked headline that safely underlines on hover, clamped or not" component. `ArticleCard.jsx` (both sizes) and `ArticleGrid.jsx`'s tiles now render their headline through it instead of each hand-rolling the same `underline-offset-4 group-hover:underline` classes independently, which is exactly the setup that let the earlier `line-clamp-3`-only-underlines-the-first-line bug ship in the first place. The fix (clamp on the outer tag, underline on an inner span) now lives in one place, so it stays fixed wherever a headline needs it rather than only where someone remembers to copy it.
+- **Deliberately left `CartoonsSection.jsx` and `PuzzlesSection.jsx` untouched** — both were mid-refactor toward the same date/Headline treatment in this round, and were rolled back on request before shipping. Worth doing later, just not bundled with this change.
+
 ## Category ink: colour restored as a sorting signal, and Puzzles' leftover border dropped
 
 - **Prompted by a straight critique of the live site:** with `CoverArt`'s per-category tint retired a few rounds back and `ArticleGrid`'s tile labels removed the round after that, the homepage's Reviews rail had drifted to genuinely indistinguishable by category — a reader couldn't tell a Books piece from a Film piece without opening it, even though the listing rows right above it still showed a category kicker.
