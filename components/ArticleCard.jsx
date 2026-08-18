@@ -50,7 +50,15 @@ export default function ArticleCard({ article, size = "regular" }) {
             // `bare`: the card itself now paints the grey, and CoverArt's
             // own would stack on top of it — showing the image half as a
             // visibly darker panel than the text half.
-            <CoverArt category={article.category} className="aspect-[4/3] sm:h-full" bare />
+            <CoverArt
+              category={article.category}
+              className="aspect-[4/3] sm:h-full p-8"
+              bare
+              // Fills its half of the band, matching the scale the grid
+              // tiles below now draw at — the default half-size mark read
+              // as a small icon next to their much larger artwork.
+              artClass="w-full h-full"
+            />
           )}
         </div>
       </Link>

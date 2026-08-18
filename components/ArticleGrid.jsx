@@ -64,53 +64,56 @@ export default function ArticleGrid({ articles, headerTitle, headerDescription, 
             <Link
               key={article.slug}
               href={`/article/${article.slug}`}
-              // No category tint any more: those were pale washes of
-              // brick/river filling the whole square, which read as
-              // decoration rather than as colour meaning anything. A
-              // barely-there grey gives the tile presence without
-              // spending colour on it — grey is structure here, the way
-              // the hairlines are.
+              // Portrait on mobile, square on desktop. A tile taller than
+              // it is wide reads as a page rather than a panel, which is
+              // the right instinct for a paper — and it gives the artwork
+              // real vertical room, which matters most once the real
+              // per-article illustrations replace the placeholder marks.
+              // It costs scroll length, deliberately: four portrait tiles
+              // are a long section, but each one is worth stopping at.
+              // Desktop keeps the square, where two sit side by side at
+              // half a column each and portrait would run absurdly tall.
               //
-              // Left-aligned, not centred: the section header above is
-              // left-aligned under its rule now, and centred tiles under
-              // a left-aligned header read as two different systems.
-              //
-              // aspect-square: two equal-width grid siblings sharing one
-              // fixed ratio come out the same height for free, with no
-              // need to stretch either to match its sibling.
-              // No border: the grey fill is what defines the square, and
-              // an outline around it as well read as a hard box drawn on
-              // the page. Hover deepens the fill slightly instead of
-              // darkening a line — the headline underlines on hover too,
-              // so the affordance doesn't rest on the tile alone.
-              className="group aspect-square flex flex-col items-start text-left px-6 pt-8 pb-4 sm:px-8 sm:pt-10 transition-colors overflow-hidden bg-steel/[0.05] hover:bg-steel/[0.09]"
+              // No border: the grey fill is what defines the tile, and an
+              // outline around it as well read as a hard box drawn on the
+              // page. Hover deepens the fill instead of darkening a line;
+              // the headline underlines on hover too, so the affordance
+              // doesn't rest on the tile alone.
+              className="group flex flex-col aspect-[3/4] sm:aspect-square overflow-hidden transition-colors bg-steel/[0.05] hover:bg-steel/[0.09]"
             >
-              {/* line-clamped: a square is a fixed height budget, unlike
-                  a card that can just grow — an unbounded title/dek would
-                  quietly eat the room the illustration needs. */}
-              <h3 className="font-display font-700 text-xl sm:text-2xl text-ink leading-[1.15] line-clamp-2 group-hover:underline underline-offset-4">
-                {article.title}
-              </h3>
-              {article.dek && (
-                <p className="font-body text-sm text-ink/70 mt-2 line-clamp-2 max-w-[46ch]">{article.dek}</p>
-              )}
-              {/* min-h-0 overrides a flex item's default min-height:auto,
-                  so this yields space to the text above it rather than
-                  pushing the tile past its own aspect-ratio height.
-                  The artwork runs large and low, the way a product shot
-                  does in Apple's own tiles — the lower half of the tile
-                  is the picture, not a small centred motif with dead
-                  colour around it. */}
-              {/* Drawn in ink, not the category's brick/river — every
-                  illustration being coloured by default is what made the
-                  page read as colourful rather than as black and white
-                  with colour used for something. */}
-              <div className="flex-1 min-h-0 w-full mt-4">
+              <div className="px-6 pt-6 sm:px-8 sm:pt-8">
+                {/* Bigger and tighter than a card headline would be: this
+                    is the tile's whole subject, and at this size it holds
+                    the space the way a product name does in Apple's own
+                    tiles. Tight tracking and near-solid leading keep a
+                    two- or three-line headline reading as one block
+                    rather than a stack of separate lines. */}
+                <h3 className="font-display font-700 text-[1.5rem] sm:text-[2rem] text-ink leading-[1.03] tracking-[-0.015em] line-clamp-3 group-hover:underline underline-offset-4">
+                  {article.title}
+                </h3>
+                {article.author && (
+                  <p className="font-sans text-xs text-steel mt-2 sm:mt-3">{article.author}</p>
+                )}
+              </div>
+              {/* The artwork fills the rest of the tile and bleeds off its
+                  bottom and sides rather than floating in the middle with
+                  dead grey around it — scaled past its own box and
+                  anchored to the bottom, so it reads as a picture the tile
+                  frames rather than an icon sitting on a panel. Tried
+                  scaling it past its box for a real bleed first — at the
+                  scale that actually bled, it climbed into the headline,
+                  so it fills its own share of the tile instead.
+                  The dek is gone: at this headline size it was competing
+                  rather than supporting, and the space buys the artwork
+                  room instead.
+                  min-h-0 lets this yield space to the text above rather
+                  than pushing the tile past its own aspect ratio. */}
+              <div className="flex-1 min-h-0 w-full mt-3 pb-5 sm:pb-7">
                 <CoverArt
                   category={article.category}
-                  className="h-full"
+                  className="h-full w-full"
                   bare
-                  artClass="w-auto h-full max-w-[58%]"
+                  artClass="w-full h-full"
                   toneClass="text-ink"
                 />
               </div>
