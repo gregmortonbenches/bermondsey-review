@@ -31,6 +31,12 @@ export const metadata = {
   title: "The Bermondsey Review of Books",
   description:
     "A fortnightly, free publication about Bermondsey, London — plus books, film, and whatever else we're reading.",
+  // Lets a feed reader or browser discover /rss.xml on its own, the same
+  // way robots.js already points crawlers at /sitemap.xml — nobody has
+  // to already know the URL.
+  alternates: {
+    types: { "application/rss+xml": "/rss.xml" },
+  },
 };
 
 // Without this, a statically-rendered page (the homepage, the archive,

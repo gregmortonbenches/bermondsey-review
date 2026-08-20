@@ -53,7 +53,11 @@ export default async function Masthead({ isHomepage = false }) {
       >
         Skip to content
       </a>
-      <header className="bg-paper">
+      {/* no-print: site chrome, not the article — see globals.css's own
+          comment on the print rule. A printed page keeps the reader's
+          headline/byline/body and gets a plain credit line from Footer
+          instead of the full nav/wordmark/arch illustration. */}
+      <header className="bg-paper no-print">
         {/* No max-w-wide/mx-auto here, unlike the rest of the page — the
             masthead runs full-bleed edge-to-edge on purpose, while
             everything below it stays in a boxed max-w-wider column.

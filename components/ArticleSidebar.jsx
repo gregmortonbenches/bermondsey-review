@@ -132,7 +132,7 @@ export default function ArticleSidebar({ author, illustrator, publishedAt, categ
         </div>
       )}
 
-      <div>
+      <div className="no-print">
         <p className="font-sans text-xs text-steel mb-2">Text size</p>
         <div className="flex gap-1.5">
           {TEXT_SIZES.map((size) => (
@@ -154,7 +154,7 @@ export default function ArticleSidebar({ author, illustrator, publishedAt, categ
         </div>
       </div>
 
-      <div>
+      <div className="no-print">
         <p className="font-sans text-xs text-steel mb-2">Share</p>
         <div className="flex gap-2">
           <a

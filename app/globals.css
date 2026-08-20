@@ -106,3 +106,24 @@ button:focus-visible {
     transition: none !important;
   }
 }
+
+/* Print — the site's whole design brief is "printed-paper-first," so an
+   actual printed page shouldn't just be the screen layout with a pile
+   of chrome nobody asked for still sitting on it. .no-print marks
+   anything that only means something on a screen: site nav, the
+   article's own text-size and share controls, social icons. The
+   masthead's nav and the article-page controls carry it directly (see
+   Masthead.jsx/ArticleSidebar.jsx); the headline, byline, date and body
+   text all print exactly as they read on screen. */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    color: #000;
+  }
+  a {
+    color: inherit;
+    text-decoration: underline;
+  }
+}
