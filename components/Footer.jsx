@@ -69,7 +69,7 @@ export default async function Footer() {
             <p className="font-display font-700 text-xl">{settings.site_title}</p>
           </div>
 
-          <nav className="flex flex-wrap gap-x-6 gap-y-2 font-sans text-sm">
+          <nav className="no-print flex flex-wrap gap-x-6 gap-y-2 font-sans text-sm">
             {navLinks.map((link) => (
               <Link key={link.label} href={link.href} className="text-ink/80 underline-offset-4 hover:underline active:underline">
                 {link.label}
@@ -78,7 +78,7 @@ export default async function Footer() {
           </nav>
 
           {socialLinks.length > 0 && (
-            <div className="flex items-center gap-4">
+            <div className="no-print flex items-center gap-4">
               {socialLinks.map(([key, url]) => {
                 const Icon = SOCIAL_ICONS[key];
                 if (!Icon) return null;
@@ -107,6 +107,10 @@ export default async function Footer() {
 
         <p className="font-sans text-xs text-ink/50 mt-6">
           © {new Date().getFullYear()} {settings.site_title}
+          {" · "}
+          <Link href="/submissions" className="underline-offset-4 hover:underline hover:text-ink/70">
+            Submissions
+          </Link>
         </p>
       </div>
     </footer>
