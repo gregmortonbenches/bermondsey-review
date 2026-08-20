@@ -20,6 +20,14 @@ of a real database. No Supabase, no auth, no email — that's step 2 onward.
 
 ## Design system
 
+## Article media now breaks out of the text column on desktop — narrow prose, wide images, more Apple than magazine column
+
+- **The actual ask was "content blocks should end nearer the edge of the page" — but the real bottleneck wasn't the 780px text width, it was the outer grid.** The article body's `max-w-wide` (1180px) shell was already narrower than the hero band right above it (`max-w-wider`, 1440px, unchanged since it shipped), so the page visibly stepped in as you scrolled past the hero — and since the sidebar column is a fixed 220px, the content track only ever had about 800px to work with regardless of what capped the text inside it. Matched the body grid to `max-w-wider` first — that alone is what actually moves the edge, since the extra ~260px flows straight into the content track with the sidebar untouched.
+- **Then split the width decision by block type, not one blanket wrapper.** `PostRenderer.jsx`'s body no longer carries a flat `max-w-content`; that cap moved into `BlockContent.jsx`, applied per block, and only to text-shaped types (paragraph, heading, quote, button, etc.). `image`, `video`, `hero-carousel` and `embed` — the new `BREAKOUT_BLOCK_TYPES` — get no cap at all, so they fill the whole (now wider) track next to the sidebar. That's the actual Apple pattern this was chasing: narrow reading column, media running close to the page's own edge beside it — not "make everything wider."
+- **Updated the `sizes` hints on the two `next/image` calls this touches** (the plain image block, the hero-carousel's items) — both used to hint `780px`/`546px`, a number tied to the old text measure that no longer bounds either one; left uncorrected, Next would keep serving an image sized for the old narrow column at the new wider render width, a soft/blurry upscale a reader would actually notice. Also swapped the stale `780px` mobile/desktop breakpoint in those hints for the grid's real one (`1024px`, Tailwind's `lg:`), since that's the actual point the layout stops stacking.
+- **Left `html`/`ranked-list`/`bermondseyometer`/`columns` measured, not breakout** — a wide table or a two-column text split is a different kind of "wants more room" than a photograph is, and wasn't what was asked for here.
+- **Verified at 1600px and 1280px viewports** with a real article containing a paragraph, an image, a quote, and closing text — image fills the track edge-to-edge next to the sidebar at both sizes; text stays put at 780px; nothing overlaps or clips.
+
 ## RSS feed, a print stylesheet, article structured data, and a Submissions page
 
 Four independent additions in one round, from a "what else could improve this" pass:
