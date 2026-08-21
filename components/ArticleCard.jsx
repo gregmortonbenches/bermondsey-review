@@ -6,12 +6,24 @@ import { focalPointStyle } from "@/lib/media";
 import { categoryInk } from "@/lib/categories";
 import { formatCardDate } from "@/lib/articles";
 
-export default function ArticleCard({ article, size = "regular" }) {
+// adminEditable: this same component renders both on the live site and
+// inside /admin/layout's canvas (see LayoutCanvas.jsx and the
+// featured/archiveExtra content built in app/admin/(dashboard)/layout/
+// page.jsx). On the canvas, a plain `/article/${slug}` link just gets
+// silently swallowed by that canvas's own link-suppression (see
+// canvasNav.js) — clicking a card there did nothing at all. Passing
+// adminEditable points the link at that post's real editor instead and
+// carries data-canvas-allow, the one attribute canvasNav.js already
+// treats as a deliberate exception to "suppress every link" — so the
+// card becomes an actual way to reach editing, not a dead click.
+export default function ArticleCard({ article, size = "regular", adminEditable = false }) {
   // Author and date share one credit line rather than getting a row
   // each — a middle dot between them is the standard magazine dateline,
   // and it costs no extra vertical rhythm in a card that's already
   // stacking category, headline and dek above it.
   const creditLine = [article.author, formatCardDate(article.published_at)].filter(Boolean).join(" · ");
+  const href = adminEditable ? `/admin/posts/${article.id}/edit` : `/article/${article.slug}`;
+  const canvasProps = adminEditable ? { "data-canvas-allow": "true" } : {};
 
   if (size === "featured") {
     // Same lead treatment as the article's own page (PostRenderer.jsx) —
@@ -28,7 +40,8 @@ export default function ArticleCard({ article, size = "regular" }) {
     // colour left to the category label.
     return (
       <Link
-        href={`/article/${article.slug}`}
+        href={href}
+        {...canvasProps}
         // Same treatment as the grid tiles below it: a faint grey block
         // rather than an outlined box, so the two read as one family.
         className="group block overflow-hidden bg-steel/[0.05] hover:bg-steel/[0.09] transition-colors"
@@ -83,7 +96,7 @@ export default function ArticleCard({ article, size = "regular" }) {
   // py-6) since there's no longer a 96-140px-tall image setting the
   // row's minimum height.
   return (
-    <Link href={`/article/${article.slug}`} className="group block py-4 hairline-b">
+    <Link href={href} {...canvasProps} className="group block py-4 hairline-b">
       <p className="font-sans text-xs tracking-[0.14em] uppercase mb-2" style={{ color: categoryInk(article.category) }}>
         {article.category}
       </p>

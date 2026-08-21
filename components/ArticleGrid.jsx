@@ -29,7 +29,11 @@ import { formatCardDate } from "@/lib/articles";
  * Takes the same header props as every other reorderable homepage
  * section, so the layout builder's title/description fields keep working.
  */
-export default function ArticleGrid({ articles, headerTitle, headerDescription, hideHeaderDescription }) {
+// adminEditable: see ArticleCard.jsx's own comment — same reasoning,
+// same escape hatch (canvasNav.js's data-canvas-allow). This grid is
+// rendered live inside LayoutCanvas.jsx, so its tiles need the same
+// "point at the real editor, not a suppressed public link" treatment.
+export default function ArticleGrid({ articles, headerTitle, headerDescription, hideHeaderDescription, adminEditable = false }) {
   const tiles = articles || [];
   if (tiles.length === 0) return null;
 
@@ -83,7 +87,8 @@ export default function ArticleGrid({ articles, headerTitle, headerDescription, 
         {tiles.map((article) => (
             <Link
               key={article.slug}
-              href={`/article/${article.slug}`}
+              href={adminEditable ? `/admin/posts/${article.id}/edit` : `/article/${article.slug}`}
+              {...(adminEditable ? { "data-canvas-allow": "true" } : {})}
               // Portrait on mobile, square on desktop. A tile taller than
               // it is wide reads as a page rather than a panel, which is
               // the right instinct for a paper — and it gives the artwork
