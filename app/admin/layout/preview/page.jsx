@@ -9,6 +9,7 @@ const FRAMES = {
   home: { label: "Home", src: "/admin/layout/preview/frame" },
   archive: { label: "Articles", src: "/admin/layout/preview/archive-frame" },
   geoguesser: { label: "Guess the Spot", src: "/admin/layout/preview/geoguesser-frame" },
+  submissions: { label: "Submissions", src: "/admin/layout/preview/submissions-frame" },
 };
 
 function LayoutPreviewShell() {

@@ -13,15 +13,61 @@ const TABS = [
   { key: "home", label: "Home" },
   { key: "archive", label: "Articles" },
   { key: "geoguesser", label: "Guess the Spot" },
+  { key: "submissions", label: "Submissions" },
 ];
+
+// Submissions' own four fixed questions — see lib/theme.js's comment on
+// why the questions themselves are fixed and only the answers are
+// page_copy. Rendered as PageCopyEditCanvas's `children` (the same slot
+// Archive/Guess the Spot use for read-only context), but these fields
+// are genuinely editable, wired straight into the same onChange/
+// updatePageCopy path the title/description inputs above them use —
+// there's no reason this content needs a different save mechanism just
+// because it lives below the fold of that canvas instead of in it.
+const SUBMISSIONS_SECTIONS = [
+  ["whatWereLookingFor", "What we're looking for"],
+  ["whoFrom", "Who from"],
+  ["howToSend", "How to send it"],
+  ["whatHappensNext", "What happens next"],
+];
+
+function SubmissionsFields({ copy, onChange }) {
+  return (
+    <div className="space-y-6 max-w-content">
+      {SUBMISSIONS_SECTIONS.map(([key, label]) => (
+        <div key={key}>
+          <p className="font-sans text-xs text-steel mb-1">{label}</p>
+          <textarea
+            value={copy[key] || ""}
+            onChange={(e) => onChange({ [key]: e.target.value })}
+            rows={3}
+            className="w-full font-body text-ink bg-transparent outline-none border-2 border-transparent hover:border-steel/20 focus:border-river rounded-sm px-2 -mx-2 resize-y"
+          />
+        </div>
+      ))}
+      <div>
+        <p className="font-sans text-xs text-steel mb-1">Submissions email address</p>
+        <input
+          value={copy.email || ""}
+          onChange={(e) => onChange({ email: e.target.value })}
+          placeholder="submissions@example.com"
+          className="w-full font-sans text-sm text-ink bg-transparent outline-none border-2 border-transparent hover:border-steel/20 focus:border-river rounded-sm px-2 -mx-2"
+        />
+      </div>
+    </div>
+  );
+}
 
 /**
  * /admin/layout's outer shell: a tab strip choosing which page's canvas
  * shows below. Home gets the full reorderable-sections canvas
- * (LayoutCanvas); Archive and Guess the Spot have no sections of their
- * own to reorder, just a heading/description (site_settings.page_copy)
- * — PageCopyEditCanvas is the equivalent "click what you see" canvas
- * for those. The tab strip itself isn't sticky (each canvas below
+ * (LayoutCanvas); Archive, Guess the Spot, and Submissions have no
+ * sections of their own to reorder, just page_copy fields —
+ * PageCopyEditCanvas is the equivalent "click what you see" canvas for
+ * those, with Submissions' own four answer fields (SubmissionsFields,
+ * below) passed as its `children` slot, the same one Archive/Guess the
+ * Spot use for read-only context, except these are genuinely editable.
+ * The tab strip itself isn't sticky (each canvas below
  * already has its own sticky status bar+Preview link at top-0 — a
  * second sticky bar stacked above it would either need pixel-perfect
  * offset math or fight it for the same z-index), so switching pages
@@ -192,6 +238,23 @@ export default function AdminLayoutTabs({
             themeVars={themeVars}
           >
             {geoguesserExtra}
+          </PageCopyEditCanvas>
+        )}
+        {activeTab === "submissions" && (
+          <PageCopyEditCanvas
+            pageLabel="Submissions"
+            previewHref="/admin/layout/preview?tab=submissions"
+            copy={pageCopy.submissions || {}}
+            saveState={saveState}
+            onChange={(updates) => updatePageCopy("submissions", updates)}
+            masthead={masthead}
+            footer={footer}
+            themeVars={themeVars}
+          >
+            <SubmissionsFields
+              copy={pageCopy.submissions || {}}
+              onChange={(updates) => updatePageCopy("submissions", updates)}
+            />
           </PageCopyEditCanvas>
         )}
       </div>

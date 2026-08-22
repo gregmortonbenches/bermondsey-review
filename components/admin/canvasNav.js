@@ -27,14 +27,15 @@ export function suppressCanvasNavigation(e) {
 // nav_links are admin-editable text, not a fixed enum, so this is a
 // best-effort map of the destinations that already have a real place to
 // land inside this admin (a tab, or a section on the Home tab), not an
-// exhaustive router. An unrecognised path (an unmapped page like
-// /submissions, a truly external link) still resolves to nothing, and
+// exhaustive router. An unrecognised path (a page with no tab yet, like
+// /crossword; a truly external link) still resolves to nothing, and
 // falls through to the same safe "do nothing" as before this existed.
 const HREF_TO_TAB = {
   "/": "home",
   "/latest": "archive",
   "/latest-article": "archive",
   "/geoguesser": "geoguesser",
+  "/submissions": "submissions",
 };
 
 export function resolveCanvasNav(href) {
