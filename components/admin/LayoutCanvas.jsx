@@ -192,6 +192,7 @@ export default function LayoutCanvas({ pageKey, initialSections, sectionContent,
                       headerTitle={section.headerTitle}
                       headerDescription={section.headerDescription}
                       hideHeaderDescription={section.hideHeaderDescription}
+                      adminEditable
                     />
                   ) : section.type === "cartoons" ? (
                     <CartoonsSection

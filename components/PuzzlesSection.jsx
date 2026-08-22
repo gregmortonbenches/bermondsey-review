@@ -93,7 +93,16 @@ export const PUZZLE_DEFAULTS = Object.fromEntries(GAMES.map((g) => [g.slug, { ti
 // customise each card's title/description/cta without touching code; a
 // missing or blank field falls back to the default above, so an
 // unconfigured site looks exactly as it always has.
-export default function PuzzlesSection({ overrides, headerTitle, headerDescription, hideHeaderDescription }) {
+// adminEditable: same escape hatch as ArticleCard.jsx/ArticleGrid.jsx/
+// CartoonsSection.jsx (see ArticleCard.jsx's own comment) — but there's
+// no per-card "editor" for a game the way there is for a post. Both
+// games already have real management screens (/admin/crossword,
+// /admin/geoguesser), so that's where these cards point when rendered
+// inside the admin canvas, rather than the public game page they link
+// to everywhere else.
+const ADMIN_HREFS = { crossword: "/admin/crossword", geoguesser: "/admin/geoguesser" };
+
+export default function PuzzlesSection({ overrides, headerTitle, headerDescription, hideHeaderDescription, adminEditable = false }) {
   return (
     <section id="puzzles" className="pb-14 scroll-mt-24">
       <SectionHeader
@@ -106,7 +115,8 @@ export default function PuzzlesSection({ overrides, headerTitle, headerDescripti
           return (
             <Link
               key={slug}
-              href={`/${slug}`}
+              href={adminEditable ? ADMIN_HREFS[slug] : `/${slug}`}
+              {...(adminEditable ? { "data-canvas-allow": "true" } : {})}
               className="group flex items-center gap-5 sm:gap-6 p-5 sm:p-6 bg-steel/[0.05] hover:bg-steel/[0.09] transition-colors"
             >
               <div className="shrink-0">
