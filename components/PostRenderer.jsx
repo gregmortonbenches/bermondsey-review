@@ -104,12 +104,22 @@ export default function PostRenderer({ post }) {
           lg:grid-cols-[220px_1fr]: below that, a single column, so the
           sidebar simply stacks above the body in DOM order — matches
           how it's meant to read on a phone, not a collapsed drawer.
-          The body's own max-w-content is unchanged from before (still
-          780px, the same reading measure every other standalone page
-          uses) — just no longer centred in the full page width, since
-          it now sits in the grid's second track alongside the rail
-          rather than filling it alone. */}
-      <div className="max-w-wide mx-auto px-4 sm:px-6 lg:px-12 py-10 grid lg:grid-cols-[220px_1fr] gap-10 lg:gap-16">
+          max-w-wider here now, not max-w-wide (1180px) — this used to
+          be narrower than the hero band right above it (max-w-wider,
+          1440px), so the page visibly stepped in as you scrolled past
+          the hero. Matching the two keeps the shell one consistent
+          width top to bottom, and — since the sidebar column stays a
+          fixed 220px — the extra 260px goes straight to the content
+          track, which is what actually gives image/video/embed blocks
+          real room to fill.
+          The body itself no longer carries a blanket max-w-content —
+          that's now applied per block inside BlockContent.jsx, so text
+          keeps the 780px reading measure while image/video/embed blocks
+          can fill this whole (now wider) track instead of being
+          squeezed to the same width as the prose next to them. See
+          BlockContent.jsx's own comment for the reasoning (closer to
+          how Apple treats wide media against narrow text). */}
+      <div className="max-w-wider mx-auto px-4 sm:px-6 lg:px-12 py-10 grid lg:grid-cols-[220px_1fr] gap-10 lg:gap-16">
         {/* self-start: without it, a grid item stretches to match the
             row's full height by default, which would defeat lg:sticky —
             a sticky element needs a height shorter than its scroll
@@ -125,8 +135,11 @@ export default function PostRenderer({ post }) {
           />
         </aside>
 
-        <div className="max-w-content">
-          {/* Video / podcast player */}
+        <div>
+          {/* Video / podcast player — deliberately not capped to
+              max-w-content: a video is media, same as an image block,
+              so it gets the same "fill the track" treatment rather than
+              being squeezed to text width. */}
           {post.type === "video" && (
             <div className="aspect-video overflow-hidden bg-ink/5">
               {embedUrl ? (

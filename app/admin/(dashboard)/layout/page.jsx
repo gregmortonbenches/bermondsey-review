@@ -49,7 +49,7 @@ export default async function AdminLayoutPage() {
     featured: (
       <section id="featured" className="pt-8 pb-10 scroll-mt-24">
         {featured ? (
-          <ArticleCard article={featured} size="featured" />
+          <ArticleCard article={featured} size="featured" adminEditable />
         ) : (
           <p className="font-body text-steel py-8">Nothing published yet — check back soon.</p>
         )}
@@ -73,7 +73,7 @@ export default async function AdminLayoutPage() {
       {articlePosts.length === 0 ? (
         <p className="font-body text-steel py-8">Nothing filed under this section yet.</p>
       ) : (
-        articlePosts.map((article) => <ArticleCard key={article.slug} article={article} />)
+        articlePosts.map((article) => <ArticleCard key={article.slug} article={article} adminEditable />)
       )}
     </div>
   );

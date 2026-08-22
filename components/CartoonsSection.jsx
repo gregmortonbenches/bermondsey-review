@@ -73,7 +73,12 @@ function ShareButton({ slug }) {
  * See lib/layout.js's withCartoonsSection for how an already-live site's
  * saved layout picks this section up automatically.
  */
-export default function CartoonsSection({ cartoons, headerTitle, headerDescription, hideHeaderDescription }) {
+// adminEditable: same treatment as ArticleCard.jsx/ArticleGrid.jsx — a
+// cartoon is a post too, and this section is rendered live inside
+// LayoutCanvas.jsx, so its own links need the same "point at the real
+// editor, carry canvasNav.js's escape hatch" swap rather than being
+// silently swallowed by the canvas's link-suppression.
+export default function CartoonsSection({ cartoons, headerTitle, headerDescription, hideHeaderDescription, adminEditable = false }) {
   if (!cartoons?.length) return null;
 
   return (
@@ -90,10 +95,13 @@ export default function CartoonsSection({ cartoons, headerTitle, headerDescripti
           the first item(s) out of scroll reach once there are enough to
           overflow. */}
       <div className="flex justify-safe-center overflow-x-auto snap-x snap-mandatory gap-6 -mx-4 px-4 sm:mx-0 sm:px-0 pb-4 [scrollbar-width:thin]">
-        {cartoons.map((cartoon) => (
+        {cartoons.map((cartoon) => {
+          const href = adminEditable ? `/admin/posts/${cartoon.id}/edit` : `/article/${cartoon.slug}`;
+          const canvasProps = adminEditable ? { "data-canvas-allow": "true" } : {};
+          return (
           <div key={cartoon.slug} className="shrink-0 snap-start w-full sm:w-[38%] lg:w-[30%]">
             <div className="relative aspect-square overflow-hidden bg-steel/[0.08]">
-              <Link href={`/article/${cartoon.slug}`} className="absolute inset-0 block">
+              <Link href={href} {...canvasProps} className="absolute inset-0 block">
                 {cartoon.cover_image_url ? (
                   <Image
                     src={cartoon.cover_image_url}
@@ -109,14 +117,15 @@ export default function CartoonsSection({ cartoons, headerTitle, headerDescripti
               </Link>
               <ShareButton slug={cartoon.slug} />
             </div>
-            <Link href={`/article/${cartoon.slug}`} className="group block mt-2">
+            <Link href={href} {...canvasProps} className="group block mt-2">
               <p className="font-display font-700 text-base text-ink underline-offset-4 group-hover:underline group-active:underline">
                 {cartoon.title}
               </p>
               {cartoon.author && <p className="font-sans text-xs uppercase tracking-[0.06em] text-steel mt-0.5">{cartoon.author}</p>}
             </Link>
           </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

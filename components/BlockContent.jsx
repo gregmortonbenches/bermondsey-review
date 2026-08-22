@@ -145,6 +145,17 @@ export const HTML_BLOCK_CLASS =
 
 const SPACER_HEIGHTS = { small: "h-6", medium: "h-12", large: "h-24" };
 
+// Which block types break out of the 780px reading measure and fill
+// their whole grid track instead — media, not prose. Apple's own
+// product pages keep body text in a narrow column while images/video
+// run wide right next to it; PostRenderer.jsx stopped capping the
+// body's overall width for exactly this reason, so the width decision
+// now lives here, per block, instead of one blanket wrapper deciding it
+// for every block type at once. Deliberately narrow: a wide table or
+// widget (html/ranked-list/bermondseyometer) is a different kind of
+// "wants more room" than an image is, and isn't what was asked for here.
+const BREAKOUT_BLOCK_TYPES = ["image", "video", "hero-carousel", "embed"];
+
 // Returns the actual per-type markup for one block, unkeyed — the caller
 // wraps it in a keyed container that carries the block's optional
 // background/padding/alignment style (see blockStyleClasses in
@@ -207,7 +218,12 @@ function renderBlockBody(block, i, list, accentHex) {
   if (block.type === "image" && block.url) {
     return (
       <div className="relative w-full aspect-[3/2] overflow-hidden">
-        <Image src={block.url} alt={block.alt || ""} fill sizes="(max-width: 780px) 100vw, 780px" className="object-cover" />
+        {/* 1024px matches the grid's own lg: breakpoint (PostRenderer.jsx),
+            where the sidebar stops stacking and this block starts filling
+            its own, now-wider (max-w-wider) track instead of the viewport —
+            1040px is that track's approximate max width, not the old
+            780px text measure, which no longer bounds this block. */}
+        <Image src={block.url} alt={block.alt || ""} fill sizes="(max-width: 1024px) 100vw, 1040px" className="object-cover" />
       </div>
     );
   }
@@ -276,7 +292,10 @@ function renderBlockBody(block, i, list, accentHex) {
               widthVars ? "w-[var(--carousel-item-w-mobile)] sm:w-[var(--carousel-item-w-desktop)]" : "w-[85%] sm:w-[70%]"
             }`}
           >
-            <Image src={img.url} alt={img.alt || ""} fill sizes="(max-width: 780px) 85vw, 546px" className="object-cover" />
+            {/* 728px ≈ 70% (this block's own default desktop item width)
+                of the ~1040px breakout track — see the plain image
+                block's own comment above for where that number comes from. */}
+            <Image src={img.url} alt={img.alt || ""} fill sizes="(max-width: 1024px) 85vw, 728px" className="object-cover" />
           </div>
         ))}
       </div>
@@ -343,7 +362,7 @@ export default function BlockContent({ blocks, accentHex, emptyText }) {
   return (
     <div className="space-y-5">
       {list.length === 0 && emptyText && (
-        <p className="font-body text-steel italic">{emptyText}</p>
+        <p className="font-body text-steel italic max-w-content">{emptyText}</p>
       )}
       {list.map((block, i) => {
         const body = renderBlockBody(block, i, list, accentHex);
@@ -352,8 +371,11 @@ export default function BlockContent({ blocks, accentHex, emptyText }) {
         // spacer/divider (see UNSTYLABLE_BLOCK_TYPES in lib/blockStyle.js)
         // but still applies visibility — a divider or gap you only want
         // on mobile is a real case, unlike a background tint on one.
+        // max-w-content only for non-breakout types — see
+        // BREAKOUT_BLOCK_TYPES above.
+        const measured = !BREAKOUT_BLOCK_TYPES.includes(block.type) ? "max-w-content" : "";
         return (
-          <div key={i} className={blockStyleClasses(block.style, block.type)}>
+          <div key={i} className={`${measured} ${blockStyleClasses(block.style, block.type)}`.trim()}>
             {body}
           </div>
         );

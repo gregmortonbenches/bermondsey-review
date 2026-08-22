@@ -184,6 +184,7 @@ export default function LayoutCanvas({ pageKey, initialSections, sectionContent,
                       headerTitle={section.headerTitle}
                       headerDescription={section.headerDescription}
                       hideHeaderDescription={section.hideHeaderDescription}
+                      adminEditable
                     />
                   ) : section.type === "puzzles" ? (
                     <PuzzlesSection
@@ -198,6 +199,7 @@ export default function LayoutCanvas({ pageKey, initialSections, sectionContent,
                       headerTitle={section.headerTitle}
                       headerDescription={section.headerDescription}
                       hideHeaderDescription={section.hideHeaderDescription}
+                      adminEditable
                     />
                   ) : (
                     sectionContent[section.type]
