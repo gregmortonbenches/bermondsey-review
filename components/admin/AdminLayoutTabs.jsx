@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { saveSiteSettings } from "@/lib/theme";
 import LayoutCanvas from "./LayoutCanvas";
 import PageCopyEditCanvas from "./PageCopyEditCanvas";
+import { resolveCanvasNav } from "./canvasNav";
 
 const AUTOSAVE_DELAY_MS = 1200;
 
@@ -12,15 +13,61 @@ const TABS = [
   { key: "home", label: "Home" },
   { key: "archive", label: "Articles" },
   { key: "geoguesser", label: "Guess the Spot" },
+  { key: "submissions", label: "Submissions" },
 ];
+
+// Submissions' own four fixed questions — see lib/theme.js's comment on
+// why the questions themselves are fixed and only the answers are
+// page_copy. Rendered as PageCopyEditCanvas's `children` (the same slot
+// Archive/Guess the Spot use for read-only context), but these fields
+// are genuinely editable, wired straight into the same onChange/
+// updatePageCopy path the title/description inputs above them use —
+// there's no reason this content needs a different save mechanism just
+// because it lives below the fold of that canvas instead of in it.
+const SUBMISSIONS_SECTIONS = [
+  ["whatWereLookingFor", "What we're looking for"],
+  ["whoFrom", "Who from"],
+  ["howToSend", "How to send it"],
+  ["whatHappensNext", "What happens next"],
+];
+
+function SubmissionsFields({ copy, onChange }) {
+  return (
+    <div className="space-y-6 max-w-content">
+      {SUBMISSIONS_SECTIONS.map(([key, label]) => (
+        <div key={key}>
+          <p className="font-sans text-xs text-steel mb-1">{label}</p>
+          <textarea
+            value={copy[key] || ""}
+            onChange={(e) => onChange({ [key]: e.target.value })}
+            rows={3}
+            className="w-full font-body text-ink bg-transparent outline-none border-2 border-transparent hover:border-steel/20 focus:border-river rounded-sm px-2 -mx-2 resize-y"
+          />
+        </div>
+      ))}
+      <div>
+        <p className="font-sans text-xs text-steel mb-1">Submissions email address</p>
+        <input
+          value={copy.email || ""}
+          onChange={(e) => onChange({ email: e.target.value })}
+          placeholder="submissions@example.com"
+          className="w-full font-sans text-sm text-ink bg-transparent outline-none border-2 border-transparent hover:border-steel/20 focus:border-river rounded-sm px-2 -mx-2"
+        />
+      </div>
+    </div>
+  );
+}
 
 /**
  * /admin/layout's outer shell: a tab strip choosing which page's canvas
  * shows below. Home gets the full reorderable-sections canvas
- * (LayoutCanvas); Archive and Guess the Spot have no sections of their
- * own to reorder, just a heading/description (site_settings.page_copy)
- * — PageCopyEditCanvas is the equivalent "click what you see" canvas
- * for those. The tab strip itself isn't sticky (each canvas below
+ * (LayoutCanvas); Archive, Guess the Spot, and Submissions have no
+ * sections of their own to reorder, just page_copy fields —
+ * PageCopyEditCanvas is the equivalent "click what you see" canvas for
+ * those, with Submissions' own four answer fields (SubmissionsFields,
+ * below) passed as its `children` slot, the same one Archive/Guess the
+ * Spot use for read-only context, except these are genuinely editable.
+ * The tab strip itself isn't sticky (each canvas below
  * already has its own sticky status bar+Preview link at top-0 — a
  * second sticky bar stacked above it would either need pixel-perfect
  * offset math or fight it for the same z-index), so switching pages
@@ -52,9 +99,55 @@ export default function AdminLayoutTabs({
   const [activeTab, setActiveTab] = useState("home");
   const [pageCopy, setPageCopy] = useState(initialPageCopy);
   const [saveState, setSaveState] = useState("saved");
+  // Set when a same-page anchor (e.g. "Puzzles") is clicked from a tab
+  // other than Home — there's nothing to scroll to until Home's own
+  // canvas actually mounts, so the scroll happens in the effect below,
+  // once switching tabs has had a chance to render it.
+  const [pendingScrollId, setPendingScrollId] = useState(null);
   const autosaveTimer = useRef(null);
   const lastSavedRef = useRef(JSON.stringify(initialPageCopy));
   const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    if (activeTab !== "home" || !pendingScrollId) return;
+    const id = pendingScrollId;
+    setPendingScrollId(null);
+    // rAF, not a plain synchronous call: the previous tab's canvas just
+    // unmounted and Home's just mounted in the same render pass, so
+    // there's no guarantee the browser has actually laid it out yet —
+    // waiting a frame is what makes scrollIntoView find the section
+    // where it's really going to end up rather than wherever a
+    // still-mid-layout page happened to have it a moment ago.
+    requestAnimationFrame(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [activeTab, pendingScrollId]);
+
+  // Runs in the capture phase, same as suppressCanvasNavigation (which
+  // still runs afterward, on each canvas's own wrapper, for anything
+  // this doesn't resolve) — tries to turn a click on a real link
+  // (a nav item, an article card, "Puzzles") into an actual jump to
+  // wherever that content lives inside this admin, before falling back
+  // to plain suppression. data-canvas-allow links (a post's own editor,
+  // /admin/crossword, etc.) are left alone entirely — those already
+  // navigate for real, on purpose.
+  function handleCanvasNav(e) {
+    const link = e.target.closest("a");
+    if (!link || link.dataset.canvasAllow) return;
+    const action = resolveCanvasNav(link.getAttribute("href"));
+    if (!action) return;
+    e.preventDefault();
+    if (action.type === "tab") {
+      setActiveTab(action.tab);
+    } else if (action.type === "scroll") {
+      if (activeTab === "home") {
+        document.getElementById(action.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        setPendingScrollId(action.id);
+        setActiveTab("home");
+      }
+    }
+  }
 
   useEffect(() => {
     if (isFirstRender.current) {
@@ -105,47 +198,66 @@ export default function AdminLayoutTabs({
         </div>
       </div>
 
-      {activeTab === "home" && (
-        <LayoutCanvas
-          pageKey="home"
-          initialSections={initialSections}
-          sectionContent={sectionContent}
-          carouselArticles={carouselArticles}
-          cartoons={cartoons}
-          masthead={masthead}
-          footer={footer}
-          themeVars={themeVars}
-        />
-      )}
-      {activeTab === "archive" && (
-        <PageCopyEditCanvas
-          pageLabel="Articles"
-          previewHref="/admin/layout/preview?tab=archive"
-          copy={pageCopy.archive || {}}
-          saveState={saveState}
-          onChange={(updates) => updatePageCopy("archive", updates)}
-          masthead={masthead}
-          footer={footer}
-          themeVars={themeVars}
-          showDescription={false}
-        >
-          {archiveExtra}
-        </PageCopyEditCanvas>
-      )}
-      {activeTab === "geoguesser" && (
-        <PageCopyEditCanvas
-          pageLabel="Guess the Spot"
-          previewHref="/admin/layout/preview?tab=geoguesser"
-          copy={pageCopy.geoguesser || {}}
-          saveState={saveState}
-          onChange={(updates) => updatePageCopy("geoguesser", updates)}
-          masthead={masthead}
-          footer={footer}
-          themeVars={themeVars}
-        >
-          {geoguesserExtra}
-        </PageCopyEditCanvas>
-      )}
+      <div onClickCapture={handleCanvasNav}>
+        {activeTab === "home" && (
+          <LayoutCanvas
+            pageKey="home"
+            initialSections={initialSections}
+            sectionContent={sectionContent}
+            carouselArticles={carouselArticles}
+            cartoons={cartoons}
+            masthead={masthead}
+            footer={footer}
+            themeVars={themeVars}
+          />
+        )}
+        {activeTab === "archive" && (
+          <PageCopyEditCanvas
+            pageLabel="Articles"
+            previewHref="/admin/layout/preview?tab=archive"
+            copy={pageCopy.archive || {}}
+            saveState={saveState}
+            onChange={(updates) => updatePageCopy("archive", updates)}
+            masthead={masthead}
+            footer={footer}
+            themeVars={themeVars}
+            showDescription={false}
+          >
+            {archiveExtra}
+          </PageCopyEditCanvas>
+        )}
+        {activeTab === "geoguesser" && (
+          <PageCopyEditCanvas
+            pageLabel="Guess the Spot"
+            previewHref="/admin/layout/preview?tab=geoguesser"
+            copy={pageCopy.geoguesser || {}}
+            saveState={saveState}
+            onChange={(updates) => updatePageCopy("geoguesser", updates)}
+            masthead={masthead}
+            footer={footer}
+            themeVars={themeVars}
+          >
+            {geoguesserExtra}
+          </PageCopyEditCanvas>
+        )}
+        {activeTab === "submissions" && (
+          <PageCopyEditCanvas
+            pageLabel="Submissions"
+            previewHref="/admin/layout/preview?tab=submissions"
+            copy={pageCopy.submissions || {}}
+            saveState={saveState}
+            onChange={(updates) => updatePageCopy("submissions", updates)}
+            masthead={masthead}
+            footer={footer}
+            themeVars={themeVars}
+          >
+            <SubmissionsFields
+              copy={pageCopy.submissions || {}}
+              onChange={(updates) => updatePageCopy("submissions", updates)}
+            />
+          </PageCopyEditCanvas>
+        )}
+      </div>
     </div>
   );
 }
