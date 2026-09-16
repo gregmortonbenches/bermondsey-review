@@ -13,8 +13,7 @@
     "author": "George Harrison",
     "price": "£30.00",
     "cover": "covers/third-eye.png",
-    "ar": "1.275",
-    "badge": "Signed"
+    "ar": "1.275"
   },
   {
     "category": "New In",
@@ -64,8 +63,7 @@
     "category": "Fiction",
     "title": "Cloud Atlas",
     "author": "David Mitchell",
-    "price": "£9.99",
-    "badge": "Staff pick"
+    "price": "£9.99"
   },
   {
     "category": "Fiction",
@@ -107,8 +105,7 @@
     "category": "Politics",
     "title": "Fight Oligarchy",
     "author": "Bernie Sanders",
-    "price": "£12.99",
-    "badge": "New"
+    "price": "£12.99"
   },
   {
     "category": "Politics",
@@ -168,8 +165,7 @@
     "category": "Nature",
     "title": "The Salt Path",
     "author": "Raynor Winn",
-    "price": "£9.99",
-    "badge": "Staff pick"
+    "price": "£9.99"
   },
   {
     "category": "Nature",

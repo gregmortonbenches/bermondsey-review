@@ -23,12 +23,11 @@
  * you grab has weight. All of that falls out of `preserve-3d` plus
  * `backface-visibility: hidden` for free, and none of it is reproducible in 2D.
  *
- * The physics is a flick with exponential drag plus a detent that only bites
- * once the rack has slowed — the same as the ball-catch in a real rack's base.
- * Spin it hard and it free-wheels through several turns before a panel
- * catches; nudge it and it steps to the next panel. `snap` is on by default,
- * because unlike the real object a web rack has to end up face-on often enough
- * for people to actually read the covers.
+ * The physics is a flick with exponential drag. By default it free-wheels to a
+ * stop wherever it runs out, corner included, like the real fixture. `snap`
+ * adds a detent that only bites once the rack has slowed — the same as the
+ * ball-catch in a real rack's base, so a hard flick still free-wheels through
+ * several turns before a facing catches.
  * ---------------------------------------------------------------------------
  *
  * USAGE
@@ -41,8 +40,7 @@
  *        data-author="Robert Poole"
  *        data-cover="/covers/peterloo.jpg"
  *        data-price="£10.99"
- *        data-category="History"
- *        data-badge="Staff pick">Peterloo</a>
+ *        data-category="History">Peterloo</a>
  *     ...
  *   </spinner-rack>
  *
@@ -204,7 +202,7 @@ const STYLES = `
   --rack-metal: #16171b;
   --rack-crown: #0e0f12;
   --rack-crown-ink: #fdfbf5;
-  --rack-accent: #b8262b;
+  --rack-accent: #b8262b;         /* focus rings — the only colour the rack spends */
   --rack-max-width: 220px;
   --rack-display-font: "Helvetica Neue", Helvetica, Arial, sans-serif;
   --rack-book-font: Georgia, "Times New Roman", serif;
@@ -470,27 +468,6 @@ const STYLES = `
 .j-v2 .j-hr { height: 1.5px; margin: 9% 12%; }
 .j-v2 .j-title { -webkit-line-clamp: 3; }
 
-/* A badge is an overlay on somebody's artwork in the normal case, which is
-   the retail convention; on a generated jacket it would land on the author, so
-   the jacket gives up the space instead. The reserve is absolute because the
-   badge is: percentage padding resolves against WIDTH, so a percentage here
-   drifts out of step with the badge's fixed 8px type as the rack resizes. */
-.cover.has-badge .jacket { padding-bottom: 27px; }
-
-.badge {
-  position: absolute;
-  bottom: 8px;
-  left: -3px;
-  background: var(--rack-accent);
-  color: #fff;
-  font: 700 8px/1 var(--rack-display-font);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 3px 5px;
-  z-index: 3;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-}
-
 .floor {
   /* Perspective magnifies the near corner downward, so the rack paints below
      the box it lays out in — about 8% of the panel width at a corner, where
@@ -652,7 +629,6 @@ class SpinnerRack extends HTMLElement {
       cover: a.dataset.cover || '',
       price: a.dataset.price || '',
       category: a.dataset.category || '',
-      badge: a.dataset.badge || '',
       ar: a.dataset.ar || '',
       target: a.getAttribute('target') || '',
     })).filter((b) => b.title);
@@ -778,8 +754,7 @@ class SpinnerRack extends HTMLElement {
        ${b.target ? `target="${this.#esc(b.target)}" rel="noopener"` : ''}
        style="--tilt:${tilt.toFixed(2)}deg"
        aria-label="${this.#esc(spoken)}">
-      ${b.badge ? `<span class="badge">${this.#esc(b.badge)}</span>` : ''}
-      <div class="cover${b.badge ? ' has-badge' : ''}" style="--vary:${vary};--tf:${tf}${ar ? `;--ar:${ar}` : ''}">${art}</div>
+      <div class="cover" style="--vary:${vary};--tf:${tf}${ar ? `;--ar:${ar}` : ''}">${art}</div>
     </a>`;
   }
 

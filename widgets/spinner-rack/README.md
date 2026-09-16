@@ -24,8 +24,7 @@ end — plain HTML, Shopify/Liquid, WooCommerce, Next, whatever.
      data-author="Robert Poole"
      data-cover="/covers/peterloo.jpg"
      data-price="£10.99"
-     data-category="History"
-     data-badge="Staff pick">Peterloo</a>
+     data-category="History">Peterloo</a>
   <!-- …twenty-odd more… -->
 </spinner-rack>
 ```
@@ -87,10 +86,17 @@ than 4/2/0/0 and two bare panels.
 | `data-title` | yes | Falls back to the link text |
 | `data-author` | | |
 | `data-cover` | | Omit it and a typographic jacket is generated — see below |
-| `data-price` | | Shown on the shelf ticket |
+| `data-price` | | Announced on the link. Nothing draws it on screen — see below |
 | `data-category` | | First book on a panel names that panel's crown |
-| `data-badge` | | "Staff pick", "Signed", "New" |
 | `data-ar` | | Cover width ÷ height. Optional — see below |
+
+### Prices
+
+Nothing draws the price on screen. It stays on each link's `aria-label`, so a
+screen reader announces "Peterloo, by Robert Poole, £10.99", but a sighted
+visitor only sees it after clicking through. If you want it visible, a strip
+along the shelf lip is closer to the real fixture than an overlay on the
+artwork.
 
 ### Cover proportions
 
@@ -116,9 +122,10 @@ Shops always have a few — a pre-order with no artwork yet, a backlist reissue
 nobody scanned. An empty grey box in a rack of colour reads as broken, so
 books without `data-cover` get a generated jacket instead. So do books whose
 cover URL fails to load — a 404, a CDN hiccup, a path typo — because a missing
-cover and a broken one should look the same to a customer. The jackets are: one of twelve
-ink/paper pairs and one of three layouts, picked by a hash of the title, so a
-given book always looks the same. The type is sized to the longest word in the
+cover and a broken one should look the same to a customer.
+
+A jacket is one of twelve ink/paper pairs and one of three layouts, picked by a
+hash of the title, so a given book always looks the same. The type is sized to the longest word in the
 title by measuring the actual font on a canvas, so nothing comes out as
 `OLIGARC / HY`.
 
@@ -143,7 +150,7 @@ rack.addEventListener('rack-face', (e) => {
 
 ```js
 rack.goToFace(2);     // turn to panel 2
-rack.spin(900);       // give it a shove — decelerates and catches a panel
+rack.spin(900);       // give it a shove — decelerates like a flick
 ```
 
 ---
@@ -157,7 +164,7 @@ spinner-rack {
   --rack-metal: #16171b;        /* the frame */
   --rack-crown: #0e0f12;        /* the sign at the top */
   --rack-crown-ink: #fdfbf5;
-  --rack-accent: #b8262b;       /* badges, prices, focus rings */
+  --rack-accent: #b8262b;       /* focus rings */
   --rack-max-width: 220px;      /* panel width; the rack sweeps ~1.41× this */
   --rack-display-font: "Helvetica Neue", Arial, sans-serif;
   --rack-book-font: Georgia, serif;
