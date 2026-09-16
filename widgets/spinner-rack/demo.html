@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spinner Rack — integration example</title>
+<script type="module" src="./spinner-rack.js"></script>
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    margin: 0;
+    padding: 40px 20px 80px;
+    font: 16px/1.5 "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background: #f4f1ea;
+    color: #17181c;
+  }
+  main { max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 22px; letter-spacing: .04em; text-transform: uppercase; }
+  .rail { display: flex; gap: 48px; align-items: flex-start; flex-wrap: wrap; }
+  spinner-rack { flex: 1 1 300px; max-width: 380px; }
+  .notes { flex: 1 1 320px; font-size: 14px; }
+  code { background: #e6e1d6; padding: 1px 4px; }
+  /* Fallback styling: what a visitor sees if the module never loads. */
+  spinner-rack:not(:defined) { display: block; }
+  spinner-rack:not(:defined) a { display: block; padding: 2px 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Picador rack — integration example</h1>
+  <div class="rail">
+    <spinner-rack label="Picador" sides="4" per-shelf="2">
+      <a href="/books/ottolenghi-simple-too"
+         data-title="Ottolenghi Simple Too"
+         data-author="Yotam Ottolenghi"
+         data-price="£28.00"
+         data-category="New In"
+         data-cover="covers/simple-too.png"
+         data-ar="0.725">Ottolenghi Simple Too</a>
+      <a href="/books/the-third-eye"
+         data-title="The Third Eye"
+         data-author="George Harrison"
+         data-price="£30.00"
+         data-category="New In"
+         data-cover="covers/third-eye.png"
+         data-ar="1.275"
+         data-badge="Signed">The Third Eye</a>
+      <a href="/books/creative-writing"
+         data-title="Creative Writing"
+         data-author="David Shrigley"
+         data-price="£16.99"
+         data-category="New In"
+         data-cover="covers/creative-writing.png">Creative Writing</a>
+      <a href="/books/the-medicine-tree"
+         data-title="The Medicine Tree"
+         data-author="Nick Hayes"
+         data-price="£22.00"
+         data-category="New In"
+         data-cover="covers/medicine-tree.png">The Medicine Tree</a>
+      <a href="/books/being-you"
+         data-title="Being You"
+         data-author="Anil Seth"
+         data-price="£10.99"
+         data-category="New In">Being You</a>
+      <a href="/books/entangled-life"
+         data-title="Entangled Life"
+         data-author="Merlin Sheldrake"
+         data-price="£10.99"
+         data-category="New In">Entangled Life</a>
+      <a href="/books/sapiens"
+         data-title="Sapiens"
+         data-author="Yuval Noah Harari"
+         data-price="£12.99"
+         data-category="New In">Sapiens</a>
+      <a href="/books/other-minds"
+         data-title="Other Minds"
+         data-author="Peter Godfrey-Smith"
+         data-price="£10.99"
+         data-category="New In">Other Minds</a>
+      <a href="/books/big-swiss"
+         data-title="Big Swiss"
+         data-author="Jen Beagin"
+         data-price="£9.99"
+         data-category="Fiction">Big Swiss</a>
+      <a href="/books/cloud-atlas"
+         data-title="Cloud Atlas"
+         data-author="David Mitchell"
+         data-price="£9.99"
+         data-category="Fiction"
+         data-badge="Staff pick">Cloud Atlas</a>
+      <a href="/books/the-bell-jar"
+         data-title="The Bell Jar"
+         data-author="Sylvia Plath"
+         data-price="£8.99"
+         data-category="Fiction">The Bell Jar</a>
+      <a href="/books/beloved"
+         data-title="Beloved"
+         data-author="Toni Morrison"
+         data-price="£9.99"
+         data-category="Fiction">Beloved</a>
+      <a href="/books/normal-people"
+         data-title="Normal People"
+         data-author="Sally Rooney"
+         data-price="£8.99"
+         data-category="Fiction">Normal People</a>
+      <a href="/books/girl-woman-other"
+         data-title="Girl, Woman, Other"
+         data-author="Bernardine Evaristo"
+         data-price="£9.99"
+         data-category="Fiction">Girl, Woman, Other</a>
+      <a href="/books/shuggie-bain"
+         data-title="Shuggie Bain"
+         data-author="Douglas Stuart"
+         data-price="£9.99"
+         data-category="Fiction">Shuggie Bain</a>
+      <a href="/books/the-remains-of-the-day"
+         data-title="The Remains of the Day"
+         data-author="Kazuo Ishiguro"
+         data-price="£9.99"
+         data-category="Fiction">The Remains of the Day</a>
+      <a href="/books/fight-oligarchy"
+         data-title="Fight Oligarchy"
+         data-author="Bernie Sanders"
+         data-price="£12.99"
+         data-category="Politics"
+         data-badge="New">Fight Oligarchy</a>
+      <a href="/books/the-dawn-of-everything"
+         data-title="The Dawn of Everything"
+         data-author="David Graeber &amp; David Wengrow"
+         data-price="£12.99"
+         data-category="Politics">The Dawn of Everything</a>
+      <a href="/books/on-palestine"
+         data-title="On Palestine"
+         data-author="Noam Chomsky &amp; Ilan Pappé"
+         data-price="£10.99"
+         data-category="Politics">On Palestine</a>
+      <a href="/books/prisoners-of-geography"
+         data-title="Prisoners of Geography"
+         data-author="Tim Marshall"
+         data-price="£10.99"
+         data-category="Politics">Prisoners of Geography</a>
+      <a href="/books/black-and-british"
+         data-title="Black and British"
+         data-author="David Olusoga"
+         data-price="£12.99"
+         data-category="Politics">Black and British</a>
+      <a href="/books/the-shock-doctrine"
+         data-title="The Shock Doctrine"
+         data-author="Naomi Klein"
+         data-price="£12.99"
+         data-category="Politics">The Shock Doctrine</a>
+      <a href="/books/fix-the-system-not-the-women"
+         data-title="Fix the System, Not the Women"
+         data-author="Laura Bates"
+         data-price="£10.99"
+         data-category="Politics">Fix the System, Not the Women</a>
+      <a href="/books/chavs"
+         data-title="Chavs"
+         data-author="Owen Jones"
+         data-price="£10.99"
+         data-category="Politics">Chavs</a>
+      <a href="/books/not-too-late"
+         data-title="Not Too Late"
+         data-author="Rebecca Solnit"
+         data-price="£11.99"
+         data-category="Nature">Not Too Late</a>
+      <a href="/books/wild-fell"
+         data-title="Wild Fell"
+         data-author="Lee Schofield"
+         data-price="£10.99"
+         data-category="Nature">Wild Fell</a>
+      <a href="/books/the-salt-path"
+         data-title="The Salt Path"
+         data-author="Raynor Winn"
+         data-price="£9.99"
+         data-category="Nature"
+         data-badge="Staff pick">The Salt Path</a>
+      <a href="/books/h-is-for-hawk"
+         data-title="H is for Hawk"
+         data-author="Helen Macdonald"
+         data-price="£9.99"
+         data-category="Nature">H is for Hawk</a>
+      <a href="/books/underland"
+         data-title="Underland"
+         data-author="Robert Macfarlane"
+         data-price="£10.99"
+         data-category="Nature">Underland</a>
+      <a href="/books/wilding"
+         data-title="Wilding"
+         data-author="Isabella Tree"
+         data-price="£10.99"
+         data-category="Nature">Wilding</a>
+      <a href="/books/the-hidden-life-of-trees"
+         data-title="The Hidden Life of Trees"
+         data-author="Peter Wohlleben"
+         data-price="£9.99"
+         data-category="Nature">The Hidden Life of Trees</a>
+      <a href="/books/feral"
+         data-title="Feral"
+         data-author="George Monbiot"
+         data-price="£10.99"
+         data-category="Nature">Feral</a>
+    </spinner-rack>
+    <div class="notes">
+      <p>The books above are plain <code>&lt;a&gt;</code> elements in the light DOM.
+      Turn JavaScript off and this page is a list of 32 working product links.</p>
+      <p id="log">Drag the rack, flick it, or use the arrow keys.</p>
+    </div>
+  </div>
+</main>
+<script type="module">
+  const rack = document.querySelector('spinner-rack');
+  rack.addEventListener('rack-select', (e) => {
+    e.preventDefault();                      // stop navigation, quick-view instead
+    document.getElementById('log').textContent =
+      `Selected: ${e.detail.book.title} — ${e.detail.book.price}`;
+  });
+  rack.addEventListener('rack-face', (e) => { window.__face = e.detail; });
+</script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+[
+  {
+    "category": "New In",
+    "title": "Ottolenghi Simple Too",
+    "author": "Yotam Ottolenghi",
+    "price": "£28.00",
+    "cover": "covers/simple-too.png",
+    "ar": "0.725"
+  },
+  {
+    "category": "New In",
+    "title": "The Third Eye",
+    "author": "George Harrison",
+    "price": "£30.00",
+    "cover": "covers/third-eye.png",
+    "ar": "1.275",
+    "badge": "Signed"
+  },
+  {
+    "category": "New In",
+    "title": "Creative Writing",
+    "author": "David Shrigley",
+    "price": "£16.99",
+    "cover": "covers/creative-writing.png"
+  },
+  {
+    "category": "New In",
+    "title": "The Medicine Tree",
+    "author": "Nick Hayes",
+    "price": "£22.00",
+    "cover": "covers/medicine-tree.png"
+  },
+  {
+    "category": "New In",
+    "title": "Being You",
+    "author": "Anil Seth",
+    "price": "£10.99"
+  },
+  {
+    "category": "New In",
+    "title": "Entangled Life",
+    "author": "Merlin Sheldrake",
+    "price": "£10.99"
+  },
+  {
+    "category": "New In",
+    "title": "Sapiens",
+    "author": "Yuval Noah Harari",
+    "price": "£12.99"
+  },
+  {
+    "category": "New In",
+    "title": "Other Minds",
+    "author": "Peter Godfrey-Smith",
+    "price": "£10.99"
+  },
+  {
+    "category": "Fiction",
+    "title": "Big Swiss",
+    "author": "Jen Beagin",
+    "price": "£9.99"
+  },
+  {
+    "category": "Fiction",
+    "title": "Cloud Atlas",
+    "author": "David Mitchell",
+    "price": "£9.99",
+    "badge": "Staff pick"
+  },
+  {
+    "category": "Fiction",
+    "title": "The Bell Jar",
+    "author": "Sylvia Plath",
+    "price": "£8.99"
+  },
+  {
+    "category": "Fiction",
+    "title": "Beloved",
+    "author": "Toni Morrison",
+    "price": "£9.99"
+  },
+  {
+    "category": "Fiction",
+    "title": "Normal People",
+    "author": "Sally Rooney",
+    "price": "£8.99"
+  },
+  {
+    "category": "Fiction",
+    "title": "Girl, Woman, Other",
+    "author": "Bernardine Evaristo",
+    "price": "£9.99"
+  },
+  {
+    "category": "Fiction",
+    "title": "Shuggie Bain",
+    "author": "Douglas Stuart",
+    "price": "£9.99"
+  },
+  {
+    "category": "Fiction",
+    "title": "The Remains of the Day",
+    "author": "Kazuo Ishiguro",
+    "price": "£9.99"
+  },
+  {
+    "category": "Politics",
+    "title": "Fight Oligarchy",
+    "author": "Bernie Sanders",
+    "price": "£12.99",
+    "badge": "New"
+  },
+  {
+    "category": "Politics",
+    "title": "The Dawn of Everything",
+    "author": "David Graeber & David Wengrow",
+    "price": "£12.99"
+  },
+  {
+    "category": "Politics",
+    "title": "On Palestine",
+    "author": "Noam Chomsky & Ilan Pappé",
+    "price": "£10.99"
+  },
+  {
+    "category": "Politics",
+    "title": "Prisoners of Geography",
+    "author": "Tim Marshall",
+    "price": "£10.99"
+  },
+  {
+    "category": "Politics",
+    "title": "Black and British",
+    "author": "David Olusoga",
+    "price": "£12.99"
+  },
+  {
+    "category": "Politics",
+    "title": "The Shock Doctrine",
+    "author": "Naomi Klein",
+    "price": "£12.99"
+  },
+  {
+    "category": "Politics",
+    "title": "Fix the System, Not the Women",
+    "author": "Laura Bates",
+    "price": "£10.99"
+  },
+  {
+    "category": "Politics",
+    "title": "Chavs",
+    "author": "Owen Jones",
+    "price": "£10.99"
+  },
+  {
+    "category": "Nature",
+    "title": "Not Too Late",
+    "author": "Rebecca Solnit",
+    "price": "£11.99"
+  },
+  {
+    "category": "Nature",
+    "title": "Wild Fell",
+    "author": "Lee Schofield",
+    "price": "£10.99"
+  },
+  {
+    "category": "Nature",
+    "title": "The Salt Path",
+    "author": "Raynor Winn",
+    "price": "£9.99",
+    "badge": "Staff pick"
+  },
+  {
+    "category": "Nature",
+    "title": "H is for Hawk",
+    "author": "Helen Macdonald",
+    "price": "£9.99"
+  },
+  {
+    "category": "Nature",
+    "title": "Underland",
+    "author": "Robert Macfarlane",
+    "price": "£10.99"
+  },
+  {
+    "category": "Nature",
+    "title": "Wilding",
+    "author": "Isabella Tree",
+    "price": "£10.99"
+  },
+  {
+    "category": "Nature",
+    "title": "The Hidden Life of Trees",
+    "author": "Peter Wohlleben",
+    "price": "£9.99"
+  },
+  {
+    "category": "Nature",
+    "title": "Feral",
+    "author": "George Monbiot",
+    "price": "£10.99"
+  }
+]
