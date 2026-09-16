@@ -70,7 +70,7 @@ server can render it.
 | `per-shelf` | `2` | Books per shelf, 1–4 |
 | `rows` | derived | Shelves per panel. Left alone, the rack is only as tall as the stock needs |
 | `label` | — | Fallback crown text. Each panel otherwise shows its own `data-category` |
-| `snap` | on | `snap="false"` lets it free-wheel to a stop anywhere |
+| `snap` | off | `snap="true"` makes it catch a facing square-on instead of free-wheeling to a stop anywhere |
 | `controls` | on | `controls="false"` hides the prev/next buttons |
 
 **Capacity is `sides × rows × per-shelf`,** and `rows` is capped at 7 so a big
@@ -187,6 +187,12 @@ narrow container automatically.
 - **Pointer:** `touch-action: pan-y`, so a vertical swipe scrolls the page and
   only a horizontal one turns the rack. A drag that moved the rack swallows the
   click, so you never open a book you were only spinning past.
+- **Clicks stay native.** A drag is tracked with `pointermove` on the window
+  rather than `setPointerCapture`, because capture retargets the click to the
+  rack and the browser then has no link to follow — a real mouse click would do
+  nothing. Tracking on the window keeps a drag alive outside the rack while
+  leaving clicks entirely to the browser, so middle-click and cmd/ctrl-click to
+  open in a new tab keep working.
 
 ## Framework notes
 
@@ -227,12 +233,13 @@ of the file):
 foreshorten as they turn, and the corner is a real corner. None of that is
 reproducible by translating slides sideways.
 
-**The detent only bites once the rack has slowed** — like the ball-catch in a
-real rack's base. Above `FREE_SPIN` (300°/s) a panel has no grip at all, so a
-hard flick free-wheels through several turns before anything catches; below it,
-the pull ramps in and lands the rack square. Snapping is on by default because,
-unlike the real object, a web rack has to end up face-on often enough for
-people to read the covers. `snap="false"` if you'd rather it coasted.
+**It free-wheels by default,** coasting to a stop wherever it runs out, like
+the real fixture — including at rest on a corner, showing two half-facings.
+
+**`snap="true"` adds a detent that only bites once the rack has slowed** — like
+the ball-catch in a real rack's base. Above `FREE_SPIN` (300°/s) a facing has no
+grip at all, so a hard flick free-wheels through several turns before anything
+catches; below it, the pull ramps in and lands the rack square.
 
 Release velocity is measured over ~60ms rather than the last frame, so one
 stuttered frame at the moment you let go doesn't decide how far it travels.

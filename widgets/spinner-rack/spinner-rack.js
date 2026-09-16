@@ -55,7 +55,8 @@
  *   rows        shelves per panel (default: derived from how many books there
  *               are, so the rack is only as tall as the stock needs)
  *   label       fallback crown text; each panel otherwise shows its own category
- *   snap        "false" to let it free-wheel to a stop anywhere (default on)
+ *   snap        "true" to make it catch a facing square-on (default off — it
+ *               free-wheels to a stop anywhere, like the real fixture)
  *   controls    "false" to hide the prev/next buttons
  *
  * CAPACITY is sides × rows × per-shelf, and rows is capped at 7 so a big feed
@@ -82,7 +83,7 @@ const CLAMP = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 // Tuning. All of it is feel, arrived at by spinning the thing; the comments
 // say what each number does so it can be re-felt rather than re-guessed.
 const PHYSICS = {
-  DEG_PER_PX: 0.34,   // drag gearing: how far a pixel of finger turns the rack
+  DEG_PER_PX: 0.27,   // drag gearing: how far a pixel of finger turns the rack
   DRAG_K: 1.9,        // free-spin decay (1/s). A 900°/s flick travels ~470°.
   DETENT_K: 12,       // detent pull, °/s² per ° of offset
   DETENT_DAMP: 5,     // extra drag as the detent takes hold — roughly critical
@@ -91,6 +92,16 @@ const PHYSICS = {
   REST_OFFSET: 0.2,   // ° from a detent that counts as parked
   MAX_FLICK: 2200,    // °/s cap, so a frantic swipe doesn't launch it
 };
+
+/**
+ * How far the cap stands proud of the panels, in px. Zero, deliberately: a cap
+ * on a bigger drum needs wider panels or its corners stop meeting, and even
+ * with that corrected you can see under the overhang at a corner, straight
+ * through the rack to the page behind. Three pixels of relief is not worth a
+ * hole. Kept as a constant, with the scaling maths intact, so it can be put
+ * back if the soffit is ever closed off.
+ */
+const CROWN_PROUD = 0;
 
 // How tall a book is as a fraction of the panel width, by books-per-shelf.
 // Width then follows from the aspect ratio, which is why the covers stay in
@@ -207,6 +218,8 @@ const STYLES = `
   --angle: 0deg;
   --bh: 0.50;
   --crown-h: calc(var(--face-w) * 0.245);
+  --crown-proud: 0px;
+  --crown-w: 220px;
   --book-w: calc(var(--face-w) * var(--bh) * 0.6494);
 }
 
@@ -239,17 +252,19 @@ const STYLES = `
 
 .face, .crown-panel {
   grid-area: 1 / 1;
-  width: var(--face-w);
   transform-style: preserve-3d;
   backface-visibility: hidden;
 }
+.face { width: var(--face-w); }
 
 .crown-panel {
   align-self: start;
+  /* Width and depth both come from CROWN_PROUD — see the constant. */
+  width: var(--crown-w);
   height: var(--crown-h);
   /* Dropped 6px into the panel below, so the cap sits ON the rack rather than
      hovering a hairline above it. */
-  transform: rotateY(var(--fa)) translateZ(calc(var(--radius) + 3px))
+  transform: rotateY(var(--fa)) translateZ(calc(var(--radius) + var(--crown-proud)))
              translateY(calc(6px - var(--crown-h)));
   background: var(--rack-crown);
   border: 1px solid #000;
@@ -476,33 +491,6 @@ const STYLES = `
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-/* Shelf-edge ticket — hidden until the book is hovered or focused, like
-   leaning in to read the price sticker. */
-.ticket {
-  position: absolute;
-  left: 50%;
-  top: calc(100% + 7px);
-  transform: translateX(-50%) translateZ(18px);
-  width: max-content;
-  max-width: 150px;
-  background: #f6f2e8;
-  color: #17181c;
-  border: 1px solid #000;
-  padding: 4px 6px;
-  font: 500 10px/1.3 var(--rack-display-font);
-  text-align: center;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 140ms ease;
-  pointer-events: none;
-  z-index: 6;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-}
-.book:hover .ticket, .book:focus-visible .ticket { opacity: 1; visibility: visible; }
-.ticket b { display: block; font-weight: 700; }
-.ticket i { display: block; font-style: normal; opacity: 0.7; }
-.ticket .price { display: block; margin-top: 3px; font-weight: 700; color: var(--rack-accent); }
-
 .floor {
   height: 26px;
   margin-top: -8px;
@@ -561,7 +549,7 @@ const STYLES = `
 .rack.hint { animation: rack-hint 1200ms cubic-bezier(.33, .1, .3, 1) 1; }
 
 @media (prefers-reduced-motion: reduce) {
-  .book, .ticket { transition: none; }
+  .book { transition: none; }
   .rack.hint { animation: none; }
 }
 `;
@@ -787,11 +775,6 @@ class SpinnerRack extends HTMLElement {
        aria-label="${this.#esc(spoken)}">
       ${b.badge ? `<span class="badge">${this.#esc(b.badge)}</span>` : ''}
       <div class="cover${b.badge ? ' has-badge' : ''}" style="--vary:${vary};--tf:${tf}${ar ? `;--ar:${ar}` : ''}">${art}</div>
-      <span class="ticket" aria-hidden="true">
-        <b>${this.#esc(b.title)}</b>
-        ${b.author ? `<i>${this.#esc(b.author)}</i>` : ''}
-        ${b.price ? `<span class="price">${this.#esc(b.price)}</span>` : ''}
-      </span>
     </a>`;
   }
 
@@ -886,9 +869,16 @@ class SpinnerRack extends HTMLElement {
       const apothem = (faceW / 2) / Math.tan(Math.PI / sides);
       const R = (faceW / 2) / Math.sin(Math.PI / sides);
 
+      // The cap's drum, its panels and its lid all scale together — read the
+      // offset from the constant, never back out of the computed style, which
+      // isn't resolved yet on the first pass and silently fell back to 3.
+      const capScale = (apothem + CROWN_PROUD) / apothem;
+
       this.style.setProperty('--face-w', `${faceW.toFixed(2)}px`);
       this.style.setProperty('--radius', `${apothem.toFixed(2)}px`);
-      this.style.setProperty('--lid-size', `${(R * 2).toFixed(2)}px`);
+      this.style.setProperty('--crown-proud', `${CROWN_PROUD}px`);
+      this.style.setProperty('--crown-w', `${(faceW * capScale).toFixed(2)}px`);
+      this.style.setProperty('--lid-size', `${(R * 2 * capScale).toFixed(2)}px`);
 
       // Regular N-gon turned so an edge sits over each panel, not a vertex.
       const pts = Array.from({ length: sides }, (_, k) => {
@@ -920,13 +910,18 @@ class SpinnerRack extends HTMLElement {
       this.#dragX = e.clientX;
       this.#moved = 0;
       this.#swallowClick = false;
+      // Remember what the press landed on. Pointer capture (below) retargets
+      // the click to the stage, so by the time it fires, e.target no longer
+      // knows which book was under the finger.
       stage.classList.add('dragging');
-      stage.setPointerCapture(e.pointerId);
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', release);
+      window.addEventListener('pointercancel', release);
       cancelAnimationFrame(this.#raf);
       this.#raf = 0;
     });
 
-    stage.addEventListener('pointermove', (e) => {
+    const onMove = (e) => {
       if (!this.#dragging || e.pointerId !== this.#pointerId) return;
       const dx = e.clientX - this.#dragX;
       this.#dragX = e.clientX;
@@ -935,12 +930,15 @@ class SpinnerRack extends HTMLElement {
       this.#samples.push({ t: performance.now(), a: this.#angle });
       if (this.#samples.length > 8) this.#samples.shift();
       this.#apply();
-    });
+    };
 
     const release = (e) => {
       if (!this.#dragging || (e.pointerId != null && e.pointerId !== this.#pointerId)) return;
       this.#dragging = false;
       stage.classList.remove('dragging');
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', release);
+      window.removeEventListener('pointercancel', release);
       this.#velocity = this.#reduce ? 0 : this.#flickVelocity();
       // A drag that turned the rack must not also open whatever happened to be
       // under the finger when it stopped.
@@ -948,9 +946,6 @@ class SpinnerRack extends HTMLElement {
       this.#moved = 0;
       this.#start();
     };
-    stage.addEventListener('pointerup', release);
-    stage.addEventListener('pointercancel', release);
-
     // Trackpad and shift-wheel. Only claim the gesture when it's clearly
     // horizontal, so the page still scrolls under an ordinary wheel.
     stage.addEventListener('wheel', (e) => {
@@ -1073,7 +1068,7 @@ class SpinnerRack extends HTMLElement {
     this.#last = now;
     const sides = this.#sides();
     const step = 360 / sides;
-    const snap = this.getAttribute('snap') !== 'false';
+    const snap = this.getAttribute('snap') === 'true';
 
     if (this.#glideTarget != null) {
       // A deliberate move — button, key, focus. Critically damped, no overshoot.
