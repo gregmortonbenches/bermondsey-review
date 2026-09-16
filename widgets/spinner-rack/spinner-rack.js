@@ -492,7 +492,12 @@ const STYLES = `
 }
 
 .floor {
-  height: 26px;
+  /* Perspective magnifies the near corner downward, so the rack paints below
+     the box it lays out in — about 8% of the panel width at a corner, where
+     the overhang is deepest. The floor reserves that clearance as well as
+     casting the shadow, so the rack never sits on top of whatever follows it,
+     controls or host content. */
+  height: calc(30px + var(--face-w) * 0.10);
   margin-top: -8px;
   background: radial-gradient(50% 60% at 50% 0, rgba(0,0,0,0.4), rgba(0,0,0,0) 70%);
   pointer-events: none;
