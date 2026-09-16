@@ -73,7 +73,7 @@
  *
  * STYLING — set these custom properties on the element:
  *   --rack-metal, --rack-crown, --rack-crown-ink, --rack-accent,
- *   --rack-max-width, --rack-display-font, --rack-book-font
+ *   --rack-max-width, --rack-display-font, --rack-book-font, --rack-crown-font
  */
 
 const CLAMP = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
@@ -206,6 +206,10 @@ const STYLES = `
   --rack-max-width: 220px;
   --rack-display-font: "Helvetica Neue", Helvetica, Arial, sans-serif;
   --rack-book-font: Georgia, "Times New Roman", serif;
+  /* The sign is its own typographic role — a bookshop fascia, not a book
+     jacket and not UI chrome — so it gets its own property rather than
+     inheriting whichever of the other two it happens to sit nearest. */
+  --rack-crown-font: Georgia, "Times New Roman", serif;
 
   /* Written by the layout pass. --bh is the book height as a fraction of the
      panel width; --book-w is the width that follows from it. */
@@ -272,17 +276,18 @@ const STYLES = `
   padding: 0 10px;
 }
 .crown-panel span {
-  font: 700 clamp(12px, calc(var(--face-w) * 0.072), 20px)/1 var(--rack-display-font);
-  letter-spacing: 0.3em;
-  text-indent: 0.15em;            /* letter-spacing pads the right; re-centre */
-  text-transform: uppercase;
+  /* The book face, not the display face: the sign reads as a bookshop fascia
+     rather than shouted signage. Set in whatever case the shop authored —
+     see #crownHTML for why the casing isn't forced here. */
+  font: 400 clamp(14px, calc(var(--face-w) * 0.095), 26px)/1.05 var(--rack-crown-font);
+  letter-spacing: 0.01em;
   color: var(--rack-crown-ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
   text-align: center;
-  text-shadow: 0 0 18px rgba(255, 255, 255, 0.3);
+  text-shadow: 0 0 16px rgba(255, 255, 255, 0.22);
 }
 
 /* The cap. A regular N-gon clipped from a square and laid flat, so the rack
@@ -715,6 +720,11 @@ class SpinnerRack extends HTMLElement {
   #crownHTML(faceBooks, i, sides, label) {
     // Each panel carries its own sign, like a rack whose sides have been given
     // over to different lists.
+    //
+    // The category is drawn exactly as the shop wrote it. Forcing sentence case
+    // here would read "Uk history" and "Vintage classics" — lowercasing is
+    // blind to acronyms and imprint names, and a shop's category list is full
+    // of both. Casing belongs to whoever owns the data.
     const text = faceBooks[0]?.category || label || '';
     return `<div class="crown-panel" style="--fa:${(i * 360 / sides).toFixed(4)}deg" aria-hidden="true">
       <span>${this.#esc(text)}</span>

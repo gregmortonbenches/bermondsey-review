@@ -68,7 +68,7 @@ server can render it.
 | `sides` | `4` | Panels round the rack, 3–8 |
 | `per-shelf` | `2` | Books per shelf, 1–4 |
 | `rows` | derived | Shelves per panel. Left alone, the rack is only as tall as the stock needs |
-| `label` | — | Fallback crown text. Each panel otherwise shows its own `data-category` |
+| `label` | — | Fallback crown text. Each panel otherwise shows its own `data-category`, drawn exactly as you wrote it — the rack never re-cases it, because lowercasing is blind to acronyms and imprint names ("UK History" would read "Uk history") |
 | `snap` | off | `snap="true"` makes it catch a facing square-on instead of free-wheeling to a stop anywhere |
 | `controls` | on | `controls="false"` hides the prev/next buttons |
 
@@ -166,8 +166,9 @@ spinner-rack {
   --rack-crown-ink: #fdfbf5;
   --rack-accent: #b8262b;       /* focus rings */
   --rack-max-width: 220px;      /* panel width; the rack sweeps ~1.41× this */
-  --rack-display-font: "Helvetica Neue", Arial, sans-serif;
-  --rack-book-font: Georgia, serif;
+  --rack-display-font: "Helvetica Neue", Arial, sans-serif;   /* controls */
+  --rack-book-font: Georgia, serif;                           /* generated jackets */
+  --rack-crown-font: Georgia, serif;                          /* the sign */
 }
 ```
 
