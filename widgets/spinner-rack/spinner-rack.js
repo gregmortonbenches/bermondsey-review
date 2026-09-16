@@ -796,20 +796,43 @@ class SpinnerRack extends HTMLElement {
   }
 
   /**
-   * Take each cover's real proportions from the image once it arrives. Books
-   * given a data-ar are already correct and are left alone, so a shop that
-   * ships dimensions never sees the shelf reflow.
+   * Two jobs per cover image, both once it has actually resolved.
+   *
+   * On load: take the cover's real proportions from the image. Books given a
+   * data-ar are already correct and are left alone, so a shop that ships
+   * dimensions never sees the shelf reflow.
+   *
+   * On error: fall back to a generated jacket. A dead cover URL — a CDN
+   * hiccup, a 404, a path typo — otherwise leaves a hole in the rack, which is
+   * the exact thing the generated jackets exist to prevent. A missing image and
+   * a broken one should look the same to a customer.
    */
   #measureCovers() {
-    this.shadowRoot.querySelectorAll('.cover img').forEach((img) => {
+    const links = [...this.shadowRoot.querySelectorAll('a.book')];
+    links.forEach((link, i) => {
+      const img = link.querySelector('.cover img');
+      if (!img) return;
       const cover = img.closest('.cover');
-      if (cover.style.getPropertyValue('--ar')) return;
-      const apply = () => {
+      const book = this.#rendered[i];
+
+      const measure = () => {
+        if (cover.style.getPropertyValue('--ar')) return;
         const ar = clampAr(img.naturalWidth / img.naturalHeight);
         if (ar) cover.style.setProperty('--ar', ar);
       };
-      if (img.complete && img.naturalWidth) apply();
-      else img.addEventListener('load', apply, { once: true });
+      const fallback = () => {
+        if (!book) return;
+        cover.style.removeProperty('--ar');       // back to paperback proportions
+        cover.innerHTML = this.#jacketHTML(book, hash(book.title + book.author));
+      };
+
+      if (img.complete) {
+        if (img.naturalWidth) measure();
+        else fallback();                          // already failed before we got here
+        return;
+      }
+      img.addEventListener('load', measure, { once: true });
+      img.addEventListener('error', fallback, { once: true });
     });
   }
 

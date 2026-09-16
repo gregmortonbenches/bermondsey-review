@@ -114,7 +114,9 @@ padding, or a canvas matched to `--rack-metal`, avoids it.
 
 Shops always have a few — a pre-order with no artwork yet, a backlist reissue
 nobody scanned. An empty grey box in a rack of colour reads as broken, so
-books without `data-cover` get a generated jacket instead: one of twelve
+books without `data-cover` get a generated jacket instead. So do books whose
+cover URL fails to load — a 404, a CDN hiccup, a path typo — because a missing
+cover and a broken one should look the same to a customer. The jackets are: one of twelve
 ink/paper pairs and one of three layouts, picked by a hash of the title, so a
 given book always looks the same. The type is sized to the longest word in the
 title by measuring the actual font on a canvas, so nothing comes out as
