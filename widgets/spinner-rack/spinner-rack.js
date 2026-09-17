@@ -237,6 +237,11 @@ const STYLES = `
      are the same box to the pixel. Paperback lists want 0.649 (B-format) or
      0.636 (A-format). */
   --rack-cover-ratio: 0.6667;
+  /* The gap between covers in a row. Each facing gives up half of it at each
+     edge, so two facings meeting at a corner leave exactly this much between
+     the last cover of one and the first of the next — the fold reads as part
+     of the same grid instead of two unrelated books touching. */
+  --rack-gap: 10px;
   --rack-max-width: 220px;
   /* The rack shrinks to fit this before it overflows the screen. Covers divide
      the panel, so a narrow viewport makes a rack TALLER, not narrower — this is
@@ -366,7 +371,7 @@ const STYLES = `
 .face {
   position: relative;
   transform: rotateY(var(--fa)) translateZ(var(--radius));
-  padding: 0 0 2px;
+  padding: 0 calc(var(--rack-gap) / 2) 2px;
 }
 /* The uprights — the bones of the rack. Fixture only. */
 .face::before, .face::after {
@@ -398,7 +403,7 @@ const STYLES = `
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: 10px;
+  gap: var(--rack-gap);
   margin-bottom: 17px;            /* the only thing separating the rows now */
 }
 .shelf:last-child { margin-bottom: 0; }

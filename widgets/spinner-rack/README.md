@@ -9,7 +9,9 @@ treatment reads as a photograph of a shop fitting pasted onto a page, which is
 the opposite of belonging to one. What's left is the part that was actually
 worth having: the turn. Rows are separated by space alone, signs are set in
 your own type, and a facing turning away fades into the page's own colour
-rather than darkening like an object. (`chrome="fixture"` puts the steel back if you want
+rather than darkening like an object. Each facing gives up half of `--rack-gap`
+at each edge, so the gap across a corner matches the gap within a row and the
+whole drum reads as one grid. (`chrome="fixture"` puts the steel back if you want
 it — see below.)
 
 ![the rack, mid-turn](docs/corner.png)
