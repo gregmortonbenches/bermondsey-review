@@ -452,64 +452,135 @@ rather than merely slower.
 
 ## BigCommerce + Searchspring
 
+### Getting the script onto the page
+
+Two routes, and the choice decides whether the rack is crawlable:
+
+| | Theme file | Script Manager |
+|---|---|---|
+| Where | `assets/js/spinner-rack.js` + an edit to a template | Storefront → Script Manager |
+| Book list from | Handlebars, server-rendered | a JS call only |
+| Crawlable links | yes | no |
+| Survives a theme update | only if you carry the change | yes |
+| Needs Stencil CLI | yes | no |
+
+**Use the theme file.** The whole progressive-enhancement design rests on the
+`<a>` list being in the HTML: with the script blocked, slow or broken you still
+have twenty-four working product links, and a crawler sees the stock. Script
+Manager can only populate the rack after a fetch, which throws that away.
+
+Reference the asset the normal Stencil way so it gets the CDN and cache
+busting:
+
+```handlebars
+<script type="module" src="{{cdn 'assets/js/spinner-rack.js'}}"></script>
+```
+
+### The markup
+
 The light-DOM form maps straight onto a Stencil template — this is the case it
 was designed for:
 
 ```handlebars
-<spinner-rack label="{{category.name}}" sides="4" per-shelf="2">
+<spinner-rack label="{{category.name}}" sides="4" per-shelf="2" preview="tap">
   {{#each category.products}}
     <a href="{{url}}"
        data-title="{{name}}"
        data-author="{{brand.name}}"
-       data-cover="{{getImage image 'product_size'}}"
+       data-cover="{{getImageSrcset image 1x='320w'}}"
        data-price="{{price.without_tax.formatted}}"
        data-category="{{../category.name}}">{{name}}</a>
   {{/each}}
 </spinner-rack>
 ```
 
+`data-review` and `data-source` have no native home in the catalogue. Either
+put them in a product custom field and read `{{#each custom_fields}}`, or hold
+the notes in the template — there are only ever a handful.
+
+### Covers: ask for a width, not a box
+
+`getImageSrcset` takes size descriptors of the form `640w` or `2x`, and with
+exactly **one** descriptor it returns a single URL rather than a srcset — which
+is what `data-cover` wants. (`getImage image 'product_size'` also works, but it
+resolves the name against the theme's `config.json` and clamps to
+`Math.min(image.width, requested)`, so what you get depends on theme settings
+you may not control.)
+
+Ask for a **width only**. A width-only descriptor preserves the source's own
+aspect ratio, so you know what you are getting. Whether a `WxH` request fits
+inside that box or pads to fill it is not something the public docs state
+plainly, and it decides whether the grid stays uniform — so don't rely on it.
+
+Sizing follows from the measurement in *Weight*: covers render at about
+119 × 179 CSS px, so **238w covers a 2× screen and 320w covers 2.7×**. A stock
+600 × 900 product image is 6.3× more pixels than needed at 2×; at twenty-four
+covers that is the difference between roughly 1–2 MB and 400–600 KB.
+
+If your covers are already uniform 2:3 — most publisher artwork is — the grid
+comes out uniform on its own. Where ratios vary, the rack measures each cover
+and shelves it correctly anyway; you just lose the even grid rather than
+breaking anything.
+
+### Searchspring on top
+
 Searchspring is the opposite shape: recommendations arrive as JSON from a
-client-side call, so they go through the `books` property instead.
+client-side call, so they go through the `books` property.
 
 **Use both.** Server-render a default set into the light DOM and replace it when
 Searchspring answers:
 
 ```js
-const rack = document.querySelector('spinner-rack');   // already rendered, already crawlable
+customElements.whenDefined('spinner-rack').then(async () => {
+  const rack = document.querySelector('spinner-rack');   // already painted, already crawlable
+  const res = await fetch(recommendationsUrl);           // siteId + profile tag
+  const [profile] = await res.json();                    // one entry per requested profile
 
-const res = await fetch(searchspringRecommendationsUrl);
-const { results } = await res.json();
-rack.books = results.slice(0, 24).map((p) => ({
-  href:  p.mappings.core.url,
-  title: p.mappings.core.name,
-  author: p.mappings.core.brand,
-  cover: p.mappings.core.thumbnailImageUrl,
-  price: p.mappings.core.price,
-  category: 'Recommended for you',
-}));
+  rack.books = profile.results.slice(0, 24).map((p) => ({
+    href:   p.mappings.core.url,
+    title:  p.mappings.core.name,
+    author: p.mappings.core.brand,
+    cover:  p.mappings.core.thumbnailImageUrl,
+    price:  p.mappings.core.price,
+    category: 'Recommended for you',
+  }));
+});
 ```
 
-That way the rack paints immediately, the stock stays indexable, and the
-personalised set is an upgrade rather than a prerequisite. Going
-Searchspring-only means an empty element until the fetch returns and nothing
-for a crawler to read.
+`mappings.core` carries `sku`, `name`, `url` and `thumbnailImageUrl`; the rest
+depends on how your profile is mapped, so check yours rather than trusting the
+field names above.
 
-Two things to get right:
+The `whenDefined` wrapper matters — see *Framework notes*. Assigning `.books`
+before the module has loaded used to write an own property that shadowed the
+accessor permanently, so the first assignment worked and every one after it
+silently did nothing. The component recovers from that now, but waiting is the
+cleaner shape and this is exactly the code path that hit it.
+
+### Four things to get right
 
 - **Ask for the same number of titles you server-rendered.** Setting `books`
   re-renders, and a different count can change the shelf count, so the rack
   visibly re-lays out under the reader.
-- **Check what your image URLs actually return.** `--rack-cover-ratio` assumes
-  a uniform canvas. BigCommerce's `{:size}` resizing fits an image *within* the
-  box you ask for while preserving its own ratio, rather than padding it out to
-  fill — so a 2:3 request does not guarantee a 2:3 file unless the source
-  artwork is already 2:3. Worth checking against your real catalogue: if the
-  ratios vary, the rack measures each cover and shelves it correctly anyway,
-  but you lose the uniform grid. (Verify this against current BigCommerce
-  behaviour — it's the one part of this I'd not take on trust.)
+- **All the covers load up front.** `loading="lazy"` does not defer the facings
+  turned away — they are rotated out of view but still inside the viewport. If
+  the rack is below the fold, gate its render on an `IntersectionObserver`.
+- **Check your CSP if you have one.** The rack is clean under
+  `style-src 'self'` (see *Content-Security-Policy*), but a Stencil theme that
+  sets one will also need to allow whatever else you are injecting.
+- **`thumbnailImageUrl` is a thumbnail.** At 238–320px wide a 200px thumbnail
+  will look soft. Take the width off the product image rather than the
+  thumbnail field if Searchspring gives you both.
 
-Field names above follow Searchspring's `mappings.core` convention; yours may
-differ depending on how the profile is mapped.
+### Not verified here
+
+`developer.bigcommerce.com`, `docs.bigcommerce.com`, the Searchspring docs and
+`cdn11.bigcommerce.com` are all blocked from the machine this was written on,
+so the `WxH` fit-versus-pad question above is unresolved and the Searchspring
+response shape comes from secondary sources. The helper signatures are taken
+from the `paper-handlebars` source itself. You can settle the image question in
+a minute against your own catalogue: request the same image at `238w` and at
+`238x358` and compare the pixel dimensions you get back.
 
 ## Framework notes
 
