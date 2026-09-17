@@ -71,6 +71,34 @@ server can render it.
 
 ---
 
+## Trying it with your own stock
+
+Open **`try.html`** from your desktop. No server, no install, nothing uploaded
+anywhere — it all stays in the tab.
+
+1. **Paste your books.** One line each, tab- or comma-separated:
+   `title · author · link · category · review · source · cover`. Only `title`
+   is required, and trailing columns you don't need can be left off. A
+   spreadsheet column that contains commas is fine — paste with tabs, or quote
+   the field. `category` names the panel a book lands on, so four categories
+   fill four facings.
+2. **Add covers, either way.** Put a URL in the `cover` column, or drag the
+   image files onto the page. Filenames are matched to titles loosely, so
+   `the-salt-path.jpg`, `The Salt Path.png` and `salt path 9780241.jpeg` all
+   find the same book. It says how many matched and names what didn't, which is
+   usually a filename that doesn't resemble the title. Dropped files win over
+   URLs, on the grounds that you dropped them more recently.
+3. **Copy the markup.** Once it looks right, take the `<spinner-rack>` block
+   and paste it into your own template. Dropped covers come out as `data:`
+   URLs, so swap those for your real image paths on the way through.
+
+**If the shop is already live, you need none of this.** Your covers are on a
+CDN with public URLs, so paste those into the `cover` column and the rack
+loads them straight from there.
+
+**Links only work as full `https://` addresses** in a file opened from disk —
+a path like `/books/x` has nothing to resolve against.
+
 ## Attributes
 
 | Attribute | Default | What it does |
@@ -422,6 +450,21 @@ which is the point.
 script with `defer`.
 
 ---
+
+### Assigning `.books` before the module loads
+
+`<script type="module">` is deferred, so an inline script that runs earlier and
+does `el.books = data` writes an **own property** onto the element. Once the
+element upgrades, that own property shadows the class's accessor: the first
+render picks the data up, so it looks like it worked, and every assignment
+after it silently does nothing.
+
+The component recovers from this — on upgrade it adopts the value and deletes
+the property — but the cleaner shape is to wait:
+
+```js
+customElements.whenDefined('spinner-rack').then(() => { el.books = data; });
+```
 
 ## How the turning works
 

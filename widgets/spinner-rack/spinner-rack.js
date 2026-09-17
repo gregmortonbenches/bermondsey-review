@@ -800,6 +800,7 @@ class SpinnerRack extends HTMLElement {
   connectedCallback() {
     if (this.#built) return;
     this.#built = true;
+    this.#adoptEarlyBooks();
 
     const mq = matchMedia('(prefers-reduced-motion: reduce)');
     this.#reduce = mq.matches;
@@ -818,6 +819,22 @@ class SpinnerRack extends HTMLElement {
 
   attributeChangedCallback() {
     if (this.#built && this.shadowRoot) this.#render();
+  }
+
+  /**
+   * A host that assigns .books before this module has loaded — an inline script
+   * above the <script type="module">, which is deferred, or any framework that
+   * hands data over eagerly — writes an own property onto the element. Once the
+   * element upgrades, that own property shadows this class's accessor for good:
+   * the first assignment appears to work, because the initial render reads the
+   * property, and every assignment after it silently does nothing. Adopt the
+   * value and delete the property so the accessor takes over.
+   */
+  #adoptEarlyBooks() {
+    const own = Object.getOwnPropertyDescriptor(this, 'books');
+    if (!own) return;
+    delete this.books;
+    if (own.value !== undefined) this.books = own.value;
   }
 
   /** Set books programmatically instead of via light-DOM <a> children. */

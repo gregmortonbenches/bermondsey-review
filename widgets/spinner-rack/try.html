@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spinner rack — try it with your own stock</title>
+<style>
+  :root {
+    --ground: #e6e8e3;
+    --ink: #15171a;
+    --ink-2: #5b6058;
+    --rule: #c3c7bd;
+    --accent: #b8262b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 14px 14px 56px;
+    background: var(--ground);
+    color: var(--ink);
+    font: 15px/1.5 "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  main { max-width: 480px; margin: 0 auto; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  h2 {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin: 26px 0 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--rule);
+  }
+  p { margin: 0 0 9px; font-size: 14px; }
+  .hint { color: var(--ink-2); }
+  code {
+    background: #d7dad3;
+    padding: 1px 4px;
+    font: 12.5px/1.4 ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  /* The rack gets the page gutter on a phone — it needs 1.41x its panel width
+     to sweep its circle, and that is the one thing worth giving it. */
+  .bleed { margin: 16px -14px 0; }
+  spinner-rack {
+    display: block;
+    --rack-page: var(--ground);
+    --rack-rule: rgba(21, 23, 26, 0.2);
+    --rack-accent: var(--accent);
+    --rack-max-width: 320px;
+    --rack-book-font: Georgia, "Times New Roman", serif;
+    --rack-crown-font: Georgia, "Times New Roman", serif;
+  }
+  spinner-rack:not(:defined) { font-size: 13px; columns: 2; }
+  spinner-rack:not(:defined) a { display: block; padding: 1px 0; color: var(--accent); }
+
+  /* ---- The drop target ---- */
+  .drop {
+    border: 2px dashed var(--rule);
+    padding: 20px 14px;
+    text-align: center;
+    color: var(--ink-2);
+    font-size: 14px;
+    transition: border-color 120ms ease, background 120ms ease;
+  }
+  .drop.over {
+    border-color: var(--accent);
+    border-style: solid;
+    background: rgba(184, 38, 43, 0.05);
+    color: var(--ink);
+  }
+  .drop b { color: var(--ink); }
+  .drop input { display: none; }
+  .drop label {
+    color: var(--accent);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .tally {
+    font: 12px/1.5 ui-monospace, "SF Mono", Menlo, monospace;
+    color: var(--ink-2);
+    margin: 9px 0 0;
+    min-height: 3em;
+    white-space: pre-wrap;
+  }
+  .tally b { color: var(--ink); font-weight: 500; }
+  .tally .miss { color: var(--accent); }
+
+  .row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  button.act {
+    flex: 1 1 auto;
+    min-height: 44px;
+    padding: 11px 14px;
+    font: 600 12px/1 "Helvetica Neue", Helvetica, Arial, sans-serif;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--ink);
+    cursor: pointer;
+  }
+  button.act:hover { background: var(--ink); color: var(--ground); }
+  button.act:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button.act[disabled] { opacity: 0.4; cursor: default; }
+  button.act[disabled]:hover { background: transparent; color: var(--ink); }
+
+  textarea {
+    width: 100%;
+    min-height: 210px;
+    /* One book, one line. Wrapped, a six-column row is unreadable. */
+    white-space: pre;
+    overflow-x: auto;
+    margin-top: 10px;
+    padding: 11px;
+    background: #fff;
+    color: var(--ink);
+    border: 1px solid var(--rule);
+    font: 12.5px/1.6 ui-monospace, "SF Mono", Menlo, monospace;
+    resize: vertical;
+    -webkit-text-size-adjust: 100%;
+  }
+  textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .out { display: none; }
+  .out[data-shown] { display: block; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Try it with your own stock</h1>
+  <p class="hint">Open this file straight from your desktop — no server, no
+     install, nothing uploaded anywhere. Everything below stays in this tab.</p>
+
+  <h2>1 · Your books</h2>
+  <p class="hint">One line per book, tab- or comma-separated, in this order.
+     Paste it out of a spreadsheet and it will line up.</p>
+  <p class="hint"><code>title</code> · <code>author</code> · <code>link</code> ·
+     <code>category</code> · <code>review</code> · <code>source</code> ·
+     <code>cover</code> — only <code>title</code> is required. Trailing columns
+     you don't need can just be left off.</p>
+  <p class="hint"><code>category</code> names the panel a book lands on, so
+     four categories fill four facings. <code>review</code> is the note that
+     opens on tap, and <code>source</code> is the paper that wrote it.</p>
+  <textarea id="feed" spellcheck="false" aria-label="Your book list"></textarea>
+  <div class="row">
+    <button type="button" class="act" id="apply">Build the rack</button>
+    <button type="button" class="act" id="sample">Load the sample</button>
+  </div>
+
+  <h2>2 · Your covers</h2>
+  <p class="hint">Two ways, and you can mix them: put a cover URL in the
+     <code>cover</code> column above, or drop the image files here. Filenames
+     are matched to titles, so <code>the-salt-path.jpg</code>,
+     <code>The Salt Path.png</code> and <code>salt path 9780241.jpeg</code> all
+     find the same book.</p>
+  <div class="drop" id="drop">
+    <b>Drop cover images here</b><br>
+    or <label for="pick">choose files</label>
+    <input type="file" id="pick" accept="image/*" multiple>
+  </div>
+  <p class="tally" id="tally">No covers yet — every book will show a
+generated jacket until you add some.</p>
+
+  <h2>3 · The rack</h2>
+</main>
+
+<div class="bleed">
+  <main>
+    <spinner-rack label="Bookshop" sides="4" per-shelf="2" preview="tap"></spinner-rack>
+  </main>
+</div>
+
+<main>
+  <p class="hint" style="margin-top:14px">Drag it, flick it, tap a book. Links
+     only go anywhere if they are full <code>https://</code> addresses — a
+     path like <code>/books/x</code> has nothing to resolve against in a file
+     opened from disk.</p>
+
+  <h2>4 · Take it away</h2>
+  <p class="hint">When it looks right, copy the markup and paste it into your
+     own template. Dropped covers come out as <code>data:</code> URLs, so
+     swap those for your real image paths on the way.</p>
+  <div class="row">
+    <button type="button" class="act" id="copy" disabled>Copy the markup</button>
+  </div>
+  <textarea id="out" class="out" spellcheck="false" readonly
+            aria-label="Markup for your own template"></textarea>
+</main>
+
+<script type="module" src="spinner-rack.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var SAMPLE = [
+    ['The Disappearers', 'Marlon James', 'https://example.com/books/the-disappearers', 'New in', 'Three generations, one vanishing act. James writes violence and tenderness in the same breath.', 'Guardian'],
+    ['The New Dark Ages', 'James Marriott', 'https://example.com/books/the-new-dark-ages', 'New in'],
+    ['Redwood', 'Ben Macintyre', 'https://example.com/books/redwood', 'New in'],
+    ['The Strangers', 'Naomi Alderman', 'https://example.com/books/the-strangers', 'New in', 'Something is wrong in the allotments. Dread built out of compost heaps and shed doors.', 'Guardian'],
+    ['Exit Party', 'Emily St. John Mandel', 'https://example.com/books/exit-party', 'New in'],
+    ['Taipei Story', 'Rebecca F. Kuang', 'https://example.com/books/taipei-story', 'New in'],
+    ['No Land to Stand On', 'Mahmoud Khalil', 'https://example.com/books/no-land-to-stand-on', 'Non-fiction'],
+    ['How to be Hopeful', 'Caitlin Moran', 'https://example.com/books/how-to-be-hopeful', 'Non-fiction', 'Funny in the way that only someone taking it seriously can be.', 'Observer'],
+    ['Prisoners of Geography', 'Tim Marshall', 'https://example.com/books/prisoners-of-geography', 'Non-fiction'],
+    ['Black and British', 'David Olusoga', 'https://example.com/books/black-and-british', 'Non-fiction'],
+    ['The Shock Doctrine', 'Naomi Klein', 'https://example.com/books/the-shock-doctrine', 'Non-fiction'],
+    ['Fight Oligarchy', 'Bernie Sanders', 'https://example.com/books/fight-oligarchy', 'Non-fiction'],
+    ['Farewell to Eden', 'Sebastian Faulks', 'https://example.com/books/farewell-to-eden', 'Fiction'],
+    ['Stories', 'Annie Proulx', 'https://example.com/books/stories', 'Fiction'],
+    ['Big Swiss', 'Jen Beagin', 'https://example.com/books/big-swiss', 'Fiction', 'Improbably funny about grief, sex and eavesdropping.', 'Observer'],
+    ['Cloud Atlas', 'David Mitchell', 'https://example.com/books/cloud-atlas', 'Fiction'],
+    ['The Bell Jar', 'Sylvia Plath', 'https://example.com/books/the-bell-jar', 'Fiction'],
+    ['Beloved', 'Toni Morrison', 'https://example.com/books/beloved', 'Fiction'],
+    ['Not Too Late', 'Rebecca Solnit', 'https://example.com/books/not-too-late', 'Nature'],
+    ['Wild Fell', 'Lee Schofield', 'https://example.com/books/wild-fell', 'Nature'],
+    ['The Salt Path', 'Raynor Winn', 'https://example.com/books/the-salt-path', 'Nature', 'Homeless and walking the coast path. It should be bleak; it is the opposite.', 'Guardian'],
+    ['H is for Hawk', 'Helen Macdonald', 'https://example.com/books/h-is-for-hawk', 'Nature'],
+    ['Underland', 'Robert Macfarlane', 'https://example.com/books/underland', 'Nature', 'Catacombs, glaciers, fungal networks — it changed how we talk about landscape.', 'TLS'],
+    ['Wilding', 'Isabella Tree', 'https://example.com/books/wilding', 'Nature']
+  ];
+
+  var COLS = ['title', 'author', 'href', 'category', 'review', 'source', 'cover'];
+  var rack = document.querySelector('spinner-rack');
+  var feed = document.getElementById('feed');
+  var out = document.getElementById('out');
+  var tally = document.getElementById('tally');
+  var copyBtn = document.getElementById('copy');
+  var drop = document.getElementById('drop');
+
+  var books = [];        // what the rack is showing
+  var dropped = {};      // slug -> data URL, from the drop zone
+
+  /* Titles and filenames are never spelled the same way twice: strip
+     everything that isn't a letter or digit so "The Salt Path",
+     "the-salt-path.jpg" and "The_Salt_Path_9780241.jpeg" all land together. */
+  function slug(s) {
+    return String(s).toLowerCase().replace(/\.[a-z0-9]+$/, '')
+      .replace(/[^a-z0-9]+/g, '');
+  }
+
+  function parseFeed(text) {
+    return text.split(/\r?\n/).map(function (line) {
+      if (!line.trim()) return null;
+      // Tabs win where present — a pasted spreadsheet column can hold commas.
+      var parts = line.indexOf('\t') > -1 ? line.split('\t') : splitCsv(line);
+      var b = {};
+      COLS.forEach(function (k, i) { b[k] = (parts[i] || '').trim(); });
+      return b.title ? b : null;
+    }).filter(Boolean);
+  }
+
+  /* Enough CSV for a pasted row: quoted fields, doubled quotes inside them. */
+  function splitCsv(line) {
+    var fields = [], cur = '', inQ = false;
+    for (var i = 0; i < line.length; i++) {
+      var c = line[i];
+      if (inQ) {
+        if (c === '"' && line[i + 1] === '"') { cur += '"'; i++; }
+        else if (c === '"') inQ = false;
+        else cur += c;
+      } else if (c === '"') inQ = true;
+      else if (c === ',') { fields.push(cur); cur = ''; }
+      else cur += c;
+    }
+    fields.push(cur);
+    return fields;
+  }
+
+  function toFeed(rows) {
+    return rows.map(function (r) {
+      return r.map(function (f) { return f == null ? '' : f; }).join('\t');
+    }).join('\n');
+  }
+
+  /* Cover files are named all sorts of ways — by title, by title and ISBN, by
+     ISBN alone. Take an exact slug match first, then the longest title the
+     filename begins with, then the longest it contains anywhere. Longest wins
+     so "Stories" can't steal the file belonging to "Stories of Your Life". */
+  function matchDropped(title) {
+    var want = slug(title);
+    if (!want) return '';
+    if (dropped[want]) return dropped[want];
+    var best = '', bestLen = -1;
+    Object.keys(dropped).forEach(function (name) {
+      var at = name.indexOf(want);
+      if (at === -1) return;
+      // A filename that starts with the title beats one that merely mentions it.
+      var score = (at === 0 ? 1000 : 0) + want.length;
+      if (score > bestLen) { bestLen = score; best = dropped[name]; }
+    });
+    return best;
+  }
+
+  /* A dropped file beats a URL in the sheet: you dropped it more recently. */
+  function coverFor(b) {
+    return matchDropped(b.title) || b.cover || '';
+  }
+
+  function build() {
+    books = parseFeed(feed.value);
+    rack.books = books.map(function (b) {
+      return {
+        title: b.title, author: b.author, href: b.href || '#',
+        category: b.category, review: b.review, source: b.source,
+        cover: coverFor(b)
+      };
+    });
+    report();
+    copyBtn.disabled = books.length === 0;
+    if (out.hasAttribute('data-shown')) writeOut();
+  }
+
+  function report() {
+    if (!books.length) {
+      tally.textContent = 'No books yet — paste a list above, or load the sample.';
+      return;
+    }
+    var withCover = books.filter(function (b) { return coverFor(b); });
+    var missing = books.filter(function (b) { return !coverFor(b); })
+      .map(function (b) { return b.title; });
+    var claimed = {};
+    books.forEach(function (b) {
+      var want = slug(b.title);
+      Object.keys(dropped).forEach(function (k) {
+        if (want && k.indexOf(want) !== -1) claimed[k] = true;
+      });
+    });
+    var unmatched = Object.keys(dropped).filter(function (k) { return !claimed[k]; });
+    var html = '<b>' + books.length + '</b> books · <b>' + withCover.length +
+      '</b> with a cover';
+    if (missing.length) {
+      html += '\nGenerated jackets: ' +
+        missing.slice(0, 4).join(', ') +
+        (missing.length > 4 ? ' and ' + (missing.length - 4) + ' more' : '');
+    }
+    if (unmatched.length) {
+      html += '\n<span class="miss">' + unmatched.length +
+        ' dropped image' + (unmatched.length === 1 ? '' : 's') +
+        " matched no title — check the filename against the book's name.</span>";
+    }
+    tally.innerHTML = html;
+  }
+
+  function take(files) {
+    var images = [].slice.call(files).filter(function (f) {
+      return /^image\//.test(f.type);
+    });
+    if (!images.length) return;
+    var left = images.length;
+    images.forEach(function (file) {
+      var fr = new FileReader();
+      fr.onload = function () {
+        dropped[slug(file.name)] = fr.result;
+        if (--left === 0) build();
+      };
+      fr.onerror = function () { if (--left === 0) build(); };
+      fr.readAsDataURL(file);
+    });
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function writeOut() {
+    var attrs = ['label="' + esc(rack.getAttribute('label') || '') + '"',
+                 'sides="' + esc(rack.getAttribute('sides') || '4') + '"',
+                 'per-shelf="' + esc(rack.getAttribute('per-shelf') || '2') + '"'];
+    if (rack.getAttribute('preview')) attrs.push('preview="tap"');
+    var lines = books.map(function (b) {
+      var a = ['  <a href="' + esc(b.href || '#') + '"',
+               'data-title="' + esc(b.title) + '"'];
+      if (b.author) a.push('data-author="' + esc(b.author) + '"');
+      if (b.category) a.push('data-category="' + esc(b.category) + '"');
+      if (coverFor(b)) a.push('data-cover="' + esc(coverFor(b)) + '"');
+      if (b.review) a.push('data-review="' + esc(b.review) + '"');
+      if (b.source) a.push('data-source="' + esc(b.source) + '"');
+      return a.join(' ') + '>' + esc(b.title) + '</a>';
+    });
+    out.value = '<script type="module" src="spinner-rack.js"><\/script>\n\n' +
+      '<spinner-rack ' + attrs.join(' ') + '>\n' + lines.join('\n') +
+      '\n</spinner-rack>';
+  }
+
+  document.getElementById('apply').addEventListener('click', build);
+  document.getElementById('sample').addEventListener('click', function () {
+    feed.value = toFeed(SAMPLE);
+    build();
+  });
+  document.getElementById('pick').addEventListener('change', function (e) {
+    take(e.target.files);
+    e.target.value = '';           // so the same file can be dropped again
+  });
+
+  ['dragenter', 'dragover'].forEach(function (t) {
+    drop.addEventListener(t, function (e) {
+      e.preventDefault();
+      drop.classList.add('over');
+    });
+  });
+  ['dragleave', 'drop'].forEach(function (t) {
+    drop.addEventListener(t, function (e) {
+      e.preventDefault();
+      drop.classList.remove('over');
+      if (t === 'drop' && e.dataTransfer) take(e.dataTransfer.files);
+    });
+  });
+  // Without this the browser navigates away to the image you missed with.
+  ['dragover', 'drop'].forEach(function (t) {
+    window.addEventListener(t, function (e) { e.preventDefault(); });
+  });
+
+  copyBtn.addEventListener('click', function () {
+    writeOut();
+    out.setAttribute('data-shown', '');
+    out.select();
+    var done = function (ok) {
+      copyBtn.textContent = ok ? 'Copied' : 'Select it and copy';
+      setTimeout(function () { copyBtn.textContent = 'Copy the markup'; }, 1800);
+    };
+    // Clipboard access is blocked on file:// in some browsers, so fall back to
+    // leaving it selected rather than failing silently.
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(out.value).then(function () { done(true); },
+                                                    function () { done(false); });
+    } else {
+      done(false);
+    }
+  });
+
+  feed.value = toFeed(SAMPLE);
+  // The module that defines <spinner-rack> is deferred, so assigning .books
+  // now would write an own property that shadows the element's own accessor.
+  // The component recovers from that, but there is no reason to rely on it.
+  if (window.customElements) {
+    customElements.whenDefined('spinner-rack').then(build);
+  } else {
+    window.addEventListener('load', build);
+  }
+})();
+</script>
+</body>
+</html>
