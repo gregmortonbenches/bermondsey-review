@@ -267,7 +267,12 @@ const STYLES = `
   --lid-clip: none;
   --angle: 0deg;
   --bh: 0.50;
-  --crown-h: calc(var(--face-w) * 0.245);
+  --crown-h: calc(var(--face-w) * 0.17);
+  /* Where the crown's bottom edge sits relative to the panel top. Negative
+     lifts it clear, which is what a heading wants. The fixture overrides it to
+     +6px, dropping the cap INTO the panel so it reads as sitting on the rack
+     rather than hovering a hairline above it. */
+  --crown-drop: -10px;
   --crown-proud: 0px;
   --crown-w: 220px;
   --book-w: calc(var(--face-w) * var(--bh) * var(--rack-cover-ratio));
@@ -316,7 +321,8 @@ const STYLES = `
   transform-style: preserve-3d;
   transform: rotateY(var(--angle));
   will-change: transform;
-  padding-top: var(--crown-h);    /* headroom for the crown, which sits above */
+  /* Headroom for the crown, which sits above the panels. */
+  padding-top: calc(var(--crown-h) - var(--crown-drop));
 }
 
 .face, .crown-panel {
@@ -334,19 +340,17 @@ const STYLES = `
   /* Width and depth both come from CROWN_PROUD — see the constant. */
   width: var(--crown-w);
   height: var(--crown-h);
-  /* Dropped 6px into the panel below, so the cap sits ON the rack rather than
-     hovering a hairline above it. */
   transform: rotateY(var(--fa)) translateZ(calc(var(--radius) + var(--crown-proud)))
-             translateY(calc(6px - var(--crown-h)));
+             translateY(calc(var(--crown-drop) - var(--crown-h)));
   display: grid;
-  place-items: center;
+  place-items: end center;
   padding: 0 10px;
 }
 .crown-panel span {
   /* The book face, not the display face: the sign reads as a bookshop fascia
      rather than shouted signage. Set in whatever case the shop authored —
      see #crownHTML for why the casing isn't forced here. */
-  font: 400 clamp(14px, calc(var(--face-w) * 0.095), 26px)/1.05 var(--rack-crown-font);
+  font: 400 clamp(14px, calc(var(--face-w) * 0.088), 24px)/1.05 var(--rack-crown-font);
   letter-spacing: 0.01em;
   color: inherit;                 /* the page's ink, not the fixture's */
   white-space: nowrap;
@@ -366,7 +370,7 @@ const STYLES = `
   align-self: start;
   width: var(--lid-size);
   height: var(--lid-size);
-  transform: translateY(calc(6px - var(--crown-h) - var(--lid-size) / 2)) rotateX(90deg);
+  transform: translateY(calc(var(--crown-drop) - var(--crown-h) - var(--lid-size) / 2)) rotateX(90deg);
   background: linear-gradient(160deg, #303239, #101114);
   clip-path: var(--lid-clip);
   pointer-events: none;
@@ -456,6 +460,21 @@ const STYLES = `
   .book:hover { opacity: 0.72; }
 }
 .book:focus-visible .cover { outline: 2px solid var(--rack-accent); outline-offset: 2px; }
+
+/* The shelf-edge price. In a shop it is on the shelf, not on the book — so it
+   goes in the band under the cover rather than over somebody's artwork. Always
+   rendered, even when empty, so a title with no price doesn't sit lower than
+   its neighbours. It fades with its facing along with everything else. */
+.ticket {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--rack-book-font);
+  font-size: clamp(9px, calc(var(--book-w) * 0.115), 13px);
+  line-height: 1.25;
+  min-height: 1.25em;
+  opacity: 0.62;
+  font-variant-numeric: tabular-nums;
+}
 
 .cover {
   position: relative;
@@ -571,6 +590,9 @@ const STYLES = `
    shop fitting pasted onto a page, which is the opposite of belonging to one.
    Everything above is the page-native treatment.
    =========================================================================== */
+:host([chrome="fixture"]) {
+  --crown-drop: 6px;              /* the cap sits ON the rack */
+}
 :host([chrome="fixture"]) .crown-panel {
   background: var(--rack-crown);
   border: 1px solid #000;
@@ -857,6 +879,7 @@ class SpinnerRack extends HTMLElement {
        style="--tilt:${tilt.toFixed(2)}deg"
        aria-label="${this.#esc(spoken)}">
       <div class="cover" style="--vary:${vary};--tf:${tf}${ar ? `;--ar:${ar}` : ''}">${art}</div>
+      <span class="ticket">${b.price ? this.#esc(b.price) : ''}</span>
     </a>`;
   }
 

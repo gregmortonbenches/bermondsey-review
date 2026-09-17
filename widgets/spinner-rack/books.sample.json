@@ -1,43 +1,85 @@
 [
   {
     "category": "New in",
-    "title": "Ottolenghi Simple Too",
-    "author": "Yotam Ottolenghi",
-    "price": "£28.00",
-    "cover": "covers/simple-too.png"
-  },
-  {
-    "category": "New in",
-    "title": "The Third Eye",
-    "author": "George Harrison",
-    "price": "£30.00",
-    "cover": "covers/third-eye.png"
-  },
-  {
-    "category": "New in",
-    "title": "Creative Writing",
-    "author": "David Shrigley",
-    "price": "£16.99",
-    "cover": "covers/creative-writing.png"
-  },
-  {
-    "category": "New in",
-    "title": "The Medicine Tree",
-    "author": "Nick Hayes",
+    "title": "The Disappearers",
+    "author": "Marlon James",
     "price": "£22.00",
-    "cover": "covers/medicine-tree.png"
+    "cover": "covers/disappearers.png"
   },
   {
     "category": "New in",
-    "title": "Being You",
-    "author": "Anil Seth",
-    "price": "£10.99"
+    "title": "Redwood",
+    "author": "Ben Macintyre",
+    "price": "£25.00",
+    "cover": "covers/redwood.png"
   },
   {
     "category": "New in",
-    "title": "Entangled Life",
-    "author": "Merlin Sheldrake",
+    "title": "The Strangers",
+    "author": "Naomi Alderman",
+    "price": "£20.00",
+    "cover": "covers/strangers.png"
+  },
+  {
+    "category": "New in",
+    "title": "Exit Party",
+    "author": "Emily St. John Mandel",
+    "price": "£20.00",
+    "cover": "covers/exit-party.png"
+  },
+  {
+    "category": "New in",
+    "title": "Farewell to Eden",
+    "author": "Sebastian Faulks",
+    "price": "£22.00"
+  },
+  {
+    "category": "New in",
+    "title": "Taipei Story",
+    "author": "Rebecca F. Kuang",
+    "price": "£20.00"
+  },
+  {
+    "category": "Non-fiction",
+    "title": "No Land to Stand On",
+    "author": "Mahmoud Khalil",
+    "price": "£22.00"
+  },
+  {
+    "category": "Non-fiction",
+    "title": "How to be Hopeful",
+    "author": "Caitlin Moran",
+    "price": "£20.00"
+  },
+  {
+    "category": "Non-fiction",
+    "title": "Prisoners of Geography",
+    "author": "Tim Marshall",
     "price": "£10.99"
+  },
+  {
+    "category": "Non-fiction",
+    "title": "Black and British",
+    "author": "David Olusoga",
+    "price": "£12.99"
+  },
+  {
+    "category": "Non-fiction",
+    "title": "The Shock Doctrine",
+    "author": "Naomi Klein",
+    "price": "£12.99"
+  },
+  {
+    "category": "Non-fiction",
+    "title": "Fight Oligarchy",
+    "author": "Bernie Sanders",
+    "price": "£12.99"
+  },
+  {
+    "category": "Fiction",
+    "title": "Stories",
+    "author": "Annie Proulx",
+    "price": "£25.00"
   },
   {
     "category": "Fiction",
@@ -68,48 +110,6 @@
     "title": "Normal People",
     "author": "Sally Rooney",
     "price": "£8.99"
-  },
-  {
-    "category": "Fiction",
-    "title": "Girl, Woman, Other",
-    "author": "Bernardine Evaristo",
-    "price": "£9.99"
-  },
-  {
-    "category": "Politics",
-    "title": "Fight Oligarchy",
-    "author": "Bernie Sanders",
-    "price": "£12.99"
-  },
-  {
-    "category": "Politics",
-    "title": "The Dawn of Everything",
-    "author": "David Graeber & David Wengrow",
-    "price": "£12.99"
-  },
-  {
-    "category": "Politics",
-    "title": "On Palestine",
-    "author": "Noam Chomsky & Ilan Pappé",
-    "price": "£10.99"
-  },
-  {
-    "category": "Politics",
-    "title": "Prisoners of Geography",
-    "author": "Tim Marshall",
-    "price": "£10.99"
-  },
-  {
-    "category": "Politics",
-    "title": "Black and British",
-    "author": "David Olusoga",
-    "price": "£12.99"
-  },
-  {
-    "category": "Politics",
-    "title": "The Shock Doctrine",
-    "author": "Naomi Klein",
-    "price": "£12.99"
   },
   {
     "category": "Nature",
