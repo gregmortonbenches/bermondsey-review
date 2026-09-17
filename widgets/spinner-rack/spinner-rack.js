@@ -133,6 +133,9 @@ const CROWN_PROUD = 0;
 // Must match the stage's perspective, which the layout pass also writes, since
 // the overhang below is derived from it.
 const PERSPECTIVE = 1700;
+/* Narrower than this and a cover is a coloured rectangle rather than a book.
+   The rack drops a shelf instead of going below it — see #layout. */
+const MIN_FACE = 150;
 const PERSPECTIVE_ORIGIN_Y = 0.42;
 
 // How tall a book is as a fraction of the panel width, by books-per-shelf.
@@ -828,6 +831,8 @@ class SpinnerRack extends HTMLElement {
   #front = -1;
   #built = false;
   #drum = null;         // the .rack element, the one thing that turns
+  #rowCap = 0;          // shelves the height budget actually allows, 0 = no limit
+  #reshaping = false;   // guards the one re-deal a reshape costs
   #shades = [];         // one per facing, dimmed as it turns away
   #reduce = false;
   #hinted = false;
@@ -974,7 +979,13 @@ class SpinnerRack extends HTMLElement {
 
     const attrRows = parseInt(this.getAttribute('rows'), 10);
     const needed = Math.ceil(Math.max(1, ...counts) / perShelf);
-    const rows = CLAMP(attrRows > 0 ? attrRows : needed, 1, 7);
+    // #rowCap is what the height budget was measured to allow. Without it the
+    // rack keeps the shelves it wants and overruns the budget instead, which
+    // is what used to happen in landscape: the panel bottomed out at its
+    // minimum width, the solver ran out of room to shrink, and it silently
+    // paid out 25-145px more height than it had.
+    let rows = CLAMP(attrRows > 0 ? attrRows : needed, 1, 7);
+    if (this.#rowCap > 0) rows = Math.min(rows, this.#rowCap);
     const capacity = rows * perShelf;
 
     let cursor = 0;
@@ -1206,6 +1217,80 @@ class SpinnerRack extends HTMLElement {
     }
   }
 
+  #shelfCount() {
+    return this.shadowRoot?.querySelectorAll('.face[data-face="0"] .shelf').length || 0;
+  }
+
+  /**
+   * How many shelves the budget allows, measured rather than modelled: take a
+   * rendered shelf's real height and the real space above and below it, and
+   * divide what is left of the budget by it.
+   */
+  /** The shelf count the markup asks for, before any budget gets a say. */
+  #wantedRows() {
+    const sides = this.#sides();
+    const perShelf = this.#perShelf();
+    const n = this.books.length;
+    const most = Math.ceil(n / sides);
+    const attr = parseInt(this.getAttribute('rows'), 10);
+    return CLAMP(attr > 0 ? attr : Math.ceil(Math.max(1, most) / perShelf), 1, 7);
+  }
+
+  #needsReshape(budget) {
+    if ((this.offsetHeight || 0) > budget + 1) return true;
+    // It fits — but it may be fitting on a cap set for a smaller viewport, so
+    // a rack that gave up a shelf turning sideways takes it back turning
+    // upright. A resize is the only notice either way.
+    return this.#rowCap > 0 && this.#rowCap < this.#wantedRows();
+  }
+
+  /**
+   * Settle on a shelf count by trying them, tallest first, and keeping the
+   * first that fits the budget.
+   *
+   * Trying beats predicting here. A shelf's height depends on the panel width,
+   * the panel width depends on how many shelves have to fit, and predicting
+   * one from the other made the answer depend on where it started: a fresh
+   * load at 844x390 settled on two shelves, while rotating into the same
+   * viewport settled on one. Same viewport, different rack. Rendering each
+   * candidate and measuring it costs a few layout passes on a resize — which
+   * happens on rotation, not per frame — and gives one answer per viewport.
+   */
+  #settleShape(budget) {
+    this.#reshaping = true;
+    try {
+      const wanted = this.#wantedRows();
+      for (let rows = wanted; rows >= 1; rows--) {
+        this.#rowCap = rows;
+        this.#render();
+        if ((this.offsetHeight || 0) <= budget + 1) return;
+      }
+      // One shelf and still over: there is nothing left to give up, and a rack
+      // too tall for its box beats no rack at all.
+    } finally {
+      this.#reshaping = false;
+    }
+  }
+
+  /**
+   * The shape the rack settled on, and what that cost. A rack that reshapes to
+   * fit a short viewport renders fewer books than it was given, so a host that
+   * cares can say so rather than quietly showing eight of twenty-four.
+   */
+  get shape() {
+    const rows = this.#shelfCount();
+    const perShelf = this.#perShelf();
+    const sides = this.#sides();
+    const capacity = sides * rows * perShelf;
+    const supplied = this.books.length;
+    return {
+      rows, perShelf, sides, capacity,
+      rendered: Math.min(supplied, this.#rendered.length),
+      dropped: Math.max(0, supplied - this.#rendered.length),
+      reshaped: this.#rowCap > 0,
+    };
+  }
+
   /**
    * Panel width, rotation radius and the shape of the cap. The rack sweeps a
    * circle wider than one panel — 2R across the corners — so it has to be
@@ -1243,7 +1328,7 @@ class SpinnerRack extends HTMLElement {
 
       // Width first: the rack sweeps a circle wider than one panel, so it has
       // to be sized to its own footprint or it clips on the way round.
-      const byWidth = Math.max(120, Math.min(max, (avail - 8) / spread));
+      const byWidth = Math.max(MIN_FACE, Math.min(max, (avail - 8) / spread));
       let R = apply(byWidth);
 
       // Then height. Covers divide the panel, so a rack sized only by width
@@ -1261,12 +1346,28 @@ class SpinnerRack extends HTMLElement {
         // fixed — so one scaling overshoots. A couple of passes close it.
         // Deterministic from byWidth and the budget, so repeated resize
         // callbacks land on the same answer instead of drifting.
+        // Measured on the HOST, not the drum. The drum is only part of what
+        // the element occupies: the crown sits above it and .floor reserves the
+        // perspective overhang below it. Solving for the drum alone let the
+        // element run past --rack-max-height by the overhang — about 50px —
+        // which is why a rack that believed it fitted an 80dvh budget did not
+        // actually fit on screen at 330px of viewport height and below.
         let faceW = byWidth;
-        for (let i = 0; i < 3; i++) {
-          const h = rack?.offsetHeight || 0;
+        for (let i = 0; i < 4; i++) {
+          const h = this.offsetHeight || 0;
           if (!h || h <= budget) break;
-          faceW = Math.max(120, faceW * (budget / h) * 0.995);
+          faceW = Math.max(MIN_FACE, faceW * (budget / h) * 0.995);
           R = apply(faceW);
+        }
+
+        // Narrowing the panel has a floor, and below it the covers stop being
+        // covers — in landscape this bottomed out at 50x75, a coloured stamp.
+        // Past that point the answer is a different rack, not a smaller one:
+        // drop a shelf, and the panel grows back into the width that landscape
+        // has going spare.
+        if (!this.#reshaping && this.#needsReshape(budget)) {
+          this.#settleShape(budget);
+          return;
         }
       }
 

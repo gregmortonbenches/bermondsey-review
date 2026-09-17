@@ -425,6 +425,55 @@ rather than merely slower.
   finger let go. A slow drag with no flick in it turns about 54° for 200px and
   stops there, mid-corner — which is what free-wheeling means.
 
+### Landscape: the rack gives up a shelf
+
+A phone turned sideways has half the height and twice the width, and the width
+is no use: a four-sided drum's height is a fixed function of its panel width,
+so more width buys no shelf room. Left to shrink the panel, the rack bottomed
+out at its minimum width with **50 × 75px covers** — a coloured stamp, not a
+book, which guts the premise that the covers are the object.
+
+So it drops a shelf instead. The panel then grows back into the width that was
+going spare:
+
+| | Shape | Cover | Books shown |
+|---|---|---|---|
+| 390 × 844, portrait | 3 × 2 | 100 × 150 | 24 of 24 |
+| 844 × 390, landscape | 2 × 2 | 69 × 103 | **16 of 24** |
+| 844 × 280 | 1 × 2 | 91 × 136 | 8 of 24 |
+
+**It costs books.** Fewer shelves is less capacity, so a 24-title rack shows 16
+in landscape and 8 on anything shorter. `rack.shape` reports what happened —
+`{rows, perShelf, sides, capacity, rendered, dropped, reshaped}` — so a host
+that minds can say "16 of 24" rather than quietly showing two thirds.
+
+It settles **by trying, not predicting**. A shelf's height depends on the panel
+width; the panel width depends on how many shelves must fit. Predicting one
+from the other made the answer depend on where it started — a fresh load at
+844 × 390 settled on two shelves while rotating into the same viewport settled
+on one. Same viewport, different rack. It now renders each candidate tallest
+first and keeps the first that fits, which costs a few layout passes on a
+resize and gives one answer per viewport. Rotating out and back returns the
+3 × 2 shape exactly.
+
+Tallest-first means it **prefers more books to bigger covers**. At 844 × 390
+that is 16 at 69 × 103 rather than 8 at 100 × 150. Set `rows="1"` if you would
+rather have the bigger covers.
+
+### What the height budget governs
+
+`--rack-max-height` is measured against **the element**, not the turning drum
+inside it. The drum is only part of what the rack occupies: the crown sits
+above it, and a strip below it reserves the perspective overhang, because the
+near bottom corner paints past the box it lays out in.
+
+Solving for the drum alone let the element overrun its own budget by that
+overhang — about 50px — so an 80dvh rack did not actually fit an 80dvh
+viewport. Below roughly 340px of viewport height the whole rack no longer fit
+on screen, which is the precise failure the budget exists to prevent. If you
+measure this yourself, measure the host element; the drum will look fine while
+the element does not fit.
+
 ## Accessibility
 
 - **No buttons, no counter.** Swiping is the gesture, the one-time nudge
