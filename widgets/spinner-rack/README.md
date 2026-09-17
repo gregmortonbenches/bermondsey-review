@@ -187,11 +187,18 @@ Web fonts loaded in the host page apply inside the shadow root, so
 turns away, so it has to be your actual page background. The default is
 `Canvas`, which is only a guess.
 
+**`--rack-max-height` (default `80vh`)** is what keeps it usable on a phone.
+Covers divide the panel, so a narrow screen doesn't make the rack narrower — it
+makes it *taller*, and a rack you can only see two shelves of is a rack you
+can't browse. The layout pass measures what it just laid out and scales the
+panel down until the whole thing fits. Set it to `none` to let the rack run to
+whatever height its stock needs.
+
 **Sizing.** A four-sided rack sweeps a circle about 1.41× the panel width, so
-give it that much room or it clips as it turns. It sizes itself down to fit a
-narrow container automatically. Covers divide the panel evenly, so
-`--rack-max-width` is the single dial for how big they are — and therefore how
-tall the rack is.
+give it that much room or it clips as it turns. It sizes itself down to fit
+both a narrow container and `--rack-max-height`. Covers divide the panel
+evenly, so `--rack-max-width` is the dial for how big they get when there's
+room.
 
 ### `chrome="fixture"`
 

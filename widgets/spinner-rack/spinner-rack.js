@@ -80,7 +80,10 @@
  *   --rack-page       the page's own background; facings turning away fade
  *                     into it, so set it to what your page actually is
  *   --rack-accent     focus rings
- *   --rack-max-width, --rack-display-font, --rack-book-font, --rack-crown-font
+ *   --rack-max-width  panel width cap
+ *   --rack-max-height the rack shrinks to fit this (default 80vh, `none` to
+ *                     let it run to whatever height its stock needs)
+ *   --rack-display-font, --rack-book-font, --rack-crown-font
  *   --rack-metal, --rack-crown, --rack-crown-ink   (chrome="fixture" only)
  */
 
@@ -224,6 +227,11 @@ const STYLES = `
   --rack-rule: rgba(0, 0, 0, 0.16);
   --rack-page: Canvas;
   --rack-max-width: 220px;
+  /* The rack shrinks to fit this before it overflows the screen. Covers divide
+     the panel, so a narrow viewport makes a rack TALLER, not narrower — this is
+     what stops a phone showing two shelves of an 800px rack. Set it to "none"
+     to let the rack be whatever height its stock needs. */
+  --rack-max-height: 80vh;
   --rack-display-font: "Helvetica Neue", Helvetica, Arial, sans-serif;
   --rack-book-font: Georgia, "Times New Roman", serif;
   /* The sign is its own typographic role — a bookshop fascia, not a book
@@ -248,6 +256,17 @@ const STYLES = `
 * { box-sizing: border-box; }
 
 .wrap { position: relative; }
+
+/* Resolves --rack-max-height to pixels for the layout pass. */
+.hbudget {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: var(--rack-max-height);
+  visibility: hidden;
+  pointer-events: none;
+}
 
 .stage {
   perspective: var(--rack-perspective, 1700px);
@@ -762,6 +781,7 @@ class SpinnerRack extends HTMLElement {
     root.innerHTML = `
       <style>${STYLES}</style>
       <div class="wrap">
+        <div class="hbudget" aria-hidden="true"></div>
         <div class="stage" tabindex="0" role="group"
              aria-roledescription="spinner rack"
              aria-label="${this.#esc(label ? `${label} spinner rack` : 'Book spinner rack')}. Drag it, or use the left and right arrow keys to turn it.">
@@ -931,24 +951,19 @@ class SpinnerRack extends HTMLElement {
    * sized to its own footprint, or it clips on the way round.
    */
   #layout(sides) {
-    const fit = () => {
-      const avail = this.clientWidth || 320;
-      const max = parseFloat(getComputedStyle(this).getPropertyValue('--rack-max-width')) || 220;
-      const spread = 1 / Math.sin(Math.PI / sides);            // 2R as a multiple of panel width
-      const faceW = Math.max(120, Math.min(max, (avail - 8) / spread));
+    const spread = 1 / Math.sin(Math.PI / sides);   // swept circle / panel width
+
+    // Everything geometric follows from one number: the panel width.
+    const apply = (faceW) => {
       const apothem = (faceW / 2) / Math.tan(Math.PI / sides);
       const R = (faceW / 2) / Math.sin(Math.PI / sides);
-
-      // The cap's drum, its panels and its lid all scale together — read the
-      // offset from the constant, never back out of the computed style, which
-      // isn't resolved yet on the first pass and silently fell back to 3.
       const capScale = (apothem + CROWN_PROUD) / apothem;
 
-      this.style.setProperty('--face-w', `${faceW.toFixed(2)}px`);
-      this.style.setProperty('--radius', `${apothem.toFixed(2)}px`);
       this.style.setProperty('--rack-perspective', `${PERSPECTIVE}px`);
       this.style.setProperty('--rack-origin-y', String(PERSPECTIVE_ORIGIN_Y));
       this.style.setProperty('--crown-proud', `${CROWN_PROUD}px`);
+      this.style.setProperty('--face-w', `${faceW.toFixed(2)}px`);
+      this.style.setProperty('--radius', `${apothem.toFixed(2)}px`);
       this.style.setProperty('--crown-w', `${(faceW * capScale).toFixed(2)}px`);
       this.style.setProperty('--lid-size', `${(R * 2 * capScale).toFixed(2)}px`);
 
@@ -958,14 +973,48 @@ class SpinnerRack extends HTMLElement {
         return `${(50 + 50 * Math.sin(phi)).toFixed(3)}% ${(50 + 50 * Math.cos(phi)).toFixed(3)}%`;
       });
       this.style.setProperty('--lid-clip', `polygon(${pts.join(',')})`);
+      return R;
+    };
 
-      // Reserve the overhang. The near bottom corner sits at z = +R, so it is
+    const fit = () => {
+      const avail = this.clientWidth || 320;
+      const max = parseFloat(getComputedStyle(this).getPropertyValue('--rack-max-width')) || 220;
+
+      // Width first: the rack sweeps a circle wider than one panel, so it has
+      // to be sized to its own footprint or it clips on the way round.
+      const byWidth = Math.max(120, Math.min(max, (avail - 8) / spread));
+      let R = apply(byWidth);
+
+      // Then height. Covers divide the panel, so a rack sized only by width
+      // gets TALLER on a narrow screen as the covers stay big — on a phone
+      // that leaves you looking at two shelves of an 800px rack, unable to see
+      // the thing you are meant to grab and turn. Measure what we just laid
+      // out and scale the panel down if it overruns the budget.
+      //
+      // Always re-derived from byWidth, never from the corrected value, so
+      // repeated resize callbacks land on the same answer instead of drifting.
+      const rack = this.shadowRoot.querySelector('.rack');
+      const budget = this.shadowRoot.querySelector('.hbudget')?.offsetHeight || 0;
+      if (budget > 0) {
+        // Height is not purely proportional to panel width — the shelf gaps are
+        // fixed — so one scaling overshoots. A couple of passes close it.
+        // Deterministic from byWidth and the budget, so repeated resize
+        // callbacks land on the same answer instead of drifting.
+        let faceW = byWidth;
+        for (let i = 0; i < 3; i++) {
+          const h = rack?.offsetHeight || 0;
+          if (!h || h <= budget) break;
+          faceW = Math.max(120, faceW * (budget / h) * 0.995);
+          R = apply(faceW);
+        }
+      }
+
+      // Reserve the overhang: the near bottom corner sits at z = +R, so it is
       // magnified by P/(P-R); applied to its distance below the vanishing
       // point, that is how far the rack paints past its own box.
-      const rack = this.shadowRoot.querySelector('.rack');
-      const h = rack?.offsetHeight || 0;
-      if (h) {
-        const drop = h * (1 - PERSPECTIVE_ORIGIN_Y);
+      const finalH = rack?.offsetHeight || 0;
+      if (finalH) {
+        const drop = finalH * (1 - PERSPECTIVE_ORIGIN_Y);
         const overhang = (drop * R) / (PERSPECTIVE - R);
         // Plus real margin: the deepest painted pixel is a little below the
         // geometric corner, and 1px of clearance is not clearance.
