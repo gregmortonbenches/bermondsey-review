@@ -81,6 +81,27 @@ server can render it.
 | `controls` | on | `controls="false"` hides the prev/next buttons |
 | `chrome` | none | `chrome="fixture"` draws it as a painted-steel shop fitting: riveted shelf lips, an illuminated sign, books casting shadows |
 
+### Sizing it for a phone
+
+Measured at 390×844, four facings, two per shelf:
+
+| Titles | Panel | Cover | Shelves | Rack height |
+|---|---|---|---|---|
+| 32 | 190px | 90×124 | 4 | 672px |
+| **24** | **252px** | **121×167** | **3** | **674px** |
+| 16 | 270px | 130×179 | 2 | 503px |
+
+**24 titles is the optimum.** On a phone the binding constraint is *height*, not
+width — so capacity trades directly against cover size. At 32 titles the rack
+needs a fourth shelf and the panel is squeezed to 190px; at 24 it uses the same
+screen height with covers a third bigger. Below 24 the constraint flips back to
+width and the extra height goes unused.
+
+Two things follow from height being the constraint. Giving the rack the page's
+side gutters buys nothing at 32 titles (the panel stays at 190px either way),
+though it is worth having once you are at 24. And `--rack-max-width` only bites
+when there is height to spare.
+
 **Capacity is `sides × rows × per-shelf`,** and `rows` is capped at 7 so a big
 feed can't produce a skyscraper. Anything past capacity isn't rendered — a
 spinner is a browsing surface, not a catalogue. 24–40 books suits a four-sided
@@ -208,6 +229,20 @@ pockets. It needs `--rack-metal`, `--rack-crown` and `--rack-crown-ink`, and it
 wants a dark ground to sit on.
 
 ---
+
+## On mobile
+
+- **`--rack-max-height` resolves through `dvh`** where supported. On iOS `vh`
+  means the viewport with the URL bar hidden, so a `vh` budget can be taller
+  than what is actually on screen — the exact failure the budget exists to
+  prevent.
+- **Hover is behind `@media (hover: hover)`.** Left unguarded, `:hover` sticks
+  after a tap and the book you last touched stays dimmed.
+- **Controls are 44px**, a thumb target rather than a cursor target.
+- **A half-screen thumb swipe coasts about 1.4 facings** at the default
+  gearing, because the free-wheel inertia carries it well past where your
+  finger let go. A slow drag with no flick in it turns about 54° for 200px and
+  stops there, mid-corner — which is what free-wheeling means.
 
 ## Accessibility
 

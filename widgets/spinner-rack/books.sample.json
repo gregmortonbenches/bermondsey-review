@@ -42,18 +42,6 @@
     "price": "£10.99"
   },
   {
-    "category": "New in",
-    "title": "Sapiens",
-    "author": "Yuval Noah Harari",
-    "price": "£12.99"
-  },
-  {
-    "category": "New in",
-    "title": "Other Minds",
-    "author": "Peter Godfrey-Smith",
-    "price": "£10.99"
-  },
-  {
     "category": "Fiction",
     "title": "Big Swiss",
     "author": "Jen Beagin",
@@ -87,18 +75,6 @@
     "category": "Fiction",
     "title": "Girl, Woman, Other",
     "author": "Bernardine Evaristo",
-    "price": "£9.99"
-  },
-  {
-    "category": "Fiction",
-    "title": "Shuggie Bain",
-    "author": "Douglas Stuart",
-    "price": "£9.99"
-  },
-  {
-    "category": "Fiction",
-    "title": "The Remains of the Day",
-    "author": "Kazuo Ishiguro",
     "price": "£9.99"
   },
   {
@@ -138,18 +114,6 @@
     "price": "£12.99"
   },
   {
-    "category": "Politics",
-    "title": "Fix the System, Not the Women",
-    "author": "Laura Bates",
-    "price": "£10.99"
-  },
-  {
-    "category": "Politics",
-    "title": "Chavs",
-    "author": "Owen Jones",
-    "price": "£10.99"
-  },
-  {
     "category": "Nature",
     "title": "Not Too Late",
     "author": "Rebecca Solnit",
@@ -183,18 +147,6 @@
     "category": "Nature",
     "title": "Wilding",
     "author": "Isabella Tree",
-    "price": "£10.99"
-  },
-  {
-    "category": "Nature",
-    "title": "The Hidden Life of Trees",
-    "author": "Peter Wohlleben",
-    "price": "£9.99"
-  },
-  {
-    "category": "Nature",
-    "title": "Feral",
-    "author": "George Monbiot",
     "price": "£10.99"
   }
 ]

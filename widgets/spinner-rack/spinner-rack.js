@@ -253,6 +253,14 @@ const STYLES = `
   --book-w: calc(var(--face-w) * var(--bh) * 0.6494);
 }
 
+/* vh on iOS means the viewport with the URL bar hidden, so an 80vh budget can
+   exceed what is actually visible — the precise failure the budget prevents.
+   dvh tracks the real one. Kept as an @supports override so the vh default
+   above still stands where dvh is unavailable. */
+@supports (height: 1dvh) {
+  :host { --rack-max-height: 80dvh; }
+}
+
 * { box-sizing: border-box; }
 
 .wrap { position: relative; }
@@ -424,7 +432,9 @@ const STYLES = `
   transition: opacity 140ms ease;
   outline: none;
 }
-.book:hover { opacity: 0.72; }
+@media (hover: hover) {
+  .book:hover { opacity: 0.72; }
+}
 .book:focus-visible .cover { outline: 2px solid var(--rack-accent); outline-offset: 2px; }
 
 .cover {
@@ -519,12 +529,13 @@ const STYLES = `
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 14px;
 }
 .controls button {
   appearance: none;
-  width: 34px;
-  height: 34px;
+  /* 44px, not 34: a thumb target, not a cursor target. */
+  width: 44px;
+  height: 44px;
   border: 1px solid currentColor;
   background: transparent;
   color: inherit;
@@ -615,10 +626,12 @@ const STYLES = `
   transform: rotate(var(--tilt, 0deg));
   transition: transform 180ms ease;
 }
-:host([chrome="fixture"]) .book:hover {
-  opacity: 1;
-  transform: rotate(0deg) translateY(-7px) translateZ(14px) scale(1.04);
-  z-index: 4;
+@media (hover: hover) {
+  :host([chrome="fixture"]) .book:hover {
+    opacity: 1;
+    transform: rotate(0deg) translateY(-7px) translateZ(14px) scale(1.04);
+    z-index: 4;
+  }
 }
 :host([chrome="fixture"]) .book:focus-visible {
   transform: rotate(0deg) translateY(-7px) translateZ(14px) scale(1.04);
