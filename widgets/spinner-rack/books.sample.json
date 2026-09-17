@@ -5,7 +5,9 @@
     "author": "Marlon James",
     "price": "£22.00",
     "cover": "covers/disappearers.png",
-    "review": "Three generations, one vanishing act. James writes violence and tenderness in the same breath — nothing else this year comes close."
+    "review": "Three generations, one vanishing act. James writes violence and tenderness in the same breath — nothing else this year comes close.",
+    "quote": "Nothing else comes close",
+    "source": "Guardian"
   },
   {
     "category": "New in",
@@ -27,7 +29,9 @@
     "author": "Naomi Alderman",
     "price": "£20.00",
     "cover": "covers/strangers.png",
-    "review": "Something is wrong in the allotments. Alderman builds dread out of compost heaps and shed doors — deeply English, deeply unsettling."
+    "review": "Something is wrong in the allotments. Alderman builds dread out of compost heaps and shed doors — deeply English, deeply unsettling.",
+    "quote": "Deeply, deeply unsettling",
+    "source": "Guardian"
   },
   {
     "category": "New in",
@@ -53,7 +57,9 @@
     "title": "How to be Hopeful",
     "author": "Caitlin Moran",
     "price": "£20.00",
-    "review": "Funny in the way that only someone taking it seriously can be. Moran on the mechanics of not giving up."
+    "review": "Funny in the way that only someone taking it seriously can be. Moran on the mechanics of not giving up.",
+    "quote": "Funny and deadly serious",
+    "source": "Guardian"
   },
   {
     "category": "Non-fiction",
@@ -97,7 +103,8 @@
     "author": "Jen Beagin",
     "price": "£9.99",
     "review": "Improbably funny about grief, sex and eavesdropping. Beagin's narrator is the best company in fiction right now.",
-    "source": "Observer review"
+    "source": "Observer",
+    "quote": "The best company in fiction"
   },
   {
     "category": "Fiction",
@@ -134,7 +141,9 @@
     "title": "The Salt Path",
     "author": "Raynor Winn",
     "price": "£9.99",
-    "review": "Homeless and walking the coast path. It should be bleak; it is the most life-affirming thing we have sold in years."
+    "review": "Homeless and walking the coast path. It should be bleak; it is the most life-affirming thing we have sold in years.",
+    "quote": "Bleak, and life-affirming",
+    "source": "Guardian"
   },
   {
     "category": "Nature",
@@ -148,7 +157,8 @@
     "author": "Robert Macfarlane",
     "price": "£10.99",
     "review": "Macfarlane goes down instead of up. Catacombs, glaciers, fungal networks — the book that changed how we talk about landscape.",
-    "source": "TLS review"
+    "source": "TLS",
+    "quote": "It changed how we see landscape"
   },
   {
     "category": "Nature",
