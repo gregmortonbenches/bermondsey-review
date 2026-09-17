@@ -217,12 +217,23 @@ rack.addEventListener('rack-face', (e) => {
 
 `rack-select` is cancelable. Leave it alone and the link navigates as normal.
 
-## Methods
+## Methods and properties
 
 ```js
-rack.goToFace(2);     // turn to panel 2
+rack.goToFace(2);     // turn to panel 2, smoothly
 rack.spin(900);       // give it a shove — decelerates like a flick
+rack.books = [...];   // set the stock instead of using light-DOM children
+
+rack.angle;           // how far round it is, in degrees — live
+rack.angle = -45;     // put it there at once, stopping whatever it was doing
 ```
+
+`angle` is the real state, read straight off the physics. Don't reach for the
+`--angle` custom property for either job: it is written only when the rack
+comes to rest, and the drum's own transform overrides it, so setting it from
+outside moves nothing. That trap is not hypothetical — two of the test suites
+here drove the rack that way, and when the animation path changed they
+silently swept nothing and kept reporting "pass".
 
 ---
 
@@ -321,6 +332,84 @@ stays visible beside what is being said about it.
 Dismissed by the close button, Escape, tapping another book, grabbing the rack,
 or turning to another facing. A press that starts *inside* the card is the
 reader using it, so it neither turns the rack nor closes the card.
+
+## Weight, and what it costs a page
+
+Measured, not estimated. Numbers from Chromium at 390×844, CPU throttled to
+stand in for a phone.
+
+| | raw | gzipped |
+|---|---|---|
+| source, as shipped (38% comments) | 65 KB | 22 KB |
+| minified (esbuild) | 36 KB | **12.7 KB** |
+
+Zero dependencies, no build step. For scale, that is less than any one of the
+sample cover images (19–45 KB each).
+
+| | desktop | CPU 4× slower | CPU 6× slower |
+|---|---|---|---|
+| Component's own init | 30 ms | 86 ms | 145 ms |
+| Spinning | 60 fps | 60 fps | 60 fps |
+| Tap → card | 7 ms | 21 ms | 30 ms |
+| Script while idle | none — the loop parks | | |
+
+- **Cumulative layout shift: 0.** The rack sizes itself before it paints.
+- **Not render-blocking.** `type="module"` is deferred; measured against the
+  same page with the script removed, first paint was unchanged.
+- **Nothing runs when nobody is touching it.** Zero `requestAnimationFrame`
+  calls over two seconds at rest.
+- **All 239 nodes are inside the shadow root**, so the host page's DOM is
+  untouched and neither stylesheet can reach the other. That is the main reason
+  this is safe to drop into a themed store.
+
+### The images cost more than the widget
+
+`loading="lazy"` does **not** defer the facings turned away — they are rotated
+out of view but still inside the viewport, so all of them fetch on load. Covers
+render at about **119 × 179 CSS px**, so 238 × 358 covers a 2× screen; a
+standard 600 × 900 product image is **6.3× more pixels than needed**. At
+twenty-four of them that is the difference between roughly 1–2 MB and 400–600 KB.
+
+If the rack sits below the fold, gate its render on an `IntersectionObserver`
+so neither the images nor the init cost land during page load.
+
+### Keeping 60 fps
+
+Nothing in the per-frame path writes a custom property. Writing one invalidates
+style for everything that inherits it, so an earlier version — `--angle` on the
+host, `--facing` on each facing — recalculated the whole shadow tree every
+frame and dropped to 30 fps the moment it moved on a throttled CPU, while
+holding 60 sitting still. A transform on the drum and an opacity on each shade
+touch one element each and stay off the style path. The shade opacity is
+quantised to 1%, below which the change is invisible and the write is skipped.
+
+If you extend the animation, keep that rule: **transform and opacity on single
+elements, never a custom property.**
+
+## Content-Security-Policy
+
+Works under a strict policy — `style-src 'self'` with no `unsafe-inline` —
+because nothing it needs arrives as inline style:
+
+- the stylesheet is built with `new CSSStyleSheet()` and handed over through
+  `adoptedStyleSheets`, which is CSSOM and so outside `style-src`. One sheet is
+  shared by every rack on the page. Where constructable sheets are missing
+  (Safari before 16.4) it falls back to a `<style>` element, which a strict
+  policy will refuse — no worse than before, but worth knowing.
+- per-element numbers (panel angles, cover ratios, jacket colours) are carried
+  as `data-*` in the markup and applied with `el.style.setProperty()` after
+  insertion. A style *attribute* that arrived as markup is refused; a property
+  set from script is not.
+
+Verified on a host page carrying no inline style or script of its own: zero
+violations, correct geometry, turns normally. Before this, the shadow
+stylesheet was refused outright — 19,077 characters of CSS, 0 rules applied —
+and the rack rendered as a column of full-bleed unstyled covers. Every link
+still worked, but it looked broken.
+
+BigCommerce Stencil themes don't ship a strict CSP by default, so this may
+never come up. It is the one thing that would have made the widget unusable
+rather than merely slower.
 
 ## On mobile
 
@@ -508,3 +597,17 @@ npx http-server -p 8899 .
 
 It covers the light-DOM form, the no-JS fallback, and a cancelled
 `rack-select` wired to a quick-view.
+
+**A test that cannot fail is worse than no test.** Two suites here drove the
+rack by setting the `--angle` custom property; when the animation path changed
+to a transform on the drum, both silently swept nothing and kept passing. If
+you add a suite that asserts something visual, sabotage the thing it guards
+once and check it actually goes red — that is how the crown show-through check
+earned its keep (transparent cap → 3.1% show-through, failure).
+
+Frame rate has to be measured against a baseline, not in isolation. Under CPU
+throttling a bare `requestAnimationFrame` loop can sit at 30 fps for reasons
+that have nothing to do with the code under test, so compare the rack spinning
+against the same page with the rack at rest. The same goes for long tasks: this
+page's own load work produced a 116–124 ms task with the widget's script
+removed entirely.

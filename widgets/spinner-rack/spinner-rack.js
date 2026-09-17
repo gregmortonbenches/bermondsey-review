@@ -410,14 +410,16 @@ const STYLES = `
 .face::before { left: 0; }
 .face::after { right: 0; transform: scaleX(-1); }
 
-/* Panels turned away get dimmed, driven by a --facing value the animation
-   loop writes (1 = square on, 0 = edge on). Steadier and cheaper than a
-   filter on the whole rack. */
+/* Panels turned away get dimmed. The animation loop writes this opacity
+   directly, one element per facing — cheaper than a filter on the whole rack,
+   and cheaper than the custom property it used to interpolate from, which
+   invalidated style for everything inside the facing on every frame. The 0
+   here is the square-on state, which is where the rack starts. */
 .face .shade {
   position: absolute;
   inset: 0;
   background: var(--rack-page);
-  opacity: calc((1 - var(--facing, 1)) * 0.72);
+  opacity: 0;
   pointer-events: none;
   z-index: 5;
 }
@@ -621,6 +623,10 @@ const STYLES = `
   font-family: var(--rack-book-font);
   line-height: 1.1;
   overflow: hidden;
+  /* The three colours the layout pass writes onto this element. The bands and
+     rules below read them rather than carrying colours of their own. */
+  background: var(--j-paper, #eee);
+  color: var(--j-ink, #222);
 }
 .j-title {
   font-size: clamp(6px, calc(var(--book-w) * var(--tf, 0.142)), 16px);
@@ -644,16 +650,21 @@ const STYLES = `
 
 /* v0 — title up top, author down at the foot. The default paperback. */
 .j-v0 { justify-content: space-between; }
-.j-v0 .j-rule { height: 3px; width: 44%; margin-bottom: 7%; }
+.j-v0 .j-rule { height: 3px; width: 44%; margin-bottom: 7%; background: var(--j-rule); }
 
 /* v1 — title reversed out of a full-bleed band. */
 .j-v1 { justify-content: flex-start; padding-top: 16%; }
-.j-v1 .j-band { margin: 0 -11%; padding: 7% 11%; }
+.j-v1 .j-band {
+  margin: 0 -11%;
+  padding: 7% 11%;
+  background: var(--j-rule);
+  color: var(--j-paper);            /* the title reverses out of the band */
+}
 .j-v1 .j-author { margin-top: auto; }
 
 /* v2 — centred between rules, the literary-imprint look. */
 .j-v2 { justify-content: space-between; text-align: center; }
-.j-v2 .j-hr { height: 1.5px; margin: 9% 12%; }
+.j-v2 .j-hr { height: 1.5px; margin: 9% 12%; background: var(--j-rule); }
 .j-v2 .j-title { -webkit-line-clamp: 3; }
 
 .floor {
@@ -714,7 +725,6 @@ const STYLES = `
 :host([chrome="fixture"]) .face::after { content: ""; }
 :host([chrome="fixture"]) .face .shade {
   background: #05060a;
-  opacity: calc((1 - var(--facing, 1)) * 0.72);
 }
 :host([chrome="fixture"]) .face,
 :host([chrome="fixture"]) .shelf,
@@ -767,6 +777,32 @@ const STYLES = `
 }
 `;
 
+/**
+ * One stylesheet, built through CSSOM and shared by every rack on the page.
+ *
+ * This matters for more than parse cost. A shop running a strict
+ * Content-Security-Policy — `style-src 'self'` with no `unsafe-inline` —
+ * refuses a <style> element injected as markup, and the rack then renders with
+ * no styling at all: a column of full-bleed covers. A sheet built with
+ * `new CSSStyleSheet()` is CSSOM, not inline style, so the policy does not
+ * apply to it. Falls back to a <style> element where constructable sheets are
+ * missing (Safari before 16.4), which is no worse than the old behaviour.
+ */
+let SHEET = null;
+let SHEET_TRIED = false;
+function sharedSheet() {
+  if (SHEET_TRIED) return SHEET;
+  SHEET_TRIED = true;
+  try {
+    const sheet = new CSSStyleSheet();
+    sheet.replaceSync(STYLES);
+    SHEET = sheet;
+  } catch {
+    SHEET = null;
+  }
+  return SHEET;
+}
+
 class SpinnerRack extends HTMLElement {
   static observedAttributes =
     ['label', 'sides', 'rows', 'per-shelf', 'snap', 'chrome', 'preview', 'pick-label'];
@@ -791,6 +827,8 @@ class SpinnerRack extends HTMLElement {
   #crowns = [];
   #front = -1;
   #built = false;
+  #drum = null;         // the .rack element, the one thing that turns
+  #shades = [];         // one per facing, dimmed as it turns away
   #reduce = false;
   #hinted = false;
   #hintObserver = null;
@@ -844,6 +882,37 @@ class SpinnerRack extends HTMLElement {
   }
 
   get books() { return this.#books || this.#readLightDom(); }
+
+  /**
+   * How far round it is, in degrees. Live — this is the real state, read
+   * straight off the physics, not a value that lags a frame behind.
+   *
+   * Setting it puts the rack there at once and stops whatever it was doing,
+   * which is what you want for positioning it from a script or stepping
+   * through angles in a test. To move there smoothly instead, use goToFace().
+   *
+   * The `--angle` custom property is NOT the way to do either. It is written
+   * only when the rack comes to rest, because writing a custom property every
+   * frame invalidates style for the whole shadow tree and halves the frame
+   * rate; and the drum's own transform overrides it, so setting it from
+   * outside moves nothing.
+   */
+  get angle() { return this.#angle; }
+
+  set angle(deg) {
+    const n = Number(deg);
+    if (!Number.isFinite(n)) return;
+    cancelAnimationFrame(this.#raf);
+    this.#raf = 0;
+    this.#stopHint();
+    this.#glideTarget = null;
+    this.#velocity = 0;
+    this.#angle = n;
+    if (!this.#built || !this.shadowRoot) return;
+    this.#apply();
+    this.#settle();
+    this.#announce(this.#sides());
+  }
 
   /**
    * Give it a shove, the way you would in the shop. Positive turns it left.
@@ -931,8 +1000,13 @@ class SpinnerRack extends HTMLElement {
 
     const label = this.getAttribute('label') || '';
 
+    // Values that used to ride in style="" attributes are carried as data-*
+    // and applied through CSSOM below, because a style attribute in injected
+    // markup is exactly what a strict style-src refuses.
+    const sheet = sharedSheet();
+    if (sheet) root.adoptedStyleSheets = [sheet];
     root.innerHTML = `
-      <style>${STYLES}</style>
+      ${sheet ? '' : `<style>${STYLES}</style>`}
       <div class="wrap">
         <div class="hbudget" aria-hidden="true"></div>
         <div class="stage" tabindex="0" role="group"
@@ -951,14 +1025,43 @@ class SpinnerRack extends HTMLElement {
     this.#cardPinned = false;
     this.#faces = [...root.querySelectorAll('.face')];
     this.#crowns = [...root.querySelectorAll('.crown-panel')];
+    this.#shades = this.#faces.map((f) => f.querySelector('.shade'));
+    this.#drum = root.querySelector('.rack');
     this.#front = -1;
+    this.#applyGeometry(root);
 
     this.#measureCovers();
     this.#layout(sides);
     this.#wire(sides);
     this.#apply();
+    this.#settle();
     this.#announce(sides);
     this.#maybeHint();
+  }
+
+  /**
+   * The per-element numbers that used to be style="" attributes. Setting them
+   * through CSSOM keeps the rack working under a strict style-src, which
+   * refuses a style attribute that arrived as markup but has nothing to say
+   * about a property set from script.
+   */
+  #applyGeometry(root) {
+    for (const el of root.querySelectorAll('[data-fa]')) {
+      el.style.setProperty('--fa', `${el.dataset.fa}deg`);
+    }
+    for (const el of root.querySelectorAll('a.book[data-tilt]')) {
+      el.style.setProperty('--tilt', `${el.dataset.tilt}deg`);
+    }
+    for (const el of root.querySelectorAll('.cover[data-vary]')) {
+      el.style.setProperty('--vary', el.dataset.vary);
+      el.style.setProperty('--tf', el.dataset.tf);
+      if (el.dataset.ar) el.style.setProperty('--ar', el.dataset.ar);
+    }
+    for (const el of root.querySelectorAll('.jacket[data-paper]')) {
+      el.style.setProperty('--j-paper', el.dataset.paper);
+      el.style.setProperty('--j-ink', el.dataset.ink);
+      el.style.setProperty('--j-rule', el.dataset.rule);
+    }
   }
 
   #crownHTML(faceBooks, i, sides, label) {
@@ -970,7 +1073,7 @@ class SpinnerRack extends HTMLElement {
     // blind to acronyms and imprint names, and a shop's category list is full
     // of both. Casing belongs to whoever owns the data.
     const text = faceBooks[0]?.category || label || '';
-    return `<div class="crown-panel" style="--fa:${(i * 360 / sides).toFixed(4)}deg" aria-hidden="true">
+    return `<div class="crown-panel" data-fa="${(i * 360 / sides).toFixed(4)}" aria-hidden="true">
       <span>${this.#esc(text)}</span>
     </div>`;
   }
@@ -978,7 +1081,7 @@ class SpinnerRack extends HTMLElement {
   #faceHTML(faceBooks, i, sides, rows, perShelf) {
     const shelves = [];
     for (let r = 0; r < rows; r++) shelves.push(faceBooks.slice(r * perShelf, (r + 1) * perShelf));
-    return `<div class="face" style="--fa:${(i * 360 / sides).toFixed(4)}deg" data-face="${i}">
+    return `<div class="face" data-fa="${(i * 360 / sides).toFixed(4)}" data-face="${i}">
       ${shelves.map((s) => `
         <div class="shelf">
           ${s.map((b) => this.#bookHTML(b)).join('')}
@@ -1016,9 +1119,9 @@ class SpinnerRack extends HTMLElement {
     const spoken = b.title + (b.author ? `, by ${b.author}` : '');
     return `<a class="book" href="${this.#esc(b.href || '#')}"
        ${b.target ? `target="${this.#esc(b.target)}" rel="noopener"` : ''}
-       style="--tilt:${tilt.toFixed(2)}deg"
+       data-tilt="${tilt.toFixed(2)}"
        aria-label="${this.#esc(spoken)}">
-      <div class="cover" style="--vary:${vary};--tf:${tf}${ar ? `;--ar:${ar}` : ''}">${art}</div>
+      <div class="cover" data-vary="${vary}" data-tf="${tf}"${ar ? ` data-ar="${ar}"` : ''}>${art}</div>
       ${b.review ? `<span class="ticket">${this.#esc(b.source || this.#pickLabel())}</span>` : ''}
     </a>`;
   }
@@ -1069,31 +1172,34 @@ class SpinnerRack extends HTMLElement {
     const j = JACKETS[h % JACKETS.length];
     const title = this.#esc(b.title);
     const author = this.#esc(b.author);
-    const skin = `background:${j.paper};color:${j.ink}`;
+    // Three colours on the jacket root, applied through CSSOM after insertion
+    // and inherited by the bands and rules. Each of these used to be its own
+    // style attribute, which is what a strict style-src refuses.
+    const skin = `data-paper="${j.paper}" data-ink="${j.ink}" data-rule="${j.rule}"`;
 
     switch ((h >> 17) % 3) {
       case 1:
-        return `<div class="jacket j-v1" style="${skin}">
-          <div class="j-band" style="background:${j.rule};color:${j.paper}">
+        return `<div class="jacket j-v1" ${skin}>
+          <div class="j-band">
             <div class="j-title">${title}</div>
           </div>
           <div class="j-author">${author}</div>
         </div>`;
       case 2:
-        return `<div class="jacket j-v2" style="${skin}">
+        return `<div class="jacket j-v2" ${skin}>
           <div></div>
           <div>
-            <div class="j-hr" style="background:${j.rule}"></div>
+            <div class="j-hr"></div>
             <div class="j-title">${title}</div>
-            <div class="j-hr" style="background:${j.rule}"></div>
+            <div class="j-hr"></div>
           </div>
           <div class="j-author">${author}</div>
         </div>`;
       default:
-        return `<div class="jacket j-v0" style="${skin}">
+        return `<div class="jacket j-v0" ${skin}>
           <div class="j-title">${title}</div>
           <div>
-            <div class="j-rule" style="background:${j.rule}"></div>
+            <div class="j-rule"></div>
             <div class="j-author">${author}</div>
           </div>
         </div>`;
@@ -1400,6 +1506,7 @@ class SpinnerRack extends HTMLElement {
       this.#glideTarget = null;
       this.#velocity = 0;
       this.#apply();
+      this.#settle();
       this.#announce(this.#sides());
       return;
     }
@@ -1469,21 +1576,48 @@ class SpinnerRack extends HTMLElement {
   };
 
   /** One write per frame: the angle, plus how square-on each panel is. */
+  /**
+   * Everything that changes as the rack turns, once per frame.
+   *
+   * Deliberately free of custom properties. Writing one invalidates style for
+   * everything that inherits it, so `--angle` on the host and `--facing` on
+   * four facings meant recalculating a ~240-node shadow tree every frame — the
+   * rack held 60fps sitting still and dropped to 30 the moment it moved, on a
+   * CPU a few times slower than a desktop. A transform on the drum and an
+   * opacity on each shade touch one element each and stay off the style path.
+   *
+   * `--angle` is still published on the host, but only when the rack comes to
+   * rest (see #settle): the hint keyframes interpolate from it, and a host
+   * reading it wants the resting angle, not a value mid-flight.
+   */
   #apply() {
-    this.style.setProperty('--angle', `${this.#angle.toFixed(3)}deg`);
+    if (this.#drum) {
+      this.#drum.style.transform = `rotateY(${this.#angle.toFixed(3)}deg)`;
+    }
     const sides = this.#faces.length || 1;
     const active = this.shadowRoot.activeElement;
     for (let i = 0; i < this.#faces.length; i++) {
       const face = this.#faces[i];
       const rel = ((this.#angle + i * (360 / sides)) * Math.PI) / 180;
       const facing = Math.max(0, Math.cos(rel));
-      face.style.setProperty('--facing', facing.toFixed(3));
+      const shade = this.#shades[i];
+      if (shade) {
+        // Quantised: below a 1% step the change is invisible, and skipping the
+        // write skips the compositor work with it.
+        const o = Math.round((1 - facing) * 72) / 100;
+        if (shade.__o !== o) { shade.style.opacity = String(o); shade.__o = o; }
+      }
       // Panels round the back take themselves out of the tab order — but never
       // the one holding focus, or the rack would throw focus to the body
       // mid-turn and lose the reader's place.
       const hide = facing < 0.35 && !(active && face.contains(active));
       if (face.inert !== hide) face.inert = hide;
     }
+  }
+
+  /** Publish the resting angle, for the hint keyframes and for the host. */
+  #settle() {
+    this.style.setProperty('--angle', `${this.#angle.toFixed(3)}deg`);
   }
 
   #announce(sides) {
