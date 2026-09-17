@@ -21,6 +21,11 @@ by the design direction in the repo's root `CLAUDE.md`. It imports nothing,
 touches no global styles, and has no build step. Drop it into any shop front
 end — plain HTML, Shopify/Liquid, WooCommerce, Next, whatever.
 
+> **Why is it like this?** `CLAUDE.md` in this directory carries the design
+> decisions and the reasoning behind them, what was measured rather than
+> guessed, the traps that cost time once already, and what is still open. Read
+> it before changing anything here.
+
 ---
 
 ## Use it
@@ -112,32 +117,20 @@ a path like `/books/x` has nothing to resolve against.
 | `pick-label` | `Guardian review` | What the marker under a reviewed book reads, where the book doesn't name its own source |
 | `chrome` | none | `chrome="fixture"` draws it as a painted-steel shop fitting: riveted shelf lips, an illuminated sign, books casting shadows |
 
-### Sizing it for a phone
-
-Measured at 390×844, four facings, two per shelf:
-
-| Titles | Panel | Cover | Shelves | Rack height |
-|---|---|---|---|---|
-| 32 | 190px | 90×124 | 4 | 672px |
-| **24** | **252px** | **121×167** | **3** | **674px** |
-| 16 | 270px | 130×179 | 2 | 503px |
-
-**24 titles is the optimum.** On a phone the binding constraint is *height*, not
-width — so capacity trades directly against cover size. At 32 titles the rack
-needs a fourth shelf and the panel is squeezed to 190px; at 24 it uses the same
-screen height with covers a third bigger. Below 24 the constraint flips back to
-width and the extra height goes unused.
-
-Two things follow from height being the constraint. Giving the rack the page's
-side gutters buys nothing at 32 titles (the panel stays at 190px either way),
-though it is worth having once you are at 24. And `--rack-max-width` only bites
-when there is height to spare.
+### How many titles
 
 **Capacity is `sides × rows × per-shelf`,** and `rows` is capped at 7 so a big
 feed can't produce a skyscraper. Anything past capacity isn't rendered — a
-spinner is a browsing surface, not a catalogue. 24–40 books suits a four-sided
-rack; the stock is dealt out balanced, so six books give you 2/2/1/1 rather
-than 4/2/0/0 and two bare panels.
+spinner is a browsing surface, not a catalogue.
+
+**24 titles is the measured optimum** on a phone: at 245px of panel that gives
+113×169 covers over three shelves. 32 needs a fourth shelf and squeezes the
+panel to 190px for the same screen height; 16 leaves height unused. The table
+behind that, and why height rather than width is the binding constraint, is in
+`CLAUDE.md`.
+
+Stock is dealt out balanced, so six books give you 2/2/1/1 rather than 4/2/0/0
+and two bare panels.
 
 ## Book data
 
@@ -156,14 +149,9 @@ than 4/2/0/0 and two bare panels.
 ### Prices
 
 The rack shows no prices — not on the shelf, not on the card, and not on the
-`aria-label` either, since announcing a price nothing displays would tell a
-screen-reader user about a sighted view that doesn't exist. A spinner is for
-browsing; the price belongs on the product page you land on.
-
-`data-price` is still read and still travels on the `rack-select` payload, so a
-host that wants it can put it in its own furniture without the rack changing.
-If you do want it on the rack, a strip along the shelf lip is closer to the
-real fixture than an overlay on the artwork.
+`aria-label`. `data-price` is still read and still travels on the
+`rack-select` payload, so a host that wants it can put it in its own furniture.
+Reasoning in `CLAUDE.md`.
 
 ### Cover proportions
 
@@ -228,12 +216,9 @@ rack.angle;           // how far round it is, in degrees — live
 rack.angle = -45;     // put it there at once, stopping whatever it was doing
 ```
 
-`angle` is the real state, read straight off the physics. Don't reach for the
-`--angle` custom property for either job: it is written only when the rack
-comes to rest, and the drum's own transform overrides it, so setting it from
-outside moves nothing. That trap is not hypothetical — two of the test suites
-here drove the rack that way, and when the animation path changed they
-silently swept nothing and kept reporting "pass".
+`angle` is the real state, read straight off the physics. Don't use the
+`--angle` custom property for either job — it is written only at rest and the
+drum's transform overrides it, so setting it moves nothing (`CLAUDE.md`).
 
 ---
 
@@ -264,15 +249,13 @@ turns away, so it has to be your actual page background. The default is
 **`--rack-max-height` (default `80vh`)** is what keeps it usable on a phone.
 Covers divide the panel, so a narrow screen doesn't make the rack narrower — it
 makes it *taller*, and a rack you can only see two shelves of is a rack you
-can't browse. The layout pass measures what it just laid out and scales the
-panel down until the whole thing fits. Set it to `none` to let the rack run to
-whatever height its stock needs.
+can't browse. The layout pass measures what it laid out and scales the panel
+down until the element fits, dropping a shelf if that isn't enough. Set it to
+`none` to let the rack run to whatever height its stock needs.
 
-**Sizing.** A four-sided rack sweeps a circle about 1.41× the panel width, so
-give it that much room or it clips as it turns. It sizes itself down to fit
-both a narrow container and `--rack-max-height`. Covers divide the panel
-evenly, so `--rack-max-width` is the dial for how big they get when there's
-room.
+**Width.** A four-sided rack sweeps a circle about 1.41× the panel width, so
+give it that much room or it clips as it turns. `--rack-max-width` is the dial
+for how big the covers get when there's height to spare.
 
 ### `chrome="fixture"`
 
@@ -285,131 +268,62 @@ wants a dark ground to sit on.
 
 ## The shelf card
 
-`preview="tap"` gives a card to each book carrying a `data-review` — the quote
-and a link onward to the product.
+`preview="tap"` gives a card to each book carrying a `data-review`. The first
+tap opens the card instead of navigating; the card carries the real product
+link, so the buy path survives the extra step. Books with no note tap straight
+through and carry no marker.
 
-**Only reviewed books get one.** A book with no note has nothing a card could
-add beyond the cover already on screen, so it taps straight through to the
-product. Which means those books have to be *visible before you tap*, or the
-differing behaviour is arbitrary: `data-review` puts a quiet "Guardian review"
-under that book's cover, in the accent colour. That is the one place besides
-focus rings where the accent earns its keep, because it is carrying
-information rather than decorating.
-
-The demo's notes are placeholder copy written for the mock, not real review
-extracts — swap in your own before this goes anywhere public.
+A reviewed book is marked under its cover — "Guardian review" in the accent
+colour, out of flow so a marked book is exactly as tall as a plain one.
 
 **The wording is data, not a constant.** A shop quotes whoever reviewed the
-book, so a rack that says "Guardian review" under all of them is asserting
-something untrue. `data-source` on a book names its own paper; `pick-label`
-changes the rack's default for books that don't. The default is only a default.
+book, so `data-source` on a book names its own paper and `pick-label` sets the
+rack's default for books that don't. The card repeats the attribution under the
+quote.
 
-The card repeats the attribution under the quote, because a note on a card with
-no source reads as the shop's own voice while the shelf beside it names a paper.
+**The card belongs to the facing, not the page.** It sits in the facing's plane,
+turns with it and fades with it, anchored to whichever half of the facing the
+tapped book *isn't* in. Dismissed by the close button, Escape, tapping another
+book, grabbing the rack, or turning away. A press that starts *inside* the card
+is the reader using it, so it neither turns the rack nor closes the card.
 
-The marker goes under the cover, not on it. Overlaying somebody's artwork is
-the objection that removed the badges, and it applies just as much to a
-review as to a "Signed" flash. It is out of flow, so a marked book occupies
-exactly the height of a plain one and the facing's geometry doesn't shift with
-how many reviews a category happens to have. The row gap is derived from the
-marker's own type size (`--tick-band`) rather than set to a number, so the
-marker can't end up sitting on the cover below it.
+Where a pointer exists, hover previews the card too, after 150ms so sweeping
+across the rack doesn't strobe.
 
-**Tap, not hover.** There is no hover on a phone, so a hover-only preview
-would fire for nobody. Tap already had a job, so the card takes the first tap
-and carries the real link inside it — an extra step on the way to the basket,
-which is the right trade on a surface built for browsing rather than
-beelining. Where a pointer exists, hover previews the card as well, after a
-150ms delay so sweeping across the rack doesn't strobe. That costs nothing and
-helps nobody on the target device.
+> The demo's notes are placeholder copy attributed to real papers. Swap them
+> before this goes anywhere public. Rationale for the marker's form, and the
+> version of it that was tried and rejected, are in `CLAUDE.md`.
 
-**The card belongs to the facing, not the page.** It sits in the facing's
-plane, turns with it, and fades with it — because in a shop the recommendation
-is a card on the shelf, not a modal over the whole room. It anchors to whichever
-half of the facing the tapped book *isn't* in, so the cover you just tapped
-stays visible beside what is being said about it.
-
-Dismissed by the close button, Escape, tapping another book, grabbing the rack,
-or turning to another facing. A press that starts *inside* the card is the
-reader using it, so it neither turns the rack nor closes the card.
-
-## Weight, and what it costs a page
-
-Measured, not estimated. Numbers from Chromium at 390×844, CPU throttled to
-stand in for a phone.
+## Weight
 
 | | raw | gzipped |
 |---|---|---|
-| source, as shipped (38% comments) | 65 KB | 22 KB |
-| minified (esbuild) | 36 KB | **12.7 KB** |
+| source, as shipped (26% comments) | 70 KB | 23.6 KB |
+| minified (esbuild) | 36 KB | **13 KB** |
 
-Zero dependencies, no build step. For scale, that is less than any one of the
-sample cover images (19–45 KB each).
+Zero dependencies, no build step. Less than any one of the sample cover images.
 
-| | desktop | CPU 4× slower | CPU 6× slower |
-|---|---|---|---|
-| Component's own init | 30 ms | 86 ms | 145 ms |
-| Spinning | 60 fps | 60 fps | 60 fps |
-| Tap → card | 7 ms | 21 ms | 30 ms |
-| Script while idle | none — the loop parks | | |
+Cumulative layout shift is 0, the script is deferred so it doesn't block
+rendering, nothing runs while the rack is untouched, and all 239 nodes sit
+inside the shadow root — so the host page's DOM is untouched and neither
+stylesheet can reach the other.
 
-- **Cumulative layout shift: 0.** The rack sizes itself before it paints.
-- **Not render-blocking.** `type="module"` is deferred; measured against the
-  same page with the script removed, first paint was unchanged.
-- **Nothing runs when nobody is touching it.** Zero `requestAnimationFrame`
-  calls over two seconds at rest.
-- **All 239 nodes are inside the shadow root**, so the host page's DOM is
-  untouched and neither stylesheet can reach the other. That is the main reason
-  this is safe to drop into a themed store.
-
-### The images cost more than the widget
-
-`loading="lazy"` does **not** defer the facings turned away — they are rotated
-out of view but still inside the viewport, so all of them fetch on load. Covers
-render at about **119 × 179 CSS px**, so 238 × 358 covers a 2× screen; a
-standard 600 × 900 product image is **6.3× more pixels than needed**. At
-twenty-four of them that is the difference between roughly 1–2 MB and 400–600 KB.
-
-If the rack sits below the fold, gate its render on an `IntersectionObserver`
-so neither the images nor the init cost land during page load.
-
-### Keeping 60 fps
-
-Nothing in the per-frame path writes a custom property. Writing one invalidates
-style for everything that inherits it, so an earlier version — `--angle` on the
-host, `--facing` on each facing — recalculated the whole shadow tree every
-frame and dropped to 30 fps the moment it moved on a throttled CPU, while
-holding 60 sitting still. A transform on the drum and an opacity on each shade
-touch one element each and stay off the style path. The shade opacity is
-quantised to 1%, below which the change is invisible and the write is skipped.
-
-If you extend the animation, keep that rule: **transform and opacity on single
-elements, never a custom property.**
+**The covers cost far more than the script**, and `loading="lazy"` does not
+defer the facings turned away. If the rack sits below the fold, gate its render
+on an `IntersectionObserver`. Measurements and cover-sizing advice in
+`CLAUDE.md`.
 
 ## Content-Security-Policy
 
 Works under a strict policy — `style-src 'self'` with no `unsafe-inline` —
-because nothing it needs arrives as inline style:
+because nothing it needs arrives as inline style. The stylesheet is built with
+`new CSSStyleSheet()` and handed over through `adoptedStyleSheets`; per-element
+numbers ride as `data-*` and are applied with `el.style.setProperty()` after
+insertion. Verified on a host page carrying no inline style or script of its
+own: zero violations, correct geometry, turns normally.
 
-- the stylesheet is built with `new CSSStyleSheet()` and handed over through
-  `adoptedStyleSheets`, which is CSSOM and so outside `style-src`. One sheet is
-  shared by every rack on the page. Where constructable sheets are missing
-  (Safari before 16.4) it falls back to a `<style>` element, which a strict
-  policy will refuse — no worse than before, but worth knowing.
-- per-element numbers (panel angles, cover ratios, jacket colours) are carried
-  as `data-*` in the markup and applied with `el.style.setProperty()` after
-  insertion. A style *attribute* that arrived as markup is refused; a property
-  set from script is not.
-
-Verified on a host page carrying no inline style or script of its own: zero
-violations, correct geometry, turns normally. Before this, the shadow
-stylesheet was refused outright — 19,077 characters of CSS, 0 rules applied —
-and the rack rendered as a column of full-bleed unstyled covers. Every link
-still worked, but it looked broken.
-
-BigCommerce Stencil themes don't ship a strict CSP by default, so this may
-never come up. It is the one thing that would have made the widget unusable
-rather than merely slower.
+Where constructable stylesheets are missing (Safari before 16.4) it falls back
+to a `<style>` element, which a strict policy will refuse.
 
 ## On mobile
 
@@ -425,16 +339,12 @@ rather than merely slower.
   finger let go. A slow drag with no flick in it turns about 54° for 200px and
   stops there, mid-corner — which is what free-wheeling means.
 
-### Landscape: the rack gives up a shelf
+### Landscape
 
-A phone turned sideways has half the height and twice the width, and the width
-is no use: a four-sided drum's height is a fixed function of its panel width,
-so more width buys no shelf room. Left to shrink the panel, the rack bottomed
-out at its minimum width with **50 × 75px covers** — a coloured stamp, not a
-book, which guts the premise that the covers are the object.
-
-So it drops a shelf instead. The panel then grows back into the width that was
-going spare:
+A phone turned sideways has half the height, and the width it gains is no use —
+a four-sided drum's height follows its panel width. So the rack **drops a
+shelf** rather than shrinking the covers to nothing, and the panel grows back
+into the spare width:
 
 | | Shape | Cover | Books shown |
 |---|---|---|---|
@@ -442,37 +352,16 @@ going spare:
 | 844 × 390, landscape | 2 × 2 | 69 × 103 | **16 of 24** |
 | 844 × 280 | 1 × 2 | 91 × 136 | 8 of 24 |
 
-**It costs books.** Fewer shelves is less capacity, so a 24-title rack shows 16
-in landscape and 8 on anything shorter. `rack.shape` reports what happened —
+**It costs books.** `rack.shape` reports what happened —
 `{rows, perShelf, sides, capacity, rendered, dropped, reshaped}` — so a host
-that minds can say "16 of 24" rather than quietly showing two thirds.
+that minds can say "16 of 24" rather than quietly showing two thirds. Rotating
+out and back returns the portrait shape exactly.
 
-It settles **by trying, not predicting**. A shelf's height depends on the panel
-width; the panel width depends on how many shelves must fit. Predicting one
-from the other made the answer depend on where it started — a fresh load at
-844 × 390 settled on two shelves while rotating into the same viewport settled
-on one. Same viewport, different rack. It now renders each candidate tallest
-first and keeps the first that fits, which costs a few layout passes on a
-resize and gives one answer per viewport. Rotating out and back returns the
-3 × 2 shape exactly.
-
-Tallest-first means it **prefers more books to bigger covers**. At 844 × 390
-that is 16 at 69 × 103 rather than 8 at 100 × 150. Set `rows="1"` if you would
-rather have the bigger covers.
-
-### What the height budget governs
+It prefers more books to bigger covers. `rows="1"` flips that.
 
 `--rack-max-height` is measured against **the element**, not the turning drum
-inside it. The drum is only part of what the rack occupies: the crown sits
-above it, and a strip below it reserves the perspective overhang, because the
-near bottom corner paints past the box it lays out in.
-
-Solving for the drum alone let the element overrun its own budget by that
-overhang — about 50px — so an 80dvh rack did not actually fit an 80dvh
-viewport. Below roughly 340px of viewport height the whole rack no longer fit
-on screen, which is the precise failure the budget exists to prevent. If you
-measure this yourself, measure the host element; the drum will look fine while
-the element does not fit.
+inside it: the crown sits above the drum, and a strip below reserves the
+perspective overhang. If you check this yourself, measure the host.
 
 ## Accessibility
 
@@ -492,14 +381,16 @@ the element does not fit.
 - **Pointer:** `touch-action: pan-y`, so a vertical swipe scrolls the page and
   only a horizontal one turns the rack. A drag that moved the rack swallows the
   click, so you never open a book you were only spinning past.
-- **Clicks stay native.** A drag is tracked with `pointermove` on the window
-  rather than `setPointerCapture`, because capture retargets the click to the
-  rack and the browser then has no link to follow — a real mouse click would do
-  nothing. Tracking on the window keeps a drag alive outside the rack while
-  leaving clicks entirely to the browser, so middle-click and cmd/ctrl-click to
-  open in a new tab keep working.
+- **Clicks stay native.** Drags are tracked on the window rather than with
+  `setPointerCapture`, so the browser keeps the click entirely — middle-click
+  and cmd/ctrl-click to open in a new tab keep working. (`CLAUDE.md` explains
+  why capture breaks it.)
 
 ## BigCommerce + Searchspring
+
+The light-DOM form maps straight onto a Stencil template, which is the case it
+was designed for; Searchspring is the opposite shape and goes through the
+`books` property. Use both: server-render a default set, then upgrade it.
 
 ### Where to put it
 
@@ -515,57 +406,34 @@ whether the rack works — it works in all three.
 | Needs Stencil CLI | no | no | yes |
 | Merchandiser can move it | **yes** | **yes** | no |
 
-**For a curated shelf, Page Builder is the right answer.** A staff-picks rack is
-chosen by a person anyway, so having it live in Page Builder — where whoever
-chooses the books can also place and edit it, without a CLI or a theme
-deploy — is a feature, not a compromise. Paste the markup into an HTML widget
-and you are done.
+**For a curated shelf, Page Builder is the right answer** — whoever picks the
+books can place and edit the rack too, with no CLI and no theme deploy. **For a
+shelf that populates itself** ("New in", always current) you need the Handlebars
+loop, and that needs a template. That is the only thing Page Builder cannot do.
 
-**For a shelf that should populate itself** — "New in", always current — you
-need the Handlebars loop, and that needs a template. That is the only thing
-Page Builder cannot do.
+**Recommended shape.** Host the script once and let the widget hold only markup,
+so it doesn't matter whether the widget server-renders or injects:
 
-Measured, all four arrangements, eight books:
+1. Upload `spinner-rack.js` over WebDAV into the store's `content/` folder
+   (Settings → File access). Files there serve from the storefront root with the
+   `/content` prefix dropped, so it becomes `/spinner-rack.js`.
+2. One line in Script Manager, footer, all pages:
+   ```html
+   <script type="module" src="/spinner-rack.js"></script>
+   ```
+3. The HTML widget holds the rack and nothing else:
+   ```html
+   <spinner-rack label="Staff picks" sides="4" per-shelf="2" preview="tap">
+     <a href="/the-salt-path/" data-title="The Salt Path" data-author="Raynor Winn"
+        data-category="Nature" data-cover="/product_images/salt-path.jpg">The Salt Path</a>
+     <!-- …the rest of the shelf… -->
+   </spinner-rack>
+   ```
 
-| | Rack | Links in the DOM |
-|---|---|---|
-| Markup + inline module in one pasted block | works, turns | 8 |
-| Same block injected with `innerHTML` | falls back to plain links | 8 |
-| Script on the page, widget supplies markup | works | 8 |
-| Script first, markup injected later | works | 8 |
-
-The second row is the one to know about. Scripts inserted via `innerHTML` never
-execute — that is the HTML spec, not a BigCommerce quirk — so *if* the HTML
-widget injects rather than server-renders, an inline `<script>` in the widget
-will not run. You do not get a broken page: you get the light-DOM fallback,
-every product link working and readable. But you do not get the rack.
-
-**Sidestep the question entirely**: put the script somewhere permanent and let
-the widget hold only markup. Then it does not matter how the widget renders —
-rows three and four above both work, because a custom element upgrades whenever
-it is inserted into the document.
-
-Upload `spinner-rack.js` once over WebDAV into the store's `content/` folder
-(Settings → File access). Files there are served from the storefront root with
-the `/content` prefix dropped, so `content/spinner-rack.js` becomes
-`/spinner-rack.js`. Add one line in Script Manager, footer, all pages:
-
-```html
-<script type="module" src="/spinner-rack.js"></script>
-```
-
-and the widget holds nothing but the rack:
-
-```html
-<spinner-rack label="Staff picks" sides="4" per-shelf="2" preview="tap">
-  <a href="/the-salt-path/" data-title="The Salt Path" data-author="Raynor Winn"
-     data-category="Nature" data-cover="/product_images/salt-path.jpg">The Salt Path</a>
-  <!-- …the rest of the shelf… -->
-</spinner-rack>
-```
-
-One file to update when the component changes, instead of re-pasting 35 KB of
-minified JavaScript into a widget.
+That gives one file to update when the component changes, instead of re-pasting
+35 KB of minified JavaScript into a widget. An inline `<script>` inside the
+widget works too, but only if the widget server-renders — `CLAUDE.md` has the
+four arrangements measured and why this one avoids the question.
 
 For the theme-file route, reference the asset the normal Stencil way so it gets
 the CDN and cache busting:
@@ -670,15 +538,13 @@ cleaner shape and this is exactly the code path that hit it.
   will look soft. Take the width off the product image rather than the
   thumbnail field if Searchspring gives you both.
 
-### Not verified here
+### What to check yourself
 
-`developer.bigcommerce.com`, `docs.bigcommerce.com`, the Searchspring docs and
-`cdn11.bigcommerce.com` are all blocked from the machine this was written on,
-so the `WxH` fit-versus-pad question above is unresolved and the Searchspring
-response shape comes from secondary sources. The helper signatures are taken
-from the `paper-handlebars` source itself. You can settle the image question in
-a minute against your own catalogue: request the same image at `238w` and at
-`238x358` and compare the pixel dimensions you get back.
+The helper signatures above come from the `paper-handlebars` source. The image
+fit-versus-pad question and the Searchspring response shape could not be
+verified from the machine this was written on — see `CLAUDE.md`. Settle the
+image one against your own catalogue in a minute: request the same image at
+`238w` and at `238x358` and compare the pixel dimensions you get back.
 
 ## Framework notes
 
@@ -711,48 +577,39 @@ script with `defer`.
 
 ### Assigning `.books` before the module loads
 
-`<script type="module">` is deferred, so an inline script that runs earlier and
-does `el.books = data` writes an **own property** onto the element. Once the
-element upgrades, that own property shadows the class's accessor: the first
-render picks the data up, so it looks like it worked, and every assignment
-after it silently does nothing.
-
-The component recovers from this — on upgrade it adopts the value and deletes
-the property — but the cleaner shape is to wait:
+Wait for the definition, or the first assignment will appear to work and every
+one after it will silently do nothing:
 
 ```js
 customElements.whenDefined('spinner-rack').then(() => { el.books = data; });
 ```
 
+The component recovers from it either way. Why it happens is in `CLAUDE.md`.
+
 ## How the turning works
 
-Two things worth knowing if you tune it (constants live in `PHYSICS` at the top
-of the file):
+Constants live in `PHYSICS` at the top of the file.
 
 **It's real 3D, not a slide carousel.** N flat panels turned on a drum inside
 `preserve-3d`. The far side is genuinely hidden, panels foreshorten as they
-turn, and the corner is a real corner. None of that is reproducible by
+turn, and the corner is a real corner — none of which is reproducible by
 translating slides sideways.
 
-Each facing is deliberately `transform-style: flat` — one rotated plane of
-ordinary content — so `backface-visibility: hidden` on it hides the whole
-facing at once. In `preserve-3d` every shelf, book and cover sits in the shared
-3D space and shows its own backface, so the rear facings render *mirrored*; the
-fixture's opaque panels were only occluding them. Don't put
-`backface-visibility` on the shelves or books to fix that either — it makes
-them their own composited surfaces and hit-testing resolves there, so clicks
-stop reaching the books.
-
-**It free-wheels by default,** coasting to a stop wherever it runs out, like
-the real fixture — including at rest on a corner, showing two half-facings.
+**It free-wheels by default,** coasting to a stop wherever it runs out, like the
+real fixture — including at rest on a corner, showing two half-facings.
 
 **`snap="true"` adds a detent that only bites once the rack has slowed** — like
 the ball-catch in a real rack's base. Above `FREE_SPIN` (300°/s) a facing has no
 grip at all, so a hard flick free-wheels through several turns before anything
-catches; below it, the pull ramps in and lands the rack square.
+catches; below it the pull ramps in and lands the rack square.
 
 Release velocity is measured over ~60ms rather than the last frame, so one
-stuttered frame at the moment you let go doesn't decide how far it travels.
+stuttered frame as you let go doesn't decide how far it travels.
+
+Two subtleties here are load-bearing: why each facing must stay
+`transform-style: flat`, and why nothing in the frame path may write a custom
+property. Both are in `CLAUDE.md`, and changing either without reading it will
+cost you an afternoon.
 
 ---
 
@@ -764,19 +621,9 @@ stuttered frame at the moment you let go doesn't decide how far it travels.
 npx http-server -p 8899 .
 ```
 
-It covers the light-DOM form, the no-JS fallback, and a cancelled
-`rack-select` wired to a quick-view.
+It covers the light-DOM form, the no-JS fallback, and a cancelled `rack-select`
+wired to a quick-view. `try.html` is the harness for putting a real catalogue
+through it without a server.
 
-**A test that cannot fail is worse than no test.** Two suites here drove the
-rack by setting the `--angle` custom property; when the animation path changed
-to a transform on the drum, both silently swept nothing and kept passing. If
-you add a suite that asserts something visual, sabotage the thing it guards
-once and check it actually goes red — that is how the crown show-through check
-earned its keep (transparent cap → 3.1% show-through, failure).
-
-Frame rate has to be measured against a baseline, not in isolation. Under CPU
-throttling a bare `requestAnimationFrame` loop can sit at 30 fps for reasons
-that have nothing to do with the code under test, so compare the rack spinning
-against the same page with the rack at rest. The same goes for long tasks: this
-page's own load work produced a 116–124 ms task with the widget's script
-removed entirely.
+The behavioural suites, what each one guards, and the discipline they're held to
+are in `CLAUDE.md`.
