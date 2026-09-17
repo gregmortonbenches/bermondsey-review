@@ -79,7 +79,8 @@
  *   --rack-cover-ratio  width / height of a cover, default 0.667 (standard
  *                     hardback). Set per-book with data-ar only when a title
  *                     genuinely differs.
- *   --rack-rule       hairline for the shelf rules and cover edges
+ *   --rack-rule       hairline round each cover, so a pale jacket still has an
+ *                     edge against a pale page
  *   --rack-page       the page's own background; facings turning away fade
  *                     into it, so set it to what your page actually is
  *   --rack-accent     focus rings
@@ -398,23 +399,23 @@ const STYLES = `
   align-items: flex-end;
   justify-content: center;
   gap: 10px;
-  padding: 0 0 4px;               /* books rest on the rule, not above it */
-  margin-bottom: 13px;
-  /* Held to a fixed height so the shelf lips line up across every panel, even
-     on a panel whose last shelf came up short. */
-  min-height: calc(var(--face-w) * var(--bh) * 1.04 + 14px);
+  margin-bottom: 17px;            /* the only thing separating the rows now */
 }
 .shelf:last-child { margin-bottom: 0; }
 
 /* The lip: the folded steel bar that stops the stock sliding off, with the
    two bolt heads that hold it to the uprights. */
+/* The shelf rule is fixture-only. Drawn under uniform covers that tile edge to
+   edge it separated two rows of touching rectangles, which reads as noise
+   rather than structure — the gap between rows already says "shelf". It earned
+   its place when covers were different heights and the rule was the only thing
+   they had in common. */
 .shelf .lip {
+  display: none;
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 1px;
-  background: var(--rack-rule);
 }
 .shelf .lip::before, .shelf .lip::after {
   content: none;
@@ -619,10 +620,12 @@ const STYLES = `
 :host([chrome="fixture"]) .book { transform-style: preserve-3d; }
 :host([chrome="fixture"]) .shelf {
   gap: 7px;
-  padding: 0 6px 7px;
+  padding: 0 6px 7px;             /* room under the books for the lip */
   margin-bottom: 9px;
+  min-height: calc(var(--face-w) * var(--bh) * 1.04 + 14px);
 }
 :host([chrome="fixture"]) .shelf .lip {
+  display: block;
   left: 2px;
   right: 2px;
   height: 7px;

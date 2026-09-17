@@ -7,9 +7,9 @@ you push it and it keeps going.
 There is no painted steel, no riveted shelf lip and no illuminated sign — that
 treatment reads as a photograph of a shop fitting pasted onto a page, which is
 the opposite of belonging to one. What's left is the part that was actually
-worth having: the turn. Shelves are hairline rules, signs are set in your own
-type, and a facing turning away fades into the page's own colour rather than
-darkening like an object. (`chrome="fixture"` puts the steel back if you want
+worth having: the turn. Rows are separated by space alone, signs are set in
+your own type, and a facing turning away fades into the page's own colour
+rather than darkening like an object. (`chrome="fixture"` puts the steel back if you want
 it — see below.)
 
 ![the rack, mid-turn](docs/corner.png)
@@ -196,7 +196,7 @@ Set custom properties on the element:
 ```css
 spinner-rack {
   --rack-cover-ratio: 0.6667;    /* standard hardback (2:3) */
-  --rack-rule: rgba(0,0,0,0.16); /* shelf rules and cover edges */
+  --rack-rule: rgba(0,0,0,0.16); /* hairline round each cover */
   --rack-page: #f4f1ea;          /* YOUR page colour — facings fade into it */
   --rack-accent: #b8262b;        /* focus rings */
   --rack-max-width: 220px;      /* panel width; the rack sweeps ~1.41× this */
