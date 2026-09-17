@@ -8,6 +8,13 @@
   },
   {
     "category": "New in",
+    "title": "The New Dark Ages",
+    "author": "James Marriott",
+    "price": "£22.00",
+    "cover": "covers/new-dark-ages.png"
+  },
+  {
+    "category": "New in",
     "title": "Redwood",
     "author": "Ben Macintyre",
     "price": "£25.00",
@@ -26,12 +33,6 @@
     "author": "Emily St. John Mandel",
     "price": "£20.00",
     "cover": "covers/exit-party.png"
-  },
-  {
-    "category": "New in",
-    "title": "Farewell to Eden",
-    "author": "Sebastian Faulks",
-    "price": "£22.00"
   },
   {
     "category": "New in",
@@ -77,6 +78,12 @@
   },
   {
     "category": "Fiction",
+    "title": "Farewell to Eden",
+    "author": "Sebastian Faulks",
+    "price": "£22.00"
+  },
+  {
+    "category": "Fiction",
     "title": "Stories",
     "author": "Annie Proulx",
     "price": "£25.00"
@@ -104,12 +111,6 @@
     "title": "Beloved",
     "author": "Toni Morrison",
     "price": "£9.99"
-  },
-  {
-    "category": "Fiction",
-    "title": "Normal People",
-    "author": "Sally Rooney",
-    "price": "£8.99"
   },
   {
     "category": "Nature",
