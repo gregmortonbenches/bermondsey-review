@@ -61,6 +61,11 @@
  *   label       fallback crown text; each panel otherwise shows its own category
  *   snap        "true" to make it catch a facing square-on (default off — it
  *               free-wheels to a stop anywhere, like the real fixture)
+ *   preview     "tap" makes the first tap on a book open a shelf card with its
+ *               staff note, price and a link through to the product, instead
+ *               of navigating straight there. Off by default. There is no
+ *               hover on a phone, so tap is the gesture; where a pointer
+ *               exists, hover previews the card as well.
  *   chrome      "fixture" draws the rack as a painted-steel shop fitting —
  *               riveted shelf lips, an illuminated sign, books casting
  *               shadows. Off by default: the rack is meant to be part of the
@@ -465,6 +470,84 @@ const STYLES = `
    goes in the band under the cover rather than over somebody's artwork. Always
    rendered, even when empty, so a title with no price doesn't sit lower than
    its neighbours. It fades with its facing along with everything else. */
+/* The shelf card. In a bookshop the recommendation is a handwritten card ON
+   the shelf, so this one belongs to the facing: it sits in the facing's plane,
+   turns with it, and fades with it. Not a page-level modal floating over the
+   top of everything.
+   
+   Tap, not hover. There is no hover on a phone, and tap already had a job —
+   so the card takes the first tap and carries the real link to the product,
+   which is the right trade on a browsing surface. Hover previews it too where
+   a pointer exists, which costs nothing. */
+.card {
+  position: absolute;
+  left: calc(var(--rack-gap) / 2);
+  right: calc(var(--rack-gap) / 2);
+  z-index: 8;
+  background: var(--rack-page);
+  border: 1px solid currentColor;
+  padding: 14px 14px 12px;
+  text-align: left;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 130ms ease;
+  box-shadow: 0 10px 28px -12px rgba(0, 0, 0, 0.45);
+}
+/* Anchored to the half the tapped book ISN'T in, so the cover you just tapped
+   stays visible next to what is being said about it. A card sitting on top of
+   its own book is the one thing a shelf card never does. */
+.card[data-pos="bottom"] { bottom: 2px; }
+.card[data-pos="top"] { top: 2px; }
+.card[data-open] { opacity: 1; visibility: visible; }
+.card .c-title {
+  font: 600 clamp(14px, calc(var(--face-w) * 0.062), 19px)/1.15 var(--rack-crown-font);
+  margin-bottom: 2px;
+}
+.card .c-author {
+  font: italic 400 clamp(11px, calc(var(--face-w) * 0.046), 14px)/1.2 var(--rack-book-font);
+  opacity: 0.7;
+}
+.card .c-review {
+  font: 400 clamp(12px, calc(var(--face-w) * 0.05), 15px)/1.4 var(--rack-book-font);
+  margin-top: 9px;
+}
+.card .c-foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 11px;
+  padding-top: 9px;
+  border-top: 1px solid var(--rack-rule);
+}
+.card .c-price {
+  font: 600 clamp(12px, calc(var(--face-w) * 0.05), 15px)/1 var(--rack-book-font);
+  font-variant-numeric: tabular-nums;
+}
+.card .c-go {
+  font: 600 clamp(11px, calc(var(--face-w) * 0.046), 14px)/1 var(--rack-book-font);
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 1px;
+}
+.card .c-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: 400 17px/1 var(--rack-book-font);
+  cursor: pointer;
+}
+.card .c-close:focus-visible, .card .c-go:focus-visible {
+  outline: 2px solid var(--rack-accent);
+  outline-offset: 2px;
+}
+
 .ticket {
   display: block;
   margin-top: 6px;
@@ -666,7 +749,7 @@ const STYLES = `
 `;
 
 class SpinnerRack extends HTMLElement {
-  static observedAttributes = ['label', 'sides', 'rows', 'per-shelf', 'snap', 'chrome'];
+  static observedAttributes = ['label', 'sides', 'rows', 'per-shelf', 'snap', 'chrome', 'preview'];
 
   #books = null;        // set programmatically, overrides the light DOM
   #rendered = [];       // flattened, in the order the panels were filled
@@ -681,6 +764,8 @@ class SpinnerRack extends HTMLElement {
   #moved = 0;
   #swallowClick = false;
   #wheelIdle = 0;
+  #cardPinned = false;      // opened by tap, so it stays until dismissed
+  #hoverTimer = 0;
   #samples = [];
   #faces = [];
   #crowns = [];
@@ -759,6 +844,7 @@ class SpinnerRack extends HTMLElement {
       price: a.dataset.price || '',
       category: a.dataset.category || '',
       ar: a.dataset.ar || '',
+      review: a.dataset.review || '',
       target: a.getAttribute('target') || '',
     })).filter((b) => b.title);
   }
@@ -819,6 +905,7 @@ class SpinnerRack extends HTMLElement {
         <p class="sr" aria-live="polite"></p>
       </div>`;
 
+    this.#cardPinned = false;
     this.#faces = [...root.querySelectorAll('.face')];
     this.#crowns = [...root.querySelectorAll('.crown-panel')];
     this.#front = -1;
@@ -854,6 +941,16 @@ class SpinnerRack extends HTMLElement {
           ${s.map((b) => this.#bookHTML(b)).join('')}
           <div class="lip"></div>
         </div>`).join('')}
+      <div class="card" role="dialog" aria-modal="false" aria-label="Book details">
+        <button type="button" class="c-close" aria-label="Close">&times;</button>
+        <div class="c-title"></div>
+        <div class="c-author"></div>
+        <div class="c-review"></div>
+        <div class="c-foot">
+          <span class="c-price"></span>
+          <a class="c-go" href="#">View book &rarr;</a>
+        </div>
+      </div>
       <div class="shade"></div>
     </div>`;
   }
@@ -1050,6 +1147,9 @@ class SpinnerRack extends HTMLElement {
 
     stage.addEventListener('pointerdown', (e) => {
       if (e.button != null && e.button !== 0) return;
+      // A press inside the card is the reader using it, not grabbing the rack.
+      if (e.target.closest?.('.card')) return;
+      this.#closeCards();
       this.#stopHint();
       this.#dragging = true;
       this.#pointerId = e.pointerId;
@@ -1120,8 +1220,32 @@ class SpinnerRack extends HTMLElement {
         e.preventDefault();
         this.#stopHint();
         this.#glideTo(0);
+      } else if (e.key === 'Escape') {
+        this.#closeCards();
       }
     });
+
+    root.addEventListener('click', (e) => {
+      if (e.target.closest?.('.c-close')) this.#closeCards();
+    });
+
+    // Hover is a bonus where a pointer exists — the gesture that matters on a
+    // phone is the tap above. Delayed so sweeping across the rack doesn't
+    // flash a card per cover.
+    if (matchMedia('(hover: hover)').matches) {
+      root.addEventListener('pointerover', (e) => {
+        if (!this.#previewOn() || this.#cardPinned || this.#dragging) return;
+        const link = e.target.closest?.('a.book');
+        if (!link) return;
+        clearTimeout(this.#hoverTimer);
+        this.#hoverTimer = setTimeout(() => this.#openCard(link, false), 150);
+      });
+      root.addEventListener('pointerout', (e) => {
+        if (this.#cardPinned) return;
+        const toCard = e.relatedTarget?.closest?.('.card, a.book');
+        if (!toCard) this.#closeCards();
+      });
+    }
 
     // Panels round the back are inert, so Tab walks the rack the way the eye
     // does. This catches the remaining case: focus arriving at a panel that's
@@ -1156,8 +1280,53 @@ class SpinnerRack extends HTMLElement {
         composed: true,
         cancelable: true,
       }));
-      if (!ok) e.preventDefault();
+      if (!ok) {
+        e.preventDefault();               // the host is handling it
+        return;
+      }
+      if (this.#previewOn()) {
+        // The card carries the real link onward, so the buy path survives the
+        // extra step. Without preview, the click navigates as it always did.
+        e.preventDefault();
+        this.#openCard(link, true);
+      }
     });
+  }
+
+  #previewOn() { return this.getAttribute('preview') === 'tap'; }
+
+  /** Fill the facing's shelf card from a book and show it. */
+  #openCard(link, pinned) {
+    const root = this.shadowRoot;
+    const face = link.closest('.face');
+    const card = face?.querySelector('.card');
+    const book = this.#rendered[[...root.querySelectorAll('a.book')].indexOf(link)];
+    if (!card || !book) return;
+
+    this.#closeCards(card);
+    card.querySelector('.c-title').textContent = book.title;
+    card.querySelector('.c-author').textContent = book.author;
+    card.querySelector('.c-review').textContent = book.review || '';
+    card.querySelector('.c-price').textContent = book.price || '';
+    const go = card.querySelector('.c-go');
+    go.setAttribute('href', book.href || '#');
+    if (book.target) go.setAttribute('target', book.target);
+    else go.removeAttribute('target');
+    // Which half is the book in? Put the card in the other one.
+    const books = [...face.querySelectorAll('a.book')];
+    const where = books.indexOf(link) < books.length / 2 ? 'bottom' : 'top';
+    card.dataset.pos = where;
+    card.dataset.open = '';
+    this.#cardPinned = pinned;
+  }
+
+  /** Close every card, optionally sparing one. */
+  #closeCards(except) {
+    clearTimeout(this.#hoverTimer);
+    this.shadowRoot?.querySelectorAll('.card[data-open]').forEach((c) => {
+      if (c !== except) delete c.dataset.open;
+    });
+    if (!except) this.#cardPinned = false;
   }
 
   /**
@@ -1274,6 +1443,7 @@ class SpinnerRack extends HTMLElement {
     const i = ((Math.round(-this.#angle / step) % sides) + sides) % sides;
     if (i === this.#front) return;
     this.#front = i;
+    this.#closeCards();          // the card belongs to the facing you turned away from
 
     const label = this.#crowns[i]?.textContent.trim() || `Panel ${i + 1}`;
     const live = this.shadowRoot.querySelector('.sr');

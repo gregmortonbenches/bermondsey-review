@@ -80,6 +80,7 @@ server can render it.
 | `rows` | derived | Shelves per panel. Left alone, the rack is only as tall as the stock needs |
 | `label` | — | Fallback crown text. Each panel otherwise shows its own `data-category`, drawn exactly as you wrote it — the rack never re-cases it, because lowercasing is blind to acronyms and imprint names ("UK History" would read "Uk history") |
 | `snap` | off | `snap="true"` makes it catch a facing square-on instead of free-wheeling to a stop anywhere |
+| `preview` | off | `preview="tap"` makes the first tap on a book open a shelf card with its staff note, price and a link through to the product |
 | `chrome` | none | `chrome="fixture"` draws it as a painted-steel shop fitting: riveted shelf lips, an illuminated sign, books casting shadows |
 
 ### Sizing it for a phone
@@ -120,6 +121,7 @@ than 4/2/0/0 and two bare panels.
 | `data-price` | | Announced on the link. Nothing draws it on screen — see below |
 | `data-category` | | First book on a panel names that panel's crown |
 | `data-ar` | | Cover width ÷ height. Only needed for a title that differs from `--rack-cover-ratio` |
+| `data-review` | | A short staff note, shown on the shelf card when `preview="tap"` |
 
 ### Prices
 
@@ -235,6 +237,29 @@ pockets. It needs `--rack-metal`, `--rack-crown` and `--rack-crown-ink`, and it
 wants a dark ground to sit on.
 
 ---
+
+## The shelf card
+
+`preview="tap"` gives each book a card carrying its `data-review`, its price
+and a link onward to the product.
+
+**Tap, not hover.** There is no hover on a phone, so a hover-only preview
+would fire for nobody. Tap already had a job, so the card takes the first tap
+and carries the real link inside it — an extra step on the way to the basket,
+which is the right trade on a surface built for browsing rather than
+beelining. Where a pointer exists, hover previews the card as well, after a
+150ms delay so sweeping across the rack doesn't strobe. That costs nothing and
+helps nobody on the target device.
+
+**The card belongs to the facing, not the page.** It sits in the facing's
+plane, turns with it, and fades with it — because in a shop the recommendation
+is a card on the shelf, not a modal over the whole room. It anchors to whichever
+half of the facing the tapped book *isn't* in, so the cover you just tapped
+stays visible beside what is being said about it.
+
+Dismissed by the close button, Escape, tapping another book, grabbing the rack,
+or turning to another facing. A press that starts *inside* the card is the
+reader using it, so it neither turns the rack nor closes the card.
 
 ## On mobile
 
