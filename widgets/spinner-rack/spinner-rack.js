@@ -56,6 +56,10 @@
  *   snap        "true" to make it catch a facing square-on (default off — it
  *               free-wheels to a stop anywhere, like the real fixture)
  *   controls    "false" to hide the prev/next buttons
+ *   chrome      "fixture" draws the rack as a painted-steel shop fitting —
+ *               riveted shelf lips, an illuminated sign, books casting
+ *               shadows. Off by default: the rack is meant to be part of the
+ *               page, not a photograph of a fixture pasted onto one.
  *
  * CAPACITY is sides × rows × per-shelf, and rows is capped at 7 so a big feed
  * can't produce an absurd skyscraper. Anything past capacity is not rendered —
@@ -72,8 +76,12 @@
  *   spin(degreesPerSecond = 700)  give it a shove
  *
  * STYLING — set these custom properties on the element:
- *   --rack-metal, --rack-crown, --rack-crown-ink, --rack-accent,
+ *   --rack-rule       hairline for the shelf rules and cover edges
+ *   --rack-page       the page's own background; facings turning away fade
+ *                     into it, so set it to what your page actually is
+ *   --rack-accent     focus rings
  *   --rack-max-width, --rack-display-font, --rack-book-font, --rack-crown-font
+ *   --rack-metal, --rack-crown, --rack-crown-ink   (chrome="fixture" only)
  */
 
 const CLAMP = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
@@ -100,6 +108,11 @@ const PHYSICS = {
  * back if the soffit is ever closed off.
  */
 const CROWN_PROUD = 0;
+
+// Must match the stage's perspective, which the layout pass also writes, since
+// the overhang below is derived from it.
+const PERSPECTIVE = 1700;
+const PERSPECTIVE_ORIGIN_Y = 0.42;
 
 // How tall a book is as a fraction of the panel width, by books-per-shelf.
 // Width then follows from the aspect ratio, which is why the covers stay in
@@ -203,6 +216,13 @@ const STYLES = `
   --rack-crown: #0e0f12;
   --rack-crown-ink: #fdfbf5;
   --rack-accent: #b8262b;         /* focus rings — the only colour the rack spends */
+  /* Page-native mode uses these two instead of the metal: a hairline for the
+     shelf rules and cover edges, and the page's own background, which the
+     turning-away facings fade into so the rack recedes into the page rather
+     than darkening like an object. Hosts should set --rack-page to whatever
+     their page actually is; Canvas is only a sane guess. */
+  --rack-rule: rgba(0, 0, 0, 0.16);
+  --rack-page: Canvas;
   --rack-max-width: 220px;
   --rack-display-font: "Helvetica Neue", Helvetica, Arial, sans-serif;
   --rack-book-font: Georgia, "Times New Roman", serif;
@@ -230,8 +250,8 @@ const STYLES = `
 .wrap { position: relative; }
 
 .stage {
-  perspective: 1700px;
-  perspective-origin: 50% 42%;
+  perspective: var(--rack-perspective, 1700px);
+  perspective-origin: 50% calc(var(--rack-origin-y, 0.42) * 100%);
   touch-action: pan-y;            /* vertical page scroll must still work */
   cursor: grab;
   user-select: none;
@@ -254,7 +274,10 @@ const STYLES = `
 
 .face, .crown-panel {
   grid-area: 1 / 1;
-  transform-style: preserve-3d;
+  /* transform-style stays flat (the initial value): one rotated plane of
+     ordinary content. preserve-3d here puts every shelf, book and cover in the
+     shared 3D space where each shows its own backface — the rear facings then
+     render mirrored, which the fixture's opaque panels were only hiding. */
   backface-visibility: hidden;
 }
 .face { width: var(--face-w); }
@@ -268,9 +291,6 @@ const STYLES = `
      hovering a hairline above it. */
   transform: rotateY(var(--fa)) translateZ(calc(var(--radius) + var(--crown-proud)))
              translateY(calc(6px - var(--crown-h)));
-  background: var(--rack-crown);
-  border: 1px solid #000;
-  box-shadow: inset 0 1px 0 #43454d, inset 0 -14px 22px -14px #000;
   display: grid;
   place-items: center;
   padding: 0 10px;
@@ -281,13 +301,12 @@ const STYLES = `
      see #crownHTML for why the casing isn't forced here. */
   font: 400 clamp(14px, calc(var(--face-w) * 0.095), 26px)/1.05 var(--rack-crown-font);
   letter-spacing: 0.01em;
-  color: var(--rack-crown-ink);
+  color: inherit;                 /* the page's ink, not the fixture's */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
   text-align: center;
-  text-shadow: 0 0 16px rgba(255, 255, 255, 0.22);
 }
 
 /* The cap. A regular N-gon clipped from a square and laid flat, so the rack
@@ -295,6 +314,7 @@ const STYLES = `
    translate has to carry the lid's own half-height, because rotateX turns it
    about its centre line, not its top edge. */
 .lid {
+  display: none;                  /* fixture only */
   grid-area: 1 / 1;
   align-self: start;
   width: var(--lid-size);
@@ -308,13 +328,11 @@ const STYLES = `
 .face {
   position: relative;
   transform: rotateY(var(--fa)) translateZ(var(--radius));
-  background: linear-gradient(180deg, #23252b 0, var(--rack-metal) 10%, var(--rack-metal) 90%, #0c0d10 100%);
-  border: 1px solid #000;
-  padding: 10px 9px 12px;
+  padding: 0 0 2px;
 }
-/* The uprights — the bones of the rack. */
+/* The uprights — the bones of the rack. Fixture only. */
 .face::before, .face::after {
-  content: "";
+  content: none;
   position: absolute;
   top: 0;
   bottom: 0;
@@ -331,7 +349,7 @@ const STYLES = `
 .face .shade {
   position: absolute;
   inset: 0;
-  background: #05060a;
+  background: var(--rack-page);
   opacity: calc((1 - var(--facing, 1)) * 0.72);
   pointer-events: none;
   z-index: 5;
@@ -342,10 +360,9 @@ const STYLES = `
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: 7px;
-  padding: 0 6px 7px;
-  margin-bottom: 9px;
-  transform-style: preserve-3d;
+  gap: 10px;
+  padding: 0 0 4px;               /* books rest on the rule, not above it */
+  margin-bottom: 13px;
   /* Held to a fixed height so the shelf lips line up across every panel, even
      on a panel whose last shelf came up short. */
   min-height: calc(var(--face-w) * var(--bh) * 1.04 + 14px);
@@ -356,15 +373,14 @@ const STYLES = `
    two bolt heads that hold it to the uprights. */
 .shelf .lip {
   position: absolute;
-  left: 2px;
-  right: 2px;
+  left: 0;
+  right: 0;
   bottom: 0;
-  height: 7px;
-  background: linear-gradient(180deg, #52555e 0 1px, #2b2d33 1px, #101114);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
+  height: 1px;
+  background: var(--rack-rule);
 }
 .shelf .lip::before, .shelf .lip::after {
-  content: "";
+  content: none;
   position: absolute;
   top: 2px;
   width: 3px;
@@ -378,23 +394,18 @@ const STYLES = `
 .book {
   position: relative;
   display: block;
-  /* Width follows the cover's own proportions off a nominal height, so a
-     landscape photo book shelves as a landscape photo book. It may shrink if a
-     shelf of wide formats would otherwise overflow — hence 0 1, not 0 0. */
-  flex: 0 1 calc(var(--face-w) * var(--bh) * var(--vary, 1) * var(--ar, 0.6494));
+  /* Equal columns filling the panel; height follows each cover's own ratio, so
+     a landscape photo book still shelves as a landscape photo book — it just
+     sits shorter in its column rather than wider than its neighbours. */
+  flex: 1 1 0;
   min-width: 0;
   text-decoration: none;
   color: inherit;
-  transform-style: preserve-3d;
-  transform: rotate(var(--tilt, 0deg));
   transform-origin: 50% 100%;
-  transition: transform 180ms ease;
+  transition: opacity 140ms ease;
   outline: none;
 }
-.book:hover, .book:focus-visible {
-  transform: rotate(0deg) translateY(-7px) translateZ(14px) scale(1.04);
-  z-index: 4;
-}
+.book:hover { opacity: 0.72; }
 .book:focus-visible .cover { outline: 2px solid var(--rack-accent); outline-offset: 2px; }
 
 .cover {
@@ -402,8 +413,10 @@ const STYLES = `
   width: 100%;
   height: auto;
   aspect-ratio: var(--ar, 0.6494);
-  background: #c9c4b8;
-  box-shadow: 0 6px 10px -4px rgba(0, 0, 0, 0.75), 0 1px 0 rgba(255, 255, 255, 0.08);
+  margin-top: auto;               /* sit on the rule, whatever the height */
+  /* A hairline, because a pale cover on a pale page has no edge of its own —
+     the white Ottolenghi jacket would otherwise dissolve into the paper. */
+  border: 1px solid var(--rack-rule);
   overflow: hidden;
 }
 .cover img {
@@ -412,11 +425,11 @@ const STYLES = `
   object-fit: cover;
   display: block;
 }
-/* Spine shadow down the left edge, page block on the right, light from above:
-   the three cues that say "object standing up" rather than "picture of a
-   book". */
+/* Spine shadow, page block, light from above — the three cues that say "object
+   standing up" rather than "picture of a book". Fixture only: in the page they
+   are printed covers, not props. */
 .cover::after {
-  content: "";
+  content: none;
   position: absolute;
   inset: 0;
   background:
@@ -475,13 +488,11 @@ const STYLES = `
 
 .floor {
   /* Perspective magnifies the near corner downward, so the rack paints below
-     the box it lays out in — about 8% of the panel width at a corner, where
-     the overhang is deepest. The floor reserves that clearance as well as
-     casting the shadow, so the rack never sits on top of whatever follows it,
-     controls or host content. */
-  height: calc(30px + var(--face-w) * 0.10);
+     the box it lays out in. The overhang scales with how far the bottom sits
+     below the vanishing point — i.e. with the rack's HEIGHT, not its width, as
+     an earlier version assumed — so the layout pass computes it exactly. */
+  height: var(--rack-clearance, 46px);
   margin-top: -8px;
-  background: radial-gradient(50% 60% at 50% 0, rgba(0,0,0,0.4), rgba(0,0,0,0) 70%);
   pointer-events: none;
 }
 
@@ -534,6 +545,75 @@ const STYLES = `
   70% { transform: rotateY(calc(var(--angle) - 4deg)); }
 }
 .rack.hint { animation: rack-hint 1200ms cubic-bezier(.33, .1, .3, 1) 1; }
+
+/* ===========================================================================
+   chrome="fixture" — the rack as a physical object: painted steel, riveted
+   shelf lips, an illuminated sign, books casting shadows. Kept because it is
+   built and works, but it is not the default: it reads as a photograph of a
+   shop fitting pasted onto a page, which is the opposite of belonging to one.
+   Everything above is the page-native treatment.
+   =========================================================================== */
+:host([chrome="fixture"]) .crown-panel {
+  background: var(--rack-crown);
+  border: 1px solid #000;
+  box-shadow: inset 0 1px 0 #43454d, inset 0 -14px 22px -14px #000;
+}
+:host([chrome="fixture"]) .crown-panel span {
+  color: var(--rack-crown-ink);
+  text-shadow: 0 0 16px rgba(255, 255, 255, 0.22);
+}
+:host([chrome="fixture"]) .lid { display: block; }
+:host([chrome="fixture"]) .face {
+  background: linear-gradient(180deg, #23252b 0, var(--rack-metal) 10%, var(--rack-metal) 90%, #0c0d10 100%);
+  border: 1px solid #000;
+  padding: 10px 9px 12px;
+}
+:host([chrome="fixture"]) .face::before,
+:host([chrome="fixture"]) .face::after { content: ""; }
+:host([chrome="fixture"]) .face .shade {
+  background: #05060a;
+  opacity: calc((1 - var(--facing, 1)) * 0.72);
+}
+:host([chrome="fixture"]) .face,
+:host([chrome="fixture"]) .shelf,
+:host([chrome="fixture"]) .book { transform-style: preserve-3d; }
+:host([chrome="fixture"]) .shelf {
+  gap: 7px;
+  padding: 0 6px 7px;
+  margin-bottom: 9px;
+}
+:host([chrome="fixture"]) .shelf .lip {
+  left: 2px;
+  right: 2px;
+  height: 7px;
+  background: linear-gradient(180deg, #52555e 0 1px, #2b2d33 1px, #101114);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
+}
+:host([chrome="fixture"]) .shelf .lip::before,
+:host([chrome="fixture"]) .shelf .lip::after { content: ""; }
+:host([chrome="fixture"]) .book {
+  flex: 0 1 calc(var(--face-w) * var(--bh) * var(--vary, 1) * var(--ar, 0.6494));
+  transform: rotate(var(--tilt, 0deg));
+  transition: transform 180ms ease;
+}
+:host([chrome="fixture"]) .book:hover {
+  opacity: 1;
+  transform: rotate(0deg) translateY(-7px) translateZ(14px) scale(1.04);
+  z-index: 4;
+}
+:host([chrome="fixture"]) .book:focus-visible {
+  transform: rotate(0deg) translateY(-7px) translateZ(14px) scale(1.04);
+  z-index: 4;
+}
+:host([chrome="fixture"]) .cover {
+  background: #c9c4b8;
+  border: 0;
+  box-shadow: 0 6px 10px -4px rgba(0, 0, 0, 0.75), 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+:host([chrome="fixture"]) .cover::after { content: ""; }
+:host([chrome="fixture"]) .floor {
+  background: radial-gradient(50% 60% at 50% 0, rgba(0,0,0,0.4), rgba(0,0,0,0) 70%);
+}
 
 @media (prefers-reduced-motion: reduce) {
   .book { transition: none; }
@@ -866,6 +946,8 @@ class SpinnerRack extends HTMLElement {
 
       this.style.setProperty('--face-w', `${faceW.toFixed(2)}px`);
       this.style.setProperty('--radius', `${apothem.toFixed(2)}px`);
+      this.style.setProperty('--rack-perspective', `${PERSPECTIVE}px`);
+      this.style.setProperty('--rack-origin-y', String(PERSPECTIVE_ORIGIN_Y));
       this.style.setProperty('--crown-proud', `${CROWN_PROUD}px`);
       this.style.setProperty('--crown-w', `${(faceW * capScale).toFixed(2)}px`);
       this.style.setProperty('--lid-size', `${(R * 2 * capScale).toFixed(2)}px`);
@@ -876,6 +958,19 @@ class SpinnerRack extends HTMLElement {
         return `${(50 + 50 * Math.sin(phi)).toFixed(3)}% ${(50 + 50 * Math.cos(phi)).toFixed(3)}%`;
       });
       this.style.setProperty('--lid-clip', `polygon(${pts.join(',')})`);
+
+      // Reserve the overhang. The near bottom corner sits at z = +R, so it is
+      // magnified by P/(P-R); applied to its distance below the vanishing
+      // point, that is how far the rack paints past its own box.
+      const rack = this.shadowRoot.querySelector('.rack');
+      const h = rack?.offsetHeight || 0;
+      if (h) {
+        const drop = h * (1 - PERSPECTIVE_ORIGIN_Y);
+        const overhang = (drop * R) / (PERSPECTIVE - R);
+        // Plus real margin: the deepest painted pixel is a little below the
+        // geometric corner, and 1px of clearance is not clearance.
+        this.style.setProperty('--rack-clearance', `${Math.ceil(overhang + 18)}px`);
+      }
     };
 
     fit();

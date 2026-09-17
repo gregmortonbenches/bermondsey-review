@@ -1,8 +1,16 @@
 # `<spinner-rack>`
 
-An online version of the wire spinner rack that stands in the doorway of every
-good bookshop. Four panels, shelves of paperbacks, a branded crown, and the
-thing you actually came for: you push it and it keeps going.
+The wire spinner rack from the doorway of a good bookshop, built *into* a page
+rather than imitated on top of one. Four facings of covers on a turning drum:
+you push it and it keeps going.
+
+There is no painted steel, no riveted shelf lip and no illuminated sign — that
+treatment reads as a photograph of a shop fitting pasted onto a page, which is
+the opposite of belonging to one. What's left is the part that was actually
+worth having: the turn. Shelves are hairline rules, signs are set in your own
+type, and a facing turning away fades into the page's own colour rather than
+darkening like an object. (`chrome="fixture"` puts the steel back if you want
+it — see below.)
 
 ![the rack, mid-turn](docs/corner.png)
 
@@ -71,6 +79,7 @@ server can render it.
 | `label` | — | Fallback crown text. Each panel otherwise shows its own `data-category`, drawn exactly as you wrote it — the rack never re-cases it, because lowercasing is blind to acronyms and imprint names ("UK History" would read "Uk history") |
 | `snap` | off | `snap="true"` makes it catch a facing square-on instead of free-wheeling to a stop anywhere |
 | `controls` | on | `controls="false"` hides the prev/next buttons |
+| `chrome` | none | `chrome="fixture"` draws it as a painted-steel shop fitting: riveted shelf lips, an illuminated sign, books casting shadows |
 
 **Capacity is `sides × rows × per-shelf`,** and `rows` is capped at 7 so a big
 feed can't produce a skyscraper. Anything past capacity isn't rendered — a
@@ -161,10 +170,9 @@ Set custom properties on the element:
 
 ```css
 spinner-rack {
-  --rack-metal: #16171b;        /* the frame */
-  --rack-crown: #0e0f12;        /* the sign at the top */
-  --rack-crown-ink: #fdfbf5;
-  --rack-accent: #b8262b;       /* focus rings */
+  --rack-rule: rgba(0,0,0,0.16); /* shelf rules and cover edges */
+  --rack-page: #f4f1ea;          /* YOUR page colour — facings fade into it */
+  --rack-accent: #b8262b;        /* focus rings */
   --rack-max-width: 220px;      /* panel width; the rack sweeps ~1.41× this */
   --rack-display-font: "Helvetica Neue", Arial, sans-serif;   /* controls */
   --rack-book-font: Georgia, serif;                           /* generated jackets */
@@ -175,9 +183,22 @@ spinner-rack {
 Web fonts loaded in the host page apply inside the shadow root, so
 `--rack-display-font: "Your Grotesk"` works with no extra plumbing.
 
+`--rack-page` is the one you must set: it is what a facing fades into as it
+turns away, so it has to be your actual page background. The default is
+`Canvas`, which is only a guess.
+
 **Sizing.** A four-sided rack sweeps a circle about 1.41× the panel width, so
 give it that much room or it clips as it turns. It sizes itself down to fit a
-narrow container automatically.
+narrow container automatically. Covers divide the panel evenly, so
+`--rack-max-width` is the single dial for how big they are — and therefore how
+tall the rack is.
+
+### `chrome="fixture"`
+
+The original treatment, kept because it works: steel panels, riveted shelf
+lips, an illuminated sign, books with drop shadows leaning slightly in their
+pockets. It needs `--rack-metal`, `--rack-crown` and `--rack-crown-ink`, and it
+wants a dark ground to sit on.
 
 ---
 
@@ -236,10 +257,19 @@ script with `defer`.
 Two things worth knowing if you tune it (constants live in `PHYSICS` at the top
 of the file):
 
-**It's real 3D, not a slide carousel.** N flat panels on `preserve-3d` with
-`backface-visibility: hidden`. The far side is genuinely hidden, panels
-foreshorten as they turn, and the corner is a real corner. None of that is
-reproducible by translating slides sideways.
+**It's real 3D, not a slide carousel.** N flat panels turned on a drum inside
+`preserve-3d`. The far side is genuinely hidden, panels foreshorten as they
+turn, and the corner is a real corner. None of that is reproducible by
+translating slides sideways.
+
+Each facing is deliberately `transform-style: flat` — one rotated plane of
+ordinary content — so `backface-visibility: hidden` on it hides the whole
+facing at once. In `preserve-3d` every shelf, book and cover sits in the shared
+3D space and shows its own backface, so the rear facings render *mirrored*; the
+fixture's opaque panels were only occluding them. Don't put
+`backface-visibility` on the shelves or books to fix that either — it makes
+them their own composited surfaces and hit-testing resolves there, so clicks
+stop reaching the books.
 
 **It free-wheels by default,** coasting to a stop wherever it runs out, like
 the real fixture — including at rest on a corner, showing two half-facings.
