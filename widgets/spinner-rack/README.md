@@ -118,7 +118,7 @@ than 4/2/0/0 and two bare panels.
 | `data-cover` | | Omit it and a typographic jacket is generated — see below |
 | `data-price` | | Announced on the link. Nothing draws it on screen — see below |
 | `data-category` | | First book on a panel names that panel's crown |
-| `data-ar` | | Cover width ÷ height. Optional — see below |
+| `data-ar` | | Cover width ÷ height. Only needed for a title that differs from `--rack-cover-ratio` |
 
 ### Prices
 
@@ -130,16 +130,20 @@ artwork.
 
 ### Cover proportions
 
-Each book is sized from its cover's real proportions off a nominal height, so
-an A-format, a B-format and the odd landscape photo book all shelve without
-being cropped to a detail of themselves. If your feed serves covers at one
-uniform size — which most do — every book simply comes out the same shape and
-there's nothing to think about.
+Every book takes `--rack-cover-ratio`, which defaults to **0.6667 — standard
+hardback, 156 × 234 mm, exactly 2:3.** A feed that serves covers at one uniform
+size therefore comes out as a clean grid with nothing to configure. Paperback
+lists want `0.649` (B-format) or `0.636` (A-format).
 
-The ratio is measured off the image as it loads. Pass `data-ar` (width ÷
-height) when you already know it and the shelf won't reflow when the image
-lands. Anything outside 0.4–1.7 is treated as a broken asset and clamped,
-rather than being allowed to wreck the shelf.
+The default is written to four places deliberately: it's what the measuring
+pass reports for a 2:3 image, so a generated jacket and a real cover land on
+the same box to the pixel rather than differing by a hair.
+
+A book whose cover genuinely differs is still handled. The ratio is measured
+off the image as it loads, so a landscape photo book sits shorter in its column
+rather than being cropped to a detail of itself; pass `data-ar` (width ÷
+height) to skip the reflow when you already know. Anything outside 0.4–1.7 is
+treated as a broken asset and clamped rather than allowed to wreck the shelf.
 
 One thing to watch if your covers are normalised to a fixed canvas: whatever
 padding that leaves around the jacket is part of the image, so a white-padded
@@ -191,6 +195,7 @@ Set custom properties on the element:
 
 ```css
 spinner-rack {
+  --rack-cover-ratio: 0.6667;    /* standard hardback (2:3) */
   --rack-rule: rgba(0,0,0,0.16); /* shelf rules and cover edges */
   --rack-page: #f4f1ea;          /* YOUR page colour — facings fade into it */
   --rack-accent: #b8262b;        /* focus rings */

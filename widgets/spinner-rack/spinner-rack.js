@@ -76,6 +76,9 @@
  *   spin(degreesPerSecond = 700)  give it a shove
  *
  * STYLING — set these custom properties on the element:
+ *   --rack-cover-ratio  width / height of a cover, default 0.667 (standard
+ *                     hardback). Set per-book with data-ar only when a title
+ *                     genuinely differs.
  *   --rack-rule       hairline for the shelf rules and cover edges
  *   --rack-page       the page's own background; facings turning away fade
  *                     into it, so set it to what your page actually is
@@ -226,6 +229,13 @@ const STYLES = `
      their page actually is; Canvas is only a sane guess. */
   --rack-rule: rgba(0, 0, 0, 0.16);
   --rack-page: Canvas;
+  /* Standard hardback: 156 x 234 mm, which is exactly 2:3. Every book takes
+     this shape unless its own cover image says otherwise, so a rack of uniform
+     stock comes out as a clean grid. Written to four places to match what
+     clampAr() reports for a 2:3 image, so a generated jacket and a real cover
+     are the same box to the pixel. Paperback lists want 0.649 (B-format) or
+     0.636 (A-format). */
+  --rack-cover-ratio: 0.6667;
   --rack-max-width: 220px;
   /* The rack shrinks to fit this before it overflows the screen. Covers divide
      the panel, so a narrow viewport makes a rack TALLER, not narrower — this is
@@ -250,7 +260,7 @@ const STYLES = `
   --crown-h: calc(var(--face-w) * 0.245);
   --crown-proud: 0px;
   --crown-w: 220px;
-  --book-w: calc(var(--face-w) * var(--bh) * 0.6494);
+  --book-w: calc(var(--face-w) * var(--bh) * var(--rack-cover-ratio));
 }
 
 /* vh on iOS means the viewport with the URL bar hidden, so an 80vh budget can
@@ -441,7 +451,7 @@ const STYLES = `
   position: relative;
   width: 100%;
   height: auto;
-  aspect-ratio: var(--ar, 0.6494);
+  aspect-ratio: var(--ar, var(--rack-cover-ratio));
   margin-top: auto;               /* sit on the rule, whatever the height */
   /* A hairline, because a pale cover on a pale page has no edge of its own —
      the white Ottolenghi jacket would otherwise dissolve into the paper. */
@@ -622,7 +632,7 @@ const STYLES = `
 :host([chrome="fixture"]) .shelf .lip::before,
 :host([chrome="fixture"]) .shelf .lip::after { content: ""; }
 :host([chrome="fixture"]) .book {
-  flex: 0 1 calc(var(--face-w) * var(--bh) * var(--vary, 1) * var(--ar, 0.6494));
+  flex: 0 1 calc(var(--face-w) * var(--bh) * var(--vary, 1) * var(--ar, var(--rack-cover-ratio)));
   transform: rotate(var(--tilt, 0deg));
   transition: transform 180ms ease;
 }
