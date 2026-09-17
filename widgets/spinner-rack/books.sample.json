@@ -12,16 +12,14 @@
     "title": "The New Dark Ages",
     "author": "James Marriott",
     "price": "£22.00",
-    "cover": "covers/new-dark-ages.png",
-    "review": "A bracing, argumentative case that we have stopped reading. You will disagree with half of it and finish it in a sitting."
+    "cover": "covers/new-dark-ages.png"
   },
   {
     "category": "New in",
     "title": "Redwood",
     "author": "Ben Macintyre",
     "price": "£25.00",
-    "cover": "covers/redwood.png",
-    "review": "Macintyre at his best: a spy story that turns on one man's nerve, told with the pace of a thriller and the footnotes of a historian."
+    "cover": "covers/redwood.png"
   },
   {
     "category": "New in",
@@ -36,22 +34,19 @@
     "title": "Exit Party",
     "author": "Emily St. John Mandel",
     "price": "£20.00",
-    "cover": "covers/exit-party.png",
-    "review": "Mandel again finds the quiet centre of a loud catastrophe. Pitched somewhere between elegy and heist."
+    "cover": "covers/exit-party.png"
   },
   {
     "category": "New in",
     "title": "Taipei Story",
     "author": "Rebecca F. Kuang",
-    "price": "£20.00",
-    "review": "Kuang turns her eye on inheritance and the objects we leave behind. Precise, cool, and quietly devastating."
+    "price": "£20.00"
   },
   {
     "category": "Non-fiction",
     "title": "No Land to Stand On",
     "author": "Mahmoud Khalil",
-    "price": "£22.00",
-    "review": "Written from the inside of a situation most of us only read about. Urgent, careful, and impossible to put aside."
+    "price": "£22.00"
   },
   {
     "category": "Non-fiction",
@@ -64,43 +59,37 @@
     "category": "Non-fiction",
     "title": "Prisoners of Geography",
     "author": "Tim Marshall",
-    "price": "£10.99",
-    "review": "Ten maps, ten arguments about why nations behave as they do. The book that makes the news make sense."
+    "price": "£10.99"
   },
   {
     "category": "Non-fiction",
     "title": "Black and British",
     "author": "David Olusoga",
-    "price": "£12.99",
-    "review": "The history you were not taught, told with Olusoga's particular gift for making the archive feel like the present tense."
+    "price": "£12.99"
   },
   {
     "category": "Non-fiction",
     "title": "The Shock Doctrine",
     "author": "Naomi Klein",
-    "price": "£12.99",
-    "review": "Twenty years on and still the sharpest account of how crises get used. A book that rearranges how you read a headline."
+    "price": "£12.99"
   },
   {
     "category": "Non-fiction",
     "title": "Fight Oligarchy",
     "author": "Bernie Sanders",
-    "price": "£12.99",
-    "review": "Blunt, unhedged, and refreshingly free of the usual hand-wringing. Sanders makes his case and gets out."
+    "price": "£12.99"
   },
   {
     "category": "Fiction",
     "title": "Farewell to Eden",
     "author": "Sebastian Faulks",
-    "price": "£22.00",
-    "review": "Faulks on the small betrayals that decide a life. The Levant setting is beautifully done and never merely scenic."
+    "price": "£22.00"
   },
   {
     "category": "Fiction",
     "title": "Stories",
     "author": "Annie Proulx",
-    "price": "£25.00",
-    "review": "Four decades of Proulx in one volume. Landscape as character, sentences you re-read for the pleasure of the construction."
+    "price": "£25.00"
   },
   {
     "category": "Fiction",
@@ -113,36 +102,31 @@
     "category": "Fiction",
     "title": "Cloud Atlas",
     "author": "David Mitchell",
-    "price": "£9.99",
-    "review": "Six nested lives, six voices, one argument about cruelty and repetition. Still the most ambitious novel on this shelf."
+    "price": "£9.99"
   },
   {
     "category": "Fiction",
     "title": "The Bell Jar",
     "author": "Sylvia Plath",
-    "price": "£8.99",
-    "review": "As clear-eyed and modern as the day it was published. Plath on ambition, illness and the cost of being watched."
+    "price": "£8.99"
   },
   {
     "category": "Fiction",
     "title": "Beloved",
     "author": "Toni Morrison",
-    "price": "£9.99",
-    "review": "Morrison at full power. A ghost story about what slavery did to love — the finest American novel of its century."
+    "price": "£9.99"
   },
   {
     "category": "Nature",
     "title": "Not Too Late",
     "author": "Rebecca Solnit",
-    "price": "£11.99",
-    "review": "An antidote to climate despair that never once talks down to you. Solnit gathers the people already doing the work."
+    "price": "£11.99"
   },
   {
     "category": "Nature",
     "title": "Wild Fell",
     "author": "Lee Schofield",
-    "price": "£10.99",
-    "review": "One farm, one decade, one honest account of what rewilding actually costs. Schofield is very good on failure."
+    "price": "£10.99"
   },
   {
     "category": "Nature",
@@ -155,8 +139,7 @@
     "category": "Nature",
     "title": "H is for Hawk",
     "author": "Helen Macdonald",
-    "price": "£9.99",
-    "review": "Grief, falconry and T. H. White. Macdonald's prose has the same tautness as the jesses on her wrist."
+    "price": "£9.99"
   },
   {
     "category": "Nature",
@@ -169,7 +152,6 @@
     "category": "Nature",
     "title": "Wilding",
     "author": "Isabella Tree",
-    "price": "£10.99",
-    "review": "What happened when they let a Sussex estate go. Tree makes ecological recovery read like a thriller with turtle doves in it."
+    "price": "£10.99"
   }
 ]

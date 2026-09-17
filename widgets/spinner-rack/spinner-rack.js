@@ -61,11 +61,13 @@
  *   label       fallback crown text; each panel otherwise shows its own category
  *   snap        "true" to make it catch a facing square-on (default off — it
  *               free-wheels to a stop anywhere, like the real fixture)
- *   preview     "tap" makes the first tap on a book open a shelf card with its
- *               staff note, price and a link through to the product, instead
- *               of navigating straight there. Off by default. There is no
- *               hover on a phone, so tap is the gesture; where a pointer
- *               exists, hover previews the card as well.
+ *   preview     "tap" gives every book carrying a data-review a shelf card
+ *               with that note, its price and a link through to the product;
+ *               the first tap opens the card instead of navigating. Books
+ *               without a note tap straight through, and are not marked as
+ *               staff picks. Off by default. There is no hover on a phone, so
+ *               tap is the gesture; where a pointer exists, hover previews the
+ *               card as well.
  *   chrome      "fixture" draws the rack as a painted-steel shop fitting —
  *               riveted shelf lips, an illuminated sign, books casting
  *               shadows. Off by default: the rack is meant to be part of the
@@ -549,14 +551,24 @@ const STYLES = `
 }
 
 .ticket {
-  display: block;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 5px;
   margin-top: 6px;
   font-family: var(--rack-book-font);
   font-size: clamp(9px, calc(var(--book-w) * 0.115), 13px);
   line-height: 1.25;
   min-height: 1.25em;
-  opacity: 0.62;
   font-variant-numeric: tabular-nums;
+}
+.t-price { opacity: 0.62; }
+/* The one place the accent earns its keep besides focus rings: it is carrying
+   information — this book has a note, and tapping it will show you. */
+.t-pick {
+  color: var(--rack-accent);
+  white-space: nowrap;
+  font-size: 0.92em;
 }
 
 .cover {
@@ -976,7 +988,10 @@ class SpinnerRack extends HTMLElement {
        style="--tilt:${tilt.toFixed(2)}deg"
        aria-label="${this.#esc(spoken)}">
       <div class="cover" style="--vary:${vary};--tf:${tf}${ar ? `;--ar:${ar}` : ''}">${art}</div>
-      <span class="ticket">${b.price ? this.#esc(b.price) : ''}</span>
+      <span class="ticket">
+        ${b.price ? `<span class="t-price">${this.#esc(b.price)}</span>` : ''}
+        ${b.review ? '<span class="t-pick">Staff pick</span>' : ''}
+      </span>
     </a>`;
   }
 
@@ -1237,6 +1252,8 @@ class SpinnerRack extends HTMLElement {
         if (!this.#previewOn() || this.#cardPinned || this.#dragging) return;
         const link = e.target.closest?.('a.book');
         if (!link) return;
+        const i = [...root.querySelectorAll('a.book')].indexOf(link);
+        if (!this.#rendered[i]?.review) { this.#closeCards(); return; }
         clearTimeout(this.#hoverTimer);
         this.#hoverTimer = setTimeout(() => this.#openCard(link, false), 150);
       });
@@ -1284,7 +1301,10 @@ class SpinnerRack extends HTMLElement {
         e.preventDefault();               // the host is handling it
         return;
       }
-      if (this.#previewOn()) {
+      // Only a staff pick has a card, because only a staff pick has anything
+      // the card could add. Everything else taps straight through — which is
+      // what the marker on its price line exists to signal.
+      if (this.#previewOn() && this.#rendered[index]?.review) {
         // The card carries the real link onward, so the buy path survives the
         // extra step. Without preview, the click navigates as it always did.
         e.preventDefault();

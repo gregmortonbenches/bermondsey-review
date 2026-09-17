@@ -121,7 +121,7 @@ than 4/2/0/0 and two bare panels.
 | `data-price` | | Announced on the link. Nothing draws it on screen — see below |
 | `data-category` | | First book on a panel names that panel's crown |
 | `data-ar` | | Cover width ÷ height. Only needed for a title that differs from `--rack-cover-ratio` |
-| `data-review` | | A short staff note, shown on the shelf card when `preview="tap"` |
+| `data-review` | | A short staff note. Its presence is what makes a book a staff pick — see below |
 
 ### Prices
 
@@ -240,8 +240,20 @@ wants a dark ground to sit on.
 
 ## The shelf card
 
-`preview="tap"` gives each book a card carrying its `data-review`, its price
-and a link onward to the product.
+`preview="tap"` gives a card to each book carrying a `data-review` — the note,
+the price, and a link onward to the product.
+
+**Only staff picks get one.** A book with no note has nothing a card could add
+beyond the cover and price already on screen, so it taps straight through to
+the product. Which means the picks have to be *visible before you tap*, or the
+differing behaviour is arbitrary: `data-review` puts a quiet "Staff pick" on
+that book's price line, in the accent colour. That is the one place besides
+focus rings where the accent earns its keep, because it is carrying
+information rather than decorating.
+
+The marker goes on the price line, not the cover. Overlaying somebody's
+artwork is the objection that removed the badges, and it applies just as much
+to a recommendation as to a "Signed" flash.
 
 **Tap, not hover.** There is no hover on a phone, so a hover-only preview
 would fire for nobody. Tap already had a job, so the card takes the first tap
