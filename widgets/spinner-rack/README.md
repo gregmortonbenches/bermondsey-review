@@ -80,8 +80,8 @@ server can render it.
 | `rows` | derived | Shelves per panel. Left alone, the rack is only as tall as the stock needs |
 | `label` | — | Fallback crown text. Each panel otherwise shows its own `data-category`, drawn exactly as you wrote it — the rack never re-cases it, because lowercasing is blind to acronyms and imprint names ("UK History" would read "Uk history") |
 | `snap` | off | `snap="true"` makes it catch a facing square-on instead of free-wheeling to a stop anywhere |
-| `preview` | off | `preview="tap"` makes the pull quote a button that opens the full extract. A cover tap always goes to the product — see below |
-| `review-source` | `Guardian` | Who reviewed it, where the book doesn't name its own source |
+| `preview` | off | `preview="tap"` makes the first tap on a book open a shelf card with its review and a link through to the product |
+| `pick-label` | `Guardian review` | What the marker under a reviewed book reads, where the book doesn't name its own source |
 | `chrome` | none | `chrome="fixture"` draws it as a painted-steel shop fitting: riveted shelf lips, an illuminated sign, books casting shadows |
 
 ### Sizing it for a phone
@@ -122,9 +122,8 @@ than 4/2/0/0 and two bare panels.
 | `data-price` | | Carried on the `rack-select` payload for the host to use. The rack never draws or announces it — see below |
 | `data-category` | | First book on a panel names that panel's crown |
 | `data-ar` | | Cover width ÷ height. Only needed for a title that differs from `--rack-cover-ratio` |
-| `data-review` | | The longer extract, shown on the card — see below |
-| `data-quote` | | A pull quote, printed under the cover — see below |
-| `data-source` | | Who reviewed it, e.g. `Observer`. Overrides `review-source` for this book |
+| `data-review` | | A short quote from a review. Its presence is what marks a book and gives it a card — see below |
+| `data-source` | | Who reviewed it, e.g. `Observer`. Overrides `pick-label` for this book |
 
 ### Prices
 
@@ -245,100 +244,53 @@ wants a dark ground to sit on.
 
 ---
 
-## The shelf-talker
+## The shelf card
 
-A review on a shelf is there to be **read while you browse**. So the marker
-under a reviewed book carries the pull quote itself:
+`preview="tap"` gives a card to each book carrying a `data-review` — the quote
+and a link onward to the product.
 
-> *“Nothing else comes close”*
-> Guardian
+**Only reviewed books get one.** A book with no note has nothing a card could
+add beyond the cover already on screen, so it taps straight through to the
+product. Which means those books have to be *visible before you tap*, or the
+differing behaviour is arbitrary: `data-review` puts a quiet "Guardian review"
+under that book's cover, in the accent colour. That is the one place besides
+focus rings where the accent earns its keep, because it is carrying
+information rather than decorating.
 
-No gesture, no panel, nothing to discover. It works while the rack is still
-spinning, which is the only time it matters.
+The demo's notes are placeholder copy written for the mock, not real review
+extracts — swap in your own before this goes anywhere public.
 
-This replaced a label that read "Guardian review" and opened a card when you
-tapped the cover. That arrangement was wrong in three ways, and they compound:
+**The wording is data, not a constant.** A shop quotes whoever reviewed the
+book, so a rack that says "Guardian review" under all of them is asserting
+something untrue. `data-source` on a book names its own paper; `pick-label`
+changes the rack's default for books that don't. The default is only a default.
 
-1. **The label named a destination it couldn't reach.** "Guardian review" reads
-   as a link to the review. It was 9px of `pointer-events: none` text; tapping
-   it did nothing. The words promised something the widget had no way to give.
-2. **Two identical-looking covers behaved differently.** Six books of
-   twenty-four opened a card; the other eighteen went to the product. Nothing
-   on the *cover* said which, and the marker was small type below it, in the
-   row gap, on a moving rack. Same gesture, same-looking target, two outcomes —
-   the one thing a touch surface must never do.
-3. **It put the extra step on the books being recommended.** The reviewed
-   titles are the ones you are being sold. They were the only ones that didn't
-   take you to the product on the first tap.
+The card repeats the attribution under the quote, because a note on a card with
+no source reads as the shop's own voice while the shelf beside it names a paper.
 
-### What replaced it
+The marker goes under the cover, not on it. Overlaying somebody's artwork is
+the objection that removed the badges, and it applies just as much to a
+review as to a "Signed" flash. It is out of flow, so a marked book occupies
+exactly the height of a plain one and the facing's geometry doesn't shift with
+how many reviews a category happens to have. The row gap is derived from the
+marker's own type size (`--tick-band`) rather than set to a number, so the
+marker can't end up sitting on the cover below it.
 
-| | |
-|---|---|
-| **Cover tap** | The product page. Always. Every book, marked or not. |
-| **Quote tap** | The full extract, where `preview="tap"` is set |
-| **Hover** | The full extract, where a pointer exists |
-| **Nothing at all** | You've already read the quote |
+**Tap, not hover.** There is no hover on a phone, so a hover-only preview
+would fire for nobody. Tap already had a job, so the card takes the first tap
+and carries the real link inside it — an extra step on the way to the basket,
+which is the right trade on a surface built for browsing rather than
+beelining. Where a pointer exists, hover previews the card as well, after a
+150ms delay so sweeping across the rack doesn't strobe. That costs nothing and
+helps nobody on the target device.
 
-The quote is its own control, not part of the link — a `<button>` beside the
-anchor rather than inside it. Nesting a button in an anchor is invalid, and
-browsers resolve that hit test unpredictably, which is exactly the bug that
-would put us back to a tap that sometimes buys the book and sometimes doesn't.
+**The card belongs to the facing, not the page.** It sits in the facing's
+plane, turns with it, and fades with it — because in a shop the recommendation
+is a card on the shelf, not a modal over the whole room. It anchors to whichever
+half of the facing the tapped book *isn't* in, so the cover you just tapped
+stays visible beside what is being said about it.
 
-Its hit area grows *downward* into the gap the row already reserves, so a
-thumb-sized target costs no layout: 107 × 35px against a 116 × 174px cover.
-Big enough to hit on purpose, small enough that nobody hits it by accident.
-A drag begun on the quote still turns the rack — no dead zone in the middle of
-the thing you grab.
-
-### Data
-
-| Field | What it is |
-|---|---|
-| `data-quote` | The puff. Two lines at most — about 28 characters a line at phone size. What's printed on the paperback. |
-| `data-review` | The longer extract, for the card. Optional; without it the quote is plain text with nothing to open. |
-| `data-source` | The paper. `data-quote` without `data-review` is fine, and vice versa — a book with only a review gets the old bare "Guardian review" label. |
-
-**The attribution is data, not a constant.** A shop quotes whoever reviewed the
-book, so a rack that says "Guardian" under all of them asserts something
-untrue. `data-source` on a book names its own paper; `review-source` sets the
-rack's default for books that don't.
-
-The demo's quotes and extracts are placeholder copy written for the mock, not
-real review text — swap in your own before this goes anywhere public.
-
-### Why it sits under the cover
-
-Overlaying somebody's artwork is the objection that removed the badges, and it
-applies just as much to a review as to a "Signed" flash. The marker is out of
-flow, so a quoted book occupies exactly the height of a plain one and the
-facing's geometry doesn't shift with how many reviews a category happens to
-have. The row gap is derived from the marker's own type size and line count
-(`--tick-band`, `--tick-lines`) rather than set to a number, so the marker
-can't end up sitting on the cover below it. A rack whose books carry no quotes
-gets a one-line band back automatically.
-
-Two lines of quote cost about 5px of cover height per row — 119 × 179 down to
-116 × 174 on a 390px phone. That is the whole price of the feature, and it
-buys proof that works without a gesture.
-
-### The card
-
-Still there, for the longer extract, and still worth having: 20 words is more
-than a shelf can hold. But it is now something you ask for.
-
-**It belongs to the facing, not the page.** It sits in the facing's plane,
-turns with it, and fades with it — because in a shop the recommendation is a
-card on the shelf, not a modal over the whole room. It anchors to whichever
-half of the facing the book *isn't* in, so the cover stays visible beside what
-is being said about it, and it repeats the attribution under the quote, because
-a note with no source reads as the shop's own voice.
-
-Hover previews it after 150ms, so sweeping across the rack doesn't strobe. That
-is what the original hover request asked for, and where a pointer exists it
-still works — it just isn't the only way in any more.
-
-Dismissed by the close button, Escape, tapping another quote, grabbing the rack,
+Dismissed by the close button, Escape, tapping another book, grabbing the rack,
 or turning to another facing. A press that starts *inside* the card is the
 reader using it, so it neither turns the rack nor closes the card.
 

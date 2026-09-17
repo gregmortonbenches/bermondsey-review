@@ -45,8 +45,6 @@
  *        data-title="Peterloo"
  *        data-author="Robert Poole"
  *        data-cover="/covers/peterloo.jpg"
- *        data-quote="History at a full sprint"
- *        data-source="Guardian"
  *        data-category="History">Peterloo</a>
  *     ...
  *   </spinner-rack>
@@ -62,16 +60,16 @@
  *   label       fallback crown text; each panel otherwise shows its own category
  *   snap        "true" to make it catch a facing square-on (default off — it
  *               free-wheels to a stop anywhere, like the real fixture)
- *   preview     "tap" makes the shelf-talker under a reviewed book a button
- *               that opens the full extract. The cover is never the trigger:
- *               a tap on a cover always goes to the book, so the same gesture
- *               on two covers can't do two different things. Off by default,
- *               in which case the quote is plain text. Where a pointer exists,
- *               hover over a book previews the extract either way.
- *   review-source  who reviewed it, for books that don't name their own source
- *               (default "Guardian"). A book's own data-source wins, because a
- *               shop quotes whoever reviewed the book rather than one paper for
- *               the whole rack.
+ *   preview     "tap" gives every book carrying a data-review a shelf card
+ *               with that note and a link through to the product;
+ *               the first tap opens the card instead of navigating. Books
+ *               without a note tap straight through, and carry no marker.
+ *               Off by default. There is no hover on a phone, so tap is the
+ *               gesture; where a pointer exists, hover previews the card too.
+ *   pick-label  what the marker under a reviewed book reads, for books that
+ *               don't name their own source (default "Guardian review").
+ *               A book's own data-source wins, because a shop quotes whoever
+ *               reviewed the book rather than one paper for the whole rack.
  *   chrome      "fixture" draws the rack as a painted-steel shop fitting —
  *               riveted shelf lips, an illuminated sign, books casting
  *               shadows. Off by default: the rack is meant to be part of the
@@ -290,13 +288,10 @@ const STYLES = `
 
   /* The review marker's band, under the cover. Both the marker and the row gap
      that has to clear it are derived from these, so changing the type size
-     cannot leave the marker sitting on the artwork below it. --tick-lines is
-     written by the layout pass: 2 where any book carries a pull quote, 1 where
-     the markers are bare labels, so a rack without quotes keeps the height. */
+     cannot leave the marker sitting on the artwork below it. */
   --tick-fs: clamp(9px, calc(var(--book-w) * 0.108), 12px);
   --tick-lead: 4px;
-  --tick-lines: 2;
-  --tick-band: calc(var(--tick-lead) + var(--tick-fs) * 1.25 * var(--tick-lines));
+  --tick-band: calc(var(--tick-lead) + var(--tick-fs) * 1.2);
 }
 
 /* vh on iOS means the viewport with the URL bar hidden, so an 80vh budget can
@@ -466,22 +461,14 @@ const STYLES = `
 .shelf .lip::before { left: 5px; }
 .shelf .lip::after { right: 5px; }
 
-/* Equal columns filling the panel; height follows each cover's own ratio, so a
-   landscape photo book still shelves as a landscape photo book — it just sits
-   shorter in its column rather than wider than its neighbours.
-
-   The column is a slot rather than the link itself so the review marker can be
-   its own control. Nesting a button inside an anchor is invalid, and browsers
-   resolve the hit test unpredictably — which is exactly the bug that would
-   make a tap sometimes buy the book and sometimes not. */
-.slot {
-  position: relative;
-  flex: 1 1 0;
-  min-width: 0;
-}
 .book {
   position: relative;
   display: block;
+  /* Equal columns filling the panel; height follows each cover's own ratio, so
+     a landscape photo book still shelves as a landscape photo book — it just
+     sits shorter in its column rather than wider than its neighbours. */
+  flex: 1 1 0;
+  min-width: 0;
   text-decoration: none;
   color: inherit;
   transform-origin: 50% 100%;
@@ -493,12 +480,10 @@ const STYLES = `
 }
 .book:focus-visible .cover { outline: 2px solid var(--rack-accent); outline-offset: 2px; }
 
-/* The review marker: a shelf-talker in the gap under its cover. It carries the
-   pull quote itself, because the point of a review on a shelf is to be READ
-   while you browse — a label naming a review you cannot reach spends the space
-   and delivers nothing. Out of flow on purpose: only one book in four carries
-   one, so an in-flow line would either reserve height on every book or leave
-   marked rows taller than their neighbours — the row gap clears it instead. The accent earns its keep here — it carries
+/* The review marker, sitting in the gap under its cover like a shelf-edge
+   ticket. Out of flow on purpose: only one book in four carries one, so an
+   in-flow line would either reserve height on every book or leave marked rows
+   taller than their neighbours — the row gap is sized to clear it instead. The accent earns its keep here — it carries
    information (this one has a note, tapping shows you) rather than decorating.
    It fades with its facing along with everything else. */
 /* The shelf card. In a bookshop the recommendation is a handwritten card ON
@@ -584,42 +569,13 @@ const STYLES = `
   position: absolute;
   top: 100%;
   left: 0;
-  right: 0;
-  margin: var(--tick-lead) 0 0;
-  padding: 0;
-  border: 0;
-  background: none;
-  text-align: left;
+  margin-top: var(--tick-lead);
   font-family: var(--rack-book-font);
   font-size: var(--tick-fs);
-  line-height: 1.25;
+  line-height: 1.2;
   color: var(--rack-accent);
-  /* Two lines of quote, clamped. A puff that needs a third line is not a puff. */
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: var(--tick-lines, 2);
-  overflow: hidden;
+  white-space: nowrap;
   pointer-events: none;
-}
-.ticket .t-src {
-  font-style: normal;
-  opacity: 0.75;
-}
-/* Tappable only where it opens something. The hit area grows downward into the
-   gap the row already reserves, so making it thumb-sized costs no layout. */
-button.ticket {
-  pointer-events: auto;
-  cursor: pointer;
-  padding-bottom: 10px;
-  margin-bottom: -10px;
-  -webkit-tap-highlight-color: transparent;
-}
-button.ticket:focus-visible {
-  outline: 2px solid var(--rack-accent);
-  outline-offset: 2px;
-}
-@media (hover: hover) {
-  button.ticket:hover { text-decoration: underline; text-underline-offset: 2px; }
 }
 
 .cover {
@@ -779,10 +735,8 @@ button.ticket:focus-visible {
 }
 :host([chrome="fixture"]) .shelf .lip::before,
 :host([chrome="fixture"]) .shelf .lip::after { content: ""; }
-:host([chrome="fixture"]) .slot {
-  flex: 0 1 calc(var(--face-w) * var(--bh) * var(--vary, 1) * var(--ar, var(--rack-cover-ratio)));
-}
 :host([chrome="fixture"]) .book {
+  flex: 0 1 calc(var(--face-w) * var(--bh) * var(--vary, 1) * var(--ar, var(--rack-cover-ratio)));
   transform: rotate(var(--tilt, 0deg));
   transition: transform 180ms ease;
 }
@@ -815,7 +769,7 @@ button.ticket:focus-visible {
 
 class SpinnerRack extends HTMLElement {
   static observedAttributes =
-    ['label', 'sides', 'rows', 'per-shelf', 'snap', 'chrome', 'preview', 'review-source'];
+    ['label', 'sides', 'rows', 'per-shelf', 'snap', 'chrome', 'preview', 'pick-label'];
 
   #books = null;        // set programmatically, overrides the light DOM
   #rendered = [];       // flattened, in the order the panels were filled
@@ -897,14 +851,10 @@ class SpinnerRack extends HTMLElement {
   #sides() { return CLAMP(parseInt(this.getAttribute('sides'), 10) || 4, 3, 8); }
   #perShelf() { return CLAMP(parseInt(this.getAttribute('per-shelf'), 10) || 2, 1, 4); }
 
-  /* Who reviewed it, for books that do not say so themselves. A shop quotes
-     whoever reviewed the book, so this is data, not a fixed fact: data-source
-     per book wins, then review-source for the rack. */
-  #reviewSource() { return this.getAttribute('review-source') || 'Guardian'; }
-
-  /* Does any book carry a pull quote? Decides the marker band for the whole
-     rack, so every row reserves the same height whichever books are marked. */
-  #anyQuote() { return this.#rendered.some((b) => b.quote); }
+  /* Where a note came from, for books that do not say so themselves. A shop
+     quotes whoever reviewed the book, so this is wording, not a fixed fact:
+     data-source per book wins, then pick-label for the rack. */
+  #pickLabel() { return this.getAttribute('pick-label') || 'Guardian review'; }
 
   /**
    * The light DOM is the source of truth. Anything an <a> can carry — an href
@@ -920,7 +870,6 @@ class SpinnerRack extends HTMLElement {
       category: a.dataset.category || '',
       ar: a.dataset.ar || '',
       review: a.dataset.review || '',
-      quote: a.dataset.quote || '',
       source: a.dataset.source || '',
       target: a.getAttribute('target') || '',
     })).filter((b) => b.title);
@@ -962,7 +911,6 @@ class SpinnerRack extends HTMLElement {
     this.#bookFont = getComputedStyle(this).getPropertyValue('--rack-book-font').trim()
       || 'Georgia, serif';
     this.style.setProperty('--bh', String(BOOK_SCALE[perShelf]));
-    this.style.setProperty('--tick-lines', this.#anyQuote() ? '2' : '1');
 
     const label = this.getAttribute('label') || '';
 
@@ -1048,37 +996,14 @@ class SpinnerRack extends HTMLElement {
     // A shop that already knows its cover dimensions can pass data-ar and skip
     // the reflow when the image arrives.
     const ar = clampAr(parseFloat(b.ar));
-    const src = b.source || this.#reviewSource();
-    // The quote is part of what the shelf says about the book, so it belongs in
-    // the link's name. A sighted browser reads it without doing anything; so
-    // should a screen reader.
-    const spoken = b.title + (b.author ? `, by ${b.author}` : '')
-      + (b.quote ? `. ${src}: \u201c${b.quote}\u201d` : '');
-    return `<div class="slot">
-      <a class="book" href="${this.#esc(b.href || '#')}"
-         ${b.target ? `target="${this.#esc(b.target)}" rel="noopener"` : ''}
-         style="--tilt:${tilt.toFixed(2)}deg"
-         aria-label="${this.#esc(spoken)}">
-        <div class="cover" style="--vary:${vary};--tf:${tf}${ar ? `;--ar:${ar}` : ''}">${art}</div>
-      </a>
-      ${this.#tickHTML(b, src)}
-    </div>`;
-  }
-
-  /**
-   * The shelf-talker. A pull quote reads as itself and needs no gesture; a book
-   * with only a longer extract still gets the old bare label. It becomes a
-   * button only where there is more to show — a control that opens nothing is
-   * worse than plain text, because it invites a tap and then ignores it.
-   */
-  #tickHTML(b, src) {
-    if (!b.quote && !b.review) return '';
-    const body = b.quote
-      ? `\u201c${this.#esc(b.quote)}\u201d <span class="t-src">${this.#esc(src)}</span>`
-      : `<span class="t-src">${this.#esc(src)} review</span>`;
-    if (!this.#previewOn() || !b.review) return `<span class="ticket">${body}</span>`;
-    return `<button type="button" class="ticket"
-       aria-label="${this.#esc(`Read ${src} on ${b.title}`)}">${body}</button>`;
+    const spoken = b.title + (b.author ? `, by ${b.author}` : '');
+    return `<a class="book" href="${this.#esc(b.href || '#')}"
+       ${b.target ? `target="${this.#esc(b.target)}" rel="noopener"` : ''}
+       style="--tilt:${tilt.toFixed(2)}deg"
+       aria-label="${this.#esc(spoken)}">
+      <div class="cover" style="--vary:${vary};--tf:${tf}${ar ? `;--ar:${ar}` : ''}">${art}</div>
+      ${b.review ? `<span class="ticket">${this.#esc(b.source || this.#pickLabel())}</span>` : ''}
+    </a>`;
   }
 
   /**
@@ -1335,7 +1260,7 @@ class SpinnerRack extends HTMLElement {
     // flash a card per cover.
     if (matchMedia('(hover: hover)').matches) {
       root.addEventListener('pointerover', (e) => {
-        if (this.#cardPinned || this.#dragging) return;
+        if (!this.#previewOn() || this.#cardPinned || this.#dragging) return;
         const link = e.target.closest?.('a.book');
         if (!link) return;
         const i = [...root.querySelectorAll('a.book')].indexOf(link);
@@ -1383,25 +1308,19 @@ class SpinnerRack extends HTMLElement {
         composed: true,
         cancelable: true,
       }));
-      if (!ok) e.preventDefault();        // the host is handling it
-      // Nothing else: a tap on a cover goes to the book. It used to open the
-      // card for the one book in four that had a note, which made the same
-      // gesture on two identical-looking covers do two different things — and
-      // put the extra step on exactly the books being recommended. The quote
-      // under the cover is now the thing that opens it.
-    });
-
-    // The shelf-talker opens the full extract. Its own control, so a tap here
-    // can never be mistaken for a tap on the cover.
-    root.addEventListener('click', (e) => {
-      const tick = e.target.closest?.('button.ticket');
-      if (!tick) return;
-      if (this.#swallowClick) {              // the press was a drag
-        this.#swallowClick = false;
+      if (!ok) {
+        e.preventDefault();               // the host is handling it
         return;
       }
-      const link = tick.closest('.slot')?.querySelector('a.book');
-      if (link) this.#openCard(link, true);
+      // Only a staff pick has a card, because only a staff pick has anything
+      // the card could add. Everything else taps straight through — which is
+      // what the marker on its price line exists to signal.
+      if (this.#previewOn() && this.#rendered[index]?.review) {
+        // The card carries the real link onward, so the buy path survives the
+        // extra step. Without preview, the click navigates as it always did.
+        e.preventDefault();
+        this.#openCard(link, true);
+      }
     });
   }
 
@@ -1419,8 +1338,7 @@ class SpinnerRack extends HTMLElement {
     card.querySelector('.c-title').textContent = book.title;
     card.querySelector('.c-author').textContent = book.author;
     card.querySelector('.c-review').textContent = book.review || '';
-    card.querySelector('.c-src').textContent =
-      `${book.source || this.#reviewSource()} review`;
+    card.querySelector('.c-src').textContent = book.source || this.#pickLabel();
     const go = card.querySelector('.c-go');
     go.setAttribute('href', book.href || '#');
     if (book.target) go.setAttribute('target', book.target);
