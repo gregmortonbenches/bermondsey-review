@@ -23,6 +23,12 @@
  * you grab has weight. All of that falls out of `preserve-3d` plus
  * `backface-visibility: hidden` for free, and none of it is reproducible in 2D.
  *
+ * There are no prev/next buttons and no facing counter. Swiping is the gesture,
+ * the one-time nudge advertises it, and the facing's own heading says which one
+ * you are looking at — a counter only repeated that. Keyboard access does not
+ * depend on them: the rack is a focus stop and the arrow keys turn it, with the
+ * facing announced through a live region.
+ *
  * The physics is a flick with exponential drag. By default it free-wheels to a
  * stop wherever it runs out, corner included, like the real fixture. `snap`
  * adds a detent that only bites once the rack has slowed — the same as the
@@ -55,7 +61,6 @@
  *   label       fallback crown text; each panel otherwise shows its own category
  *   snap        "true" to make it catch a facing square-on (default off — it
  *               free-wheels to a stop anywhere, like the real fixture)
- *   controls    "false" to hide the prev/next buttons
  *   chrome      "fixture" draws the rack as a painted-steel shop fitting —
  *               riveted shelf lips, an illuminated sign, books casting
  *               shadows. Off by default: the rack is meant to be part of the
@@ -87,7 +92,7 @@
  *   --rack-max-width  panel width cap
  *   --rack-max-height the rack shrinks to fit this (default 80vh, `none` to
  *                     let it run to whatever height its stock needs)
- *   --rack-display-font, --rack-book-font, --rack-crown-font
+ *   --rack-book-font, --rack-crown-font
  *   --rack-metal, --rack-crown, --rack-crown-ink   (chrome="fixture" only)
  */
 
@@ -248,7 +253,6 @@ const STYLES = `
      what stops a phone showing two shelves of an 800px rack. Set it to "none"
      to let the rack be whatever height its stock needs. */
   --rack-max-height: 80vh;
-  --rack-display-font: "Helvetica Neue", Helvetica, Arial, sans-serif;
   --rack-book-font: Georgia, "Times New Roman", serif;
   /* The sign is its own typographic role — a bookshop fascia, not a book
      jacket and not UI chrome — so it gets its own property rather than
@@ -541,38 +545,6 @@ const STYLES = `
   pointer-events: none;
 }
 
-.controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-}
-.controls button {
-  appearance: none;
-  /* 44px, not 34: a thumb target, not a cursor target. */
-  width: 44px;
-  height: 44px;
-  border: 1px solid currentColor;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  padding: 0;
-}
-.controls button:hover { background: currentColor; }
-.controls button:hover svg { stroke: Canvas; }
-.controls svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; }
-.count {
-  font: 500 11px/1 var(--rack-display-font);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  min-width: 8ch;
-  text-align: center;
-  opacity: 0.75;
-  font-variant-numeric: tabular-nums;
-}
-
 .sr {
   position: absolute;
   width: 1px;
@@ -672,7 +644,7 @@ const STYLES = `
 `;
 
 class SpinnerRack extends HTMLElement {
-  static observedAttributes = ['label', 'sides', 'rows', 'per-shelf', 'snap', 'controls'];
+  static observedAttributes = ['label', 'sides', 'rows', 'per-shelf', 'snap', 'chrome'];
 
   #books = null;        // set programmatically, overrides the light DOM
   #rendered = [];       // flattened, in the order the panels were filled
@@ -806,7 +778,6 @@ class SpinnerRack extends HTMLElement {
       || 'Georgia, serif';
     this.style.setProperty('--bh', String(BOOK_SCALE[perShelf]));
 
-    const showControls = this.getAttribute('controls') !== 'false';
     const label = this.getAttribute('label') || '';
 
     root.innerHTML = `
@@ -823,16 +794,6 @@ class SpinnerRack extends HTMLElement {
           </div>
         </div>
         <div class="floor"></div>
-        ${showControls ? `
-          <div class="controls">
-            <button type="button" class="prev" aria-label="Turn rack left">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4 7 12l8 8"/></svg>
-            </button>
-            <span class="count" aria-hidden="true"></span>
-            <button type="button" class="next" aria-label="Turn rack right">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4l8 8-8 8"/></svg>
-            </button>
-          </div>` : ''}
         <p class="sr" aria-live="polite"></p>
       </div>`;
 
@@ -1139,15 +1100,6 @@ class SpinnerRack extends HTMLElement {
       }
     });
 
-    root.querySelector('.prev')?.addEventListener('click', () => {
-      this.#stopHint();
-      this.#glideTo(Math.round(this.#angle / step) * step + step);
-    });
-    root.querySelector('.next')?.addEventListener('click', () => {
-      this.#stopHint();
-      this.#glideTo(Math.round(this.#angle / step) * step - step);
-    });
-
     // Panels round the back are inert, so Tab walks the rack the way the eye
     // does. This catches the remaining case: focus arriving at a panel that's
     // only part-way round, which then has to be brought square on.
@@ -1301,8 +1253,6 @@ class SpinnerRack extends HTMLElement {
     this.#front = i;
 
     const label = this.#crowns[i]?.textContent.trim() || `Panel ${i + 1}`;
-    const count = this.shadowRoot.querySelector('.count');
-    if (count) count.textContent = `${String(i + 1).padStart(2, '0')} / ${String(sides).padStart(2, '0')}`;
     const live = this.shadowRoot.querySelector('.sr');
     if (live) live.textContent = `${label}. Side ${i + 1} of ${sides}.`;
 

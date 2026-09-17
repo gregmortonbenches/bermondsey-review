@@ -80,7 +80,6 @@ server can render it.
 | `rows` | derived | Shelves per panel. Left alone, the rack is only as tall as the stock needs |
 | `label` | — | Fallback crown text. Each panel otherwise shows its own `data-category`, drawn exactly as you wrote it — the rack never re-cases it, because lowercasing is blind to acronyms and imprint names ("UK History" would read "Uk history") |
 | `snap` | off | `snap="true"` makes it catch a facing square-on instead of free-wheeling to a stop anywhere |
-| `controls` | on | `controls="false"` hides the prev/next buttons |
 | `chrome` | none | `chrome="fixture"` draws it as a painted-steel shop fitting: riveted shelf lips, an illuminated sign, books casting shadows |
 
 ### Sizing it for a phone
@@ -253,6 +252,10 @@ wants a dark ground to sit on.
 
 ## Accessibility
 
+- **No buttons, no counter.** Swiping is the gesture, the one-time nudge
+  advertises it, and the facing's own heading says which one you are looking
+  at — a counter only repeated that. Nothing about keyboard or screen-reader
+  access depended on them.
 - **Keyboard:** the rack is a focus stop; ← → turn one panel, Home returns to
   the front, and Tab walks the books on the panel facing you. Panels round the
   back are `inert`, so focus never disappears behind the rack — except for a
@@ -271,6 +274,67 @@ wants a dark ground to sit on.
   nothing. Tracking on the window keeps a drag alive outside the rack while
   leaving clicks entirely to the browser, so middle-click and cmd/ctrl-click to
   open in a new tab keep working.
+
+## BigCommerce + Searchspring
+
+The light-DOM form maps straight onto a Stencil template — this is the case it
+was designed for:
+
+```handlebars
+<spinner-rack label="{{category.name}}" sides="4" per-shelf="2">
+  {{#each category.products}}
+    <a href="{{url}}"
+       data-title="{{name}}"
+       data-author="{{brand.name}}"
+       data-cover="{{getImage image 'product_size'}}"
+       data-price="{{price.without_tax.formatted}}"
+       data-category="{{../category.name}}">{{name}}</a>
+  {{/each}}
+</spinner-rack>
+```
+
+Searchspring is the opposite shape: recommendations arrive as JSON from a
+client-side call, so they go through the `books` property instead.
+
+**Use both.** Server-render a default set into the light DOM and replace it when
+Searchspring answers:
+
+```js
+const rack = document.querySelector('spinner-rack');   // already rendered, already crawlable
+
+const res = await fetch(searchspringRecommendationsUrl);
+const { results } = await res.json();
+rack.books = results.slice(0, 24).map((p) => ({
+  href:  p.mappings.core.url,
+  title: p.mappings.core.name,
+  author: p.mappings.core.brand,
+  cover: p.mappings.core.thumbnailImageUrl,
+  price: p.mappings.core.price,
+  category: 'Recommended for you',
+}));
+```
+
+That way the rack paints immediately, the stock stays indexable, and the
+personalised set is an upgrade rather than a prerequisite. Going
+Searchspring-only means an empty element until the fetch returns and nothing
+for a crawler to read.
+
+Two things to get right:
+
+- **Ask for the same number of titles you server-rendered.** Setting `books`
+  re-renders, and a different count can change the shelf count, so the rack
+  visibly re-lays out under the reader.
+- **Check what your image URLs actually return.** `--rack-cover-ratio` assumes
+  a uniform canvas. BigCommerce's `{:size}` resizing fits an image *within* the
+  box you ask for while preserving its own ratio, rather than padding it out to
+  fill — so a 2:3 request does not guarantee a 2:3 file unless the source
+  artwork is already 2:3. Worth checking against your real catalogue: if the
+  ratios vary, the rack measures each cover and shelves it correctly anyway,
+  but you lose the uniform grid. (Verify this against current BigCommerce
+  behaviour — it's the one part of this I'd not take on trust.)
+
+Field names above follow Searchspring's `mappings.core` convention; yours may
+differ depending on how the profile is mapped.
 
 ## Framework notes
 
