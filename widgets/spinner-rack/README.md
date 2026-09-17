@@ -80,7 +80,8 @@ server can render it.
 | `rows` | derived | Shelves per panel. Left alone, the rack is only as tall as the stock needs |
 | `label` | — | Fallback crown text. Each panel otherwise shows its own `data-category`, drawn exactly as you wrote it — the rack never re-cases it, because lowercasing is blind to acronyms and imprint names ("UK History" would read "Uk history") |
 | `snap` | off | `snap="true"` makes it catch a facing square-on instead of free-wheeling to a stop anywhere |
-| `preview` | off | `preview="tap"` makes the first tap on a book open a shelf card with its staff note, price and a link through to the product |
+| `preview` | off | `preview="tap"` makes the first tap on a book open a shelf card with its review and a link through to the product |
+| `pick-label` | `Guardian review` | What the marker under a reviewed book reads, where the book doesn't name its own source |
 | `chrome` | none | `chrome="fixture"` draws it as a painted-steel shop fitting: riveted shelf lips, an illuminated sign, books casting shadows |
 
 ### Sizing it for a phone
@@ -118,18 +119,23 @@ than 4/2/0/0 and two bare panels.
 | `data-title` | yes | Falls back to the link text |
 | `data-author` | | |
 | `data-cover` | | Omit it and a typographic jacket is generated — see below |
-| `data-price` | | Announced on the link. Nothing draws it on screen — see below |
+| `data-price` | | Carried on the `rack-select` payload for the host to use. The rack never draws or announces it — see below |
 | `data-category` | | First book on a panel names that panel's crown |
 | `data-ar` | | Cover width ÷ height. Only needed for a title that differs from `--rack-cover-ratio` |
-| `data-review` | | A short staff note. Its presence is what makes a book a staff pick — see below |
+| `data-review` | | A short quote from a review. Its presence is what marks a book and gives it a card — see below |
+| `data-source` | | Who reviewed it, e.g. `Observer`. Overrides `pick-label` for this book |
 
 ### Prices
 
-Nothing draws the price on screen. It stays on each link's `aria-label`, so a
-screen reader announces "Peterloo, by Robert Poole, £10.99", but a sighted
-visitor only sees it after clicking through. If you want it visible, a strip
-along the shelf lip is closer to the real fixture than an overlay on the
-artwork.
+The rack shows no prices — not on the shelf, not on the card, and not on the
+`aria-label` either, since announcing a price nothing displays would tell a
+screen-reader user about a sighted view that doesn't exist. A spinner is for
+browsing; the price belongs on the product page you land on.
+
+`data-price` is still read and still travels on the `rack-select` payload, so a
+host that wants it can put it in its own furniture without the rack changing.
+If you do want it on the rack, a strip along the shelf lip is closer to the
+real fixture than an overlay on the artwork.
 
 ### Cover proportions
 
@@ -240,20 +246,35 @@ wants a dark ground to sit on.
 
 ## The shelf card
 
-`preview="tap"` gives a card to each book carrying a `data-review` — the note,
-the price, and a link onward to the product.
+`preview="tap"` gives a card to each book carrying a `data-review` — the quote
+and a link onward to the product.
 
-**Only staff picks get one.** A book with no note has nothing a card could add
-beyond the cover and price already on screen, so it taps straight through to
-the product. Which means the picks have to be *visible before you tap*, or the
-differing behaviour is arbitrary: `data-review` puts a quiet "Staff pick" on
-that book's price line, in the accent colour. That is the one place besides
+**Only reviewed books get one.** A book with no note has nothing a card could
+add beyond the cover already on screen, so it taps straight through to the
+product. Which means those books have to be *visible before you tap*, or the
+differing behaviour is arbitrary: `data-review` puts a quiet "Guardian review"
+under that book's cover, in the accent colour. That is the one place besides
 focus rings where the accent earns its keep, because it is carrying
 information rather than decorating.
 
-The marker goes on the price line, not the cover. Overlaying somebody's
-artwork is the objection that removed the badges, and it applies just as much
-to a recommendation as to a "Signed" flash.
+The demo's notes are placeholder copy written for the mock, not real review
+extracts — swap in your own before this goes anywhere public.
+
+**The wording is data, not a constant.** A shop quotes whoever reviewed the
+book, so a rack that says "Guardian review" under all of them is asserting
+something untrue. `data-source` on a book names its own paper; `pick-label`
+changes the rack's default for books that don't. The default is only a default.
+
+The card repeats the attribution under the quote, because a note on a card with
+no source reads as the shop's own voice while the shelf beside it names a paper.
+
+The marker goes under the cover, not on it. Overlaying somebody's artwork is
+the objection that removed the badges, and it applies just as much to a
+review as to a "Signed" flash. It is out of flow, so a marked book occupies
+exactly the height of a plain one and the facing's geometry doesn't shift with
+how many reviews a category happens to have. The row gap is derived from the
+marker's own type size (`--tick-band`) rather than set to a number, so the
+marker can't end up sitting on the cover below it.
 
 **Tap, not hover.** There is no hover on a phone, so a hover-only preview
 would fire for nobody. Tap already had a job, so the card takes the first tap
@@ -298,8 +319,8 @@ reader using it, so it neither turns the rack nor closes the card.
   back are `inert`, so focus never disappears behind the rack — except for a
   panel that currently holds focus, which stays reachable while it turns.
 - **Screen readers:** the panel and its category are announced through a live
-  region on every turn. Each book is a real link labelled with title, author
-  and price.
+  region on every turn. Each book is a real link labelled with its title and
+  author — the same information the shelf shows, and nothing it doesn't.
 - **`prefers-reduced-motion`:** no inertia, no attention nudge; turns are
   instant. It's still a rack, it just doesn't spin.
 - **Pointer:** `touch-action: pan-y`, so a vertical swipe scrolls the page and

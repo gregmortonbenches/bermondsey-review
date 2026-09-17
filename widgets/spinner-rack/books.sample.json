@@ -96,7 +96,8 @@
     "title": "Big Swiss",
     "author": "Jen Beagin",
     "price": "£9.99",
-    "review": "Improbably funny about grief, sex and eavesdropping. Beagin's narrator is the best company in fiction right now."
+    "review": "Improbably funny about grief, sex and eavesdropping. Beagin's narrator is the best company in fiction right now.",
+    "source": "Observer review"
   },
   {
     "category": "Fiction",
@@ -146,7 +147,8 @@
     "title": "Underland",
     "author": "Robert Macfarlane",
     "price": "£10.99",
-    "review": "Macfarlane goes down instead of up. Catacombs, glaciers, fungal networks — the book that changed how we talk about landscape."
+    "review": "Macfarlane goes down instead of up. Catacombs, glaciers, fungal networks — the book that changed how we talk about landscape.",
+    "source": "TLS review"
   },
   {
     "category": "Nature",

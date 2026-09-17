@@ -45,7 +45,6 @@
  *        data-title="Peterloo"
  *        data-author="Robert Poole"
  *        data-cover="/covers/peterloo.jpg"
- *        data-price="£10.99"
  *        data-category="History">Peterloo</a>
  *     ...
  *   </spinner-rack>
@@ -62,12 +61,15 @@
  *   snap        "true" to make it catch a facing square-on (default off — it
  *               free-wheels to a stop anywhere, like the real fixture)
  *   preview     "tap" gives every book carrying a data-review a shelf card
- *               with that note, its price and a link through to the product;
+ *               with that note and a link through to the product;
  *               the first tap opens the card instead of navigating. Books
- *               without a note tap straight through, and are not marked as
- *               staff picks. Off by default. There is no hover on a phone, so
- *               tap is the gesture; where a pointer exists, hover previews the
- *               card as well.
+ *               without a note tap straight through, and carry no marker.
+ *               Off by default. There is no hover on a phone, so tap is the
+ *               gesture; where a pointer exists, hover previews the card too.
+ *   pick-label  what the marker under a reviewed book reads, for books that
+ *               don't name their own source (default "Guardian review").
+ *               A book's own data-source wins, because a shop quotes whoever
+ *               reviewed the book rather than one paper for the whole rack.
  *   chrome      "fixture" draws the rack as a painted-steel shop fitting —
  *               riveted shelf lips, an illuminated sign, books casting
  *               shadows. Off by default: the rack is meant to be part of the
@@ -283,6 +285,13 @@ const STYLES = `
   --crown-proud: 0px;
   --crown-w: 220px;
   --book-w: calc(var(--face-w) * var(--bh) * var(--rack-cover-ratio));
+
+  /* The review marker's band, under the cover. Both the marker and the row gap
+     that has to clear it are derived from these, so changing the type size
+     cannot leave the marker sitting on the artwork below it. */
+  --tick-fs: clamp(9px, calc(var(--book-w) * 0.108), 12px);
+  --tick-lead: 4px;
+  --tick-band: calc(var(--tick-lead) + var(--tick-fs) * 1.2);
 }
 
 /* vh on iOS means the viewport with the URL bar hidden, so an 80vh budget can
@@ -419,7 +428,10 @@ const STYLES = `
   align-items: flex-end;
   justify-content: center;
   gap: var(--rack-gap);
-  margin-bottom: 17px;            /* the only thing separating the rows now */
+  /* The only thing separating the rows now, so it also has to hold the review
+     marker of any book on this row plus a little air — otherwise a marked book
+     puts type on the cover beneath it. */
+  margin-bottom: calc(var(--tick-band) + 5px);
 }
 .shelf:last-child { margin-bottom: 0; }
 
@@ -468,10 +480,12 @@ const STYLES = `
 }
 .book:focus-visible .cover { outline: 2px solid var(--rack-accent); outline-offset: 2px; }
 
-/* The shelf-edge price. In a shop it is on the shelf, not on the book — so it
-   goes in the band under the cover rather than over somebody's artwork. Always
-   rendered, even when empty, so a title with no price doesn't sit lower than
-   its neighbours. It fades with its facing along with everything else. */
+/* The review marker, sitting in the gap under its cover like a shelf-edge
+   ticket. Out of flow on purpose: only one book in four carries one, so an
+   in-flow line would either reserve height on every book or leave marked rows
+   taller than their neighbours — the row gap is sized to clear it instead. The accent earns its keep here — it carries
+   information (this one has a note, tapping shows you) rather than decorating.
+   It fades with its facing along with everything else. */
 /* The shelf card. In a bookshop the recommendation is a handwritten card ON
    the shelf, so this one belongs to the facing: it sits in the facing's plane,
    turns with it, and fades with it. Not a page-level modal floating over the
@@ -513,18 +527,19 @@ const STYLES = `
   font: 400 clamp(12px, calc(var(--face-w) * 0.05), 15px)/1.4 var(--rack-book-font);
   margin-top: 9px;
 }
+.card .c-src {
+  font: 400 clamp(10px, calc(var(--face-w) * 0.042), 12px)/1.3 var(--rack-book-font);
+  color: var(--rack-accent);
+  margin-top: 7px;
+}
+.card .c-src:empty { display: none; }
 .card .c-foot {
   display: flex;
   align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: flex-end;
   margin-top: 11px;
   padding-top: 9px;
   border-top: 1px solid var(--rack-rule);
-}
-.card .c-price {
-  font: 600 clamp(12px, calc(var(--face-w) * 0.05), 15px)/1 var(--rack-book-font);
-  font-variant-numeric: tabular-nums;
 }
 .card .c-go {
   font: 600 clamp(11px, calc(var(--face-w) * 0.046), 14px)/1 var(--rack-book-font);
@@ -551,24 +566,16 @@ const STYLES = `
 }
 
 .ticket {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 5px;
-  margin-top: 6px;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: var(--tick-lead);
   font-family: var(--rack-book-font);
-  font-size: clamp(9px, calc(var(--book-w) * 0.115), 13px);
-  line-height: 1.25;
-  min-height: 1.25em;
-  font-variant-numeric: tabular-nums;
-}
-.t-price { opacity: 0.62; }
-/* The one place the accent earns its keep besides focus rings: it is carrying
-   information — this book has a note, and tapping it will show you. */
-.t-pick {
+  font-size: var(--tick-fs);
+  line-height: 1.2;
   color: var(--rack-accent);
   white-space: nowrap;
-  font-size: 0.92em;
+  pointer-events: none;
 }
 
 .cover {
@@ -761,7 +768,8 @@ const STYLES = `
 `;
 
 class SpinnerRack extends HTMLElement {
-  static observedAttributes = ['label', 'sides', 'rows', 'per-shelf', 'snap', 'chrome', 'preview'];
+  static observedAttributes =
+    ['label', 'sides', 'rows', 'per-shelf', 'snap', 'chrome', 'preview', 'pick-label'];
 
   #books = null;        // set programmatically, overrides the light DOM
   #rendered = [];       // flattened, in the order the panels were filled
@@ -843,6 +851,11 @@ class SpinnerRack extends HTMLElement {
   #sides() { return CLAMP(parseInt(this.getAttribute('sides'), 10) || 4, 3, 8); }
   #perShelf() { return CLAMP(parseInt(this.getAttribute('per-shelf'), 10) || 2, 1, 4); }
 
+  /* Where a note came from, for books that do not say so themselves. A shop
+     quotes whoever reviewed the book, so this is wording, not a fixed fact:
+     data-source per book wins, then pick-label for the rack. */
+  #pickLabel() { return this.getAttribute('pick-label') || 'Guardian review'; }
+
   /**
    * The light DOM is the source of truth. Anything an <a> can carry — an href
    * that works, text that reads — survives with the script switched off.
@@ -857,6 +870,7 @@ class SpinnerRack extends HTMLElement {
       category: a.dataset.category || '',
       ar: a.dataset.ar || '',
       review: a.dataset.review || '',
+      source: a.dataset.source || '',
       target: a.getAttribute('target') || '',
     })).filter((b) => b.title);
   }
@@ -958,8 +972,8 @@ class SpinnerRack extends HTMLElement {
         <div class="c-title"></div>
         <div class="c-author"></div>
         <div class="c-review"></div>
+        <div class="c-src"></div>
         <div class="c-foot">
-          <span class="c-price"></span>
           <a class="c-go" href="#">View book &rarr;</a>
         </div>
       </div>
@@ -982,16 +996,13 @@ class SpinnerRack extends HTMLElement {
     // A shop that already knows its cover dimensions can pass data-ar and skip
     // the reflow when the image arrives.
     const ar = clampAr(parseFloat(b.ar));
-    const spoken = b.title + (b.author ? `, by ${b.author}` : '') + (b.price ? `, ${b.price}` : '');
+    const spoken = b.title + (b.author ? `, by ${b.author}` : '');
     return `<a class="book" href="${this.#esc(b.href || '#')}"
        ${b.target ? `target="${this.#esc(b.target)}" rel="noopener"` : ''}
        style="--tilt:${tilt.toFixed(2)}deg"
        aria-label="${this.#esc(spoken)}">
       <div class="cover" style="--vary:${vary};--tf:${tf}${ar ? `;--ar:${ar}` : ''}">${art}</div>
-      <span class="ticket">
-        ${b.price ? `<span class="t-price">${this.#esc(b.price)}</span>` : ''}
-        ${b.review ? '<span class="t-pick">Staff pick</span>' : ''}
-      </span>
+      ${b.review ? `<span class="ticket">${this.#esc(b.source || this.#pickLabel())}</span>` : ''}
     </a>`;
   }
 
@@ -1327,7 +1338,7 @@ class SpinnerRack extends HTMLElement {
     card.querySelector('.c-title').textContent = book.title;
     card.querySelector('.c-author').textContent = book.author;
     card.querySelector('.c-review').textContent = book.review || '';
-    card.querySelector('.c-price').textContent = book.price || '';
+    card.querySelector('.c-src').textContent = book.source || this.#pickLabel();
     const go = card.querySelector('.c-go');
     go.setAttribute('href', book.href || '#');
     if (book.target) go.setAttribute('target', book.target);

@@ -49,7 +49,7 @@
       <a href="/books/fight-oligarchy" data-title="Fight Oligarchy" data-author="Bernie Sanders" data-price="£12.99" data-category="Non-fiction">Fight Oligarchy</a>
       <a href="/books/farewell-to-eden" data-title="Farewell to Eden" data-author="Sebastian Faulks" data-price="£22.00" data-category="Fiction">Farewell to Eden</a>
       <a href="/books/stories" data-title="Stories" data-author="Annie Proulx" data-price="£25.00" data-category="Fiction">Stories</a>
-      <a href="/books/big-swiss" data-title="Big Swiss" data-author="Jen Beagin" data-price="£9.99" data-category="Fiction" data-review="Improbably funny about grief, sex and eavesdropping. Beagin&#x27;s narrator is the best company in fiction right now.">Big Swiss</a>
+      <a href="/books/big-swiss" data-title="Big Swiss" data-source="Observer review" data-author="Jen Beagin" data-price="£9.99" data-category="Fiction" data-review="Improbably funny about grief, sex and eavesdropping. Beagin&#x27;s narrator is the best company in fiction right now.">Big Swiss</a>
       <a href="/books/cloud-atlas" data-title="Cloud Atlas" data-author="David Mitchell" data-price="£9.99" data-category="Fiction">Cloud Atlas</a>
       <a href="/books/the-bell-jar" data-title="The Bell Jar" data-author="Sylvia Plath" data-price="£8.99" data-category="Fiction">The Bell Jar</a>
       <a href="/books/beloved" data-title="Beloved" data-author="Toni Morrison" data-price="£9.99" data-category="Fiction">Beloved</a>
@@ -57,7 +57,7 @@
       <a href="/books/wild-fell" data-title="Wild Fell" data-author="Lee Schofield" data-price="£10.99" data-category="Nature">Wild Fell</a>
       <a href="/books/the-salt-path" data-title="The Salt Path" data-author="Raynor Winn" data-price="£9.99" data-category="Nature" data-review="Homeless and walking the coast path. It should be bleak; it is the most life-affirming thing we have sold in years.">The Salt Path</a>
       <a href="/books/h-is-for-hawk" data-title="H is for Hawk" data-author="Helen Macdonald" data-price="£9.99" data-category="Nature">H is for Hawk</a>
-      <a href="/books/underland" data-title="Underland" data-author="Robert Macfarlane" data-price="£10.99" data-category="Nature" data-review="Macfarlane goes down instead of up. Catacombs, glaciers, fungal networks — the book that changed how we talk about landscape.">Underland</a>
+      <a href="/books/underland" data-title="Underland" data-source="TLS review" data-author="Robert Macfarlane" data-price="£10.99" data-category="Nature" data-review="Macfarlane goes down instead of up. Catacombs, glaciers, fungal networks — the book that changed how we talk about landscape.">Underland</a>
       <a href="/books/wilding" data-title="Wilding" data-author="Isabella Tree" data-price="£10.99" data-category="Nature">Wilding</a>
     </spinner-rack>
     <div class="notes">
@@ -71,7 +71,7 @@
   const rack = document.querySelector('spinner-rack');
   rack.addEventListener('rack-select', (e) => {
     document.getElementById('log').textContent =
-      `Selected: ${e.detail.book.title} — ${e.detail.book.price}`;
+      `Selected: ${e.detail.book.title}${e.detail.book.author ? ', ' + e.detail.book.author : ''}`;
   });
   rack.addEventListener('rack-face', (e) => { window.__face = e.detail; });
 </script>
