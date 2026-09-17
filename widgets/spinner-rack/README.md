@@ -452,25 +452,74 @@ rather than merely slower.
 
 ## BigCommerce + Searchspring
 
-### Getting the script onto the page
+### Where to put it
 
-Two routes, and the choice decides whether the rack is crawlable:
+Three routes. The choice is about **where the book list comes from**, not about
+whether the rack works — it works in all three.
 
-| | Theme file | Script Manager |
+| | Page Builder HTML widget | Script Manager + widget | Theme file |
+|---|---|---|---|
+| Book list | hand-written in the widget | hand-written in the widget | Handlebars, from the catalogue |
+| Stays current on its own | no | no | **yes** |
+| Crawlable links | yes | yes | yes |
+| Survives a theme update | yes | yes | only if you carry the change |
+| Needs Stencil CLI | no | no | yes |
+| Merchandiser can move it | **yes** | **yes** | no |
+
+**For a curated shelf, Page Builder is the right answer.** A staff-picks rack is
+chosen by a person anyway, so having it live in Page Builder — where whoever
+chooses the books can also place and edit it, without a CLI or a theme
+deploy — is a feature, not a compromise. Paste the markup into an HTML widget
+and you are done.
+
+**For a shelf that should populate itself** — "New in", always current — you
+need the Handlebars loop, and that needs a template. That is the only thing
+Page Builder cannot do.
+
+Measured, all four arrangements, eight books:
+
+| | Rack | Links in the DOM |
 |---|---|---|
-| Where | `assets/js/spinner-rack.js` + an edit to a template | Storefront → Script Manager |
-| Book list from | Handlebars, server-rendered | a JS call only |
-| Crawlable links | yes | no |
-| Survives a theme update | only if you carry the change | yes |
-| Needs Stencil CLI | yes | no |
+| Markup + inline module in one pasted block | works, turns | 8 |
+| Same block injected with `innerHTML` | falls back to plain links | 8 |
+| Script on the page, widget supplies markup | works | 8 |
+| Script first, markup injected later | works | 8 |
 
-**Use the theme file.** The whole progressive-enhancement design rests on the
-`<a>` list being in the HTML: with the script blocked, slow or broken you still
-have twenty-four working product links, and a crawler sees the stock. Script
-Manager can only populate the rack after a fetch, which throws that away.
+The second row is the one to know about. Scripts inserted via `innerHTML` never
+execute — that is the HTML spec, not a BigCommerce quirk — so *if* the HTML
+widget injects rather than server-renders, an inline `<script>` in the widget
+will not run. You do not get a broken page: you get the light-DOM fallback,
+every product link working and readable. But you do not get the rack.
 
-Reference the asset the normal Stencil way so it gets the CDN and cache
-busting:
+**Sidestep the question entirely**: put the script somewhere permanent and let
+the widget hold only markup. Then it does not matter how the widget renders —
+rows three and four above both work, because a custom element upgrades whenever
+it is inserted into the document.
+
+Upload `spinner-rack.js` once over WebDAV into the store's `content/` folder
+(Settings → File access). Files there are served from the storefront root with
+the `/content` prefix dropped, so `content/spinner-rack.js` becomes
+`/spinner-rack.js`. Add one line in Script Manager, footer, all pages:
+
+```html
+<script type="module" src="/spinner-rack.js"></script>
+```
+
+and the widget holds nothing but the rack:
+
+```html
+<spinner-rack label="Staff picks" sides="4" per-shelf="2" preview="tap">
+  <a href="/the-salt-path/" data-title="The Salt Path" data-author="Raynor Winn"
+     data-category="Nature" data-cover="/product_images/salt-path.jpg">The Salt Path</a>
+  <!-- …the rest of the shelf… -->
+</spinner-rack>
+```
+
+One file to update when the component changes, instead of re-pasting 35 KB of
+minified JavaScript into a widget.
+
+For the theme-file route, reference the asset the normal Stencil way so it gets
+the CDN and cache busting:
 
 ```handlebars
 <script type="module" src="{{cdn 'assets/js/spinner-rack.js'}}"></script>
