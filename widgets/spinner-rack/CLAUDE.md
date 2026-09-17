@@ -94,6 +94,34 @@ than needed. At twenty-four of them, 1–2 MB versus 400–600 KB.
 
 ---
 
+## Comments in the code
+
+The file carries ~390 lines of comment, 22% of it. That is deliberate and it is
+not a backlog to clear.
+
+**What stays in the code:** anything that warns against a specific edit, at the
+line where you would make it. `transform-style: flat` on a facing, the
+frame-path rule in `#apply`, why drags avoid `setPointerCapture`, why
+`#settleShape` tries rather than predicts, the CSP note on the shared
+stylesheet, `#adoptEarlyBooks`. These are read by whoever is about to break
+that exact thing. The same words in this file are read only by someone who
+thinks to look — and an agent editing one CSS rule may never open it. Proximity
+is the whole value; moving them here would be filing the smoke alarm in a
+drawer.
+
+**What belongs here instead:** narrative and history. Why a decision was made,
+what was tried first, the numbers behind a constant. Those want one home, and
+duplicating them in both places is the worse kind of duplication because it
+drifts silently.
+
+Trimmed on that basis: the 106-line file header became 27 (its attribute,
+event, method and custom-property lists duplicated `README.md`, which owns
+them), and `CROWN_PROUD` and `titleFit` lost their war stories but kept the
+rules they govern. If you trim further, trim narrative — not a warning sitting
+on the line it protects.
+
+---
+
 ## Traps
 
 Each of these cost real time. The symptom is given because that is how you will

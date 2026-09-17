@@ -3,106 +3,27 @@
  * the doorway of every good bookshop.
  *
  * STANDALONE. This does not belong to the Bermondsey Review site and is not
- * bound by the design direction in the repo's CLAUDE.md — it is a portable,
- * zero-dependency widget meant to be dropped into a shop front end (plain
- * HTML, Shopify/Liquid, WooCommerce, React, anything). It imports nothing and
- * touches no global styles.
- *
- * ---------------------------------------------------------------------------
- * WHY IT'S BUILT THIS WAY
- *
- * The books come from the light DOM as ordinary <a> elements. If the script
- * never loads, or fails, or a crawler is looking, the element stays undefined,
- * no shadow root is attached, and the page renders a plain list of product
- * links — which is the correct fallback, costs nothing, and keeps the stock
- * indexable. The upgrade to a rack is pure enhancement.
- *
- * The rotation is a real 3D transform on N flat panels, not a carousel of
- * slides faked with translateX. It matters: on a real rack the far side is
- * genuinely hidden, the panels foreshorten as they turn away, and the thing
- * you grab has weight. All of that falls out of `preserve-3d` plus
- * `backface-visibility: hidden` for free, and none of it is reproducible in 2D.
- *
- * There are no prev/next buttons and no facing counter. Swiping is the gesture,
- * the one-time nudge advertises it, and the facing's own heading says which one
- * you are looking at — a counter only repeated that. Keyboard access does not
- * depend on them: the rack is a focus stop and the arrow keys turn it, with the
- * facing announced through a live region.
- *
- * The physics is a flick with exponential drag. By default it free-wheels to a
- * stop wherever it runs out, corner included, like the real fixture. `snap`
- * adds a detent that only bites once the rack has slowed — the same as the
- * ball-catch in a real rack's base, so a hard flick still free-wheels through
- * several turns before a facing catches.
- * ---------------------------------------------------------------------------
- *
- * USAGE
+ * bound by the design direction in the repo's root CLAUDE.md — it is a
+ * portable, zero-dependency widget meant to be dropped into a shop front end
+ * (plain HTML, Shopify/Liquid, WooCommerce, React, anything). It imports
+ * nothing and touches no global styles.
  *
  *   <script type="module" src="spinner-rack.js"></script>
  *
  *   <spinner-rack label="Picador" sides="4" per-shelf="2">
- *     <a href="/books/peterloo"
- *        data-title="Peterloo"
- *        data-author="Robert Poole"
- *        data-cover="/covers/peterloo.jpg"
- *        data-category="History">Peterloo</a>
+ *     <a href="/books/peterloo" data-title="Peterloo" data-author="Robert Poole"
+ *        data-cover="/covers/peterloo.jpg" data-category="History">Peterloo</a>
  *     ...
  *   </spinner-rack>
  *
- * Or, in a JS app, assign the data and skip the light DOM entirely:
- *   document.querySelector('spinner-rack').books = [{ title, author, href, ... }]
+ * The books are ordinary light-DOM <a> elements on purpose: with the script
+ * blocked, failed or still loading, the element stays undefined and the page
+ * renders a list of working product links. The rack is pure enhancement.
  *
- * ATTRIBUTES
- *   sides       panels round the rack (3–8, default 4)
- *   per-shelf   books per shelf (1–4, default 2)
- *   rows        shelves per panel (default: derived from how many books there
- *               are, so the rack is only as tall as the stock needs)
- *   label       fallback crown text; each panel otherwise shows its own category
- *   snap        "true" to make it catch a facing square-on (default off — it
- *               free-wheels to a stop anywhere, like the real fixture)
- *   preview     "tap" gives every book carrying a data-review a shelf card
- *               with that note and a link through to the product;
- *               the first tap opens the card instead of navigating. Books
- *               without a note tap straight through, and carry no marker.
- *               Off by default. There is no hover on a phone, so tap is the
- *               gesture; where a pointer exists, hover previews the card too.
- *   pick-label  what the marker under a reviewed book reads, for books that
- *               don't name their own source (default "Guardian review").
- *               A book's own data-source wins, because a shop quotes whoever
- *               reviewed the book rather than one paper for the whole rack.
- *   chrome      "fixture" draws the rack as a painted-steel shop fitting —
- *               riveted shelf lips, an illuminated sign, books casting
- *               shadows. Off by default: the rack is meant to be part of the
- *               page, not a photograph of a fixture pasted onto one.
- *
- * CAPACITY is sides × rows × per-shelf, and rows is capped at 7 so a big feed
- * can't produce an absurd skyscraper. Anything past capacity is not rendered —
- * a spinner is a browsing surface, not a catalogue. 24–40 books is the sweet
- * spot for a four-sided rack.
- *
- * EVENTS
- *   rack-select  {book, index, face, element}  cancelable — preventDefault()
- *                to stop navigation and open your own quick-view instead
- *   rack-face    {face, label}                 front panel changed
- *
- * METHODS
- *   goToFace(i)  turn to panel i
- *   spin(degreesPerSecond = 700)  give it a shove
- *
- * STYLING — set these custom properties on the element:
- *   --rack-cover-ratio  width / height of a cover, default 0.667 (standard
- *                     hardback). Set per-book with data-ar only when a title
- *                     genuinely differs.
- *   --rack-rule       hairline round each cover, so a pale jacket still has an
- *                     edge against a pale page
- *   --rack-page       the page's own background; facings turning away fade
- *                     into it, so set it to what your page actually is
- *   --rack-accent     focus rings
- *   --rack-max-width  panel width cap
- *   --rack-max-height the rack shrinks to fit this (default 80vh, `none` to
- *                     let it run to whatever height its stock needs)
- *   --rack-book-font, --rack-crown-font
- *   --rack-metal, --rack-crown, --rack-crown-ink   (chrome="fixture" only)
+ * README.md is the full reference — attributes, book data, events, methods,
+ * custom properties, integration. CLAUDE.md alongside it has the reasoning:
+ * which decisions are settled, what was measured, and the traps. The comments
+ * below are the subset of that which has to be read at the line it protects.
  */
 
 const CLAMP = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
@@ -120,14 +41,9 @@ const PHYSICS = {
   MAX_FLICK: 2200,    // °/s cap, so a frantic swipe doesn't launch it
 };
 
-/**
- * How far the cap stands proud of the panels, in px. Zero, deliberately: a cap
- * on a bigger drum needs wider panels or its corners stop meeting, and even
- * with that corrected you can see under the overhang at a corner, straight
- * through the rack to the page behind. Three pixels of relief is not worth a
- * hole. Kept as a constant, with the scaling maths intact, so it can be put
- * back if the soffit is ever closed off.
- */
+/* Zero deliberately: a proud cap rides a bigger drum, and you end up seeing
+   under the overhang at a corner. Kept as a constant with the scaling maths
+   intact, so it can be put back if the soffit is ever closed off. */
 const CROWN_PROUD = 0;
 
 // Must match the stage's perspective, which the layout pass also writes, since
@@ -176,15 +92,10 @@ function hash(str) {
 /**
  * Title size as a fraction of the book's width.
  *
- * The first version of this guessed at a per-character width and got it wrong
- * — bold uppercase Georgia is nearer 0.8em a character than the 0.68 assumed,
- * so "OLIGARCHY" still came out as "OLIGARCH / Y". So measure the actual font
- * instead of estimating it. A canvas measurement costs nothing next to a
- * layout read, needs no element in the tree, and is exact.
- *
- * Two constraints, whichever binds hardest: the longest single word has to fit
- * on one line, and the whole title has to fit inside the line clamp. The
- * jacket gives up 18% of the cover to padding, hence 82.
+ * Measured on a canvas, never estimated per character — estimating is what
+ * produced "OLIGARCH / Y". Two constraints, whichever binds hardest: the
+ * longest single word must fit one line, and the whole title must fit the line
+ * clamp. The jacket gives up 18% of the cover to padding, hence 82.
  */
 let measureCtx;
 const fitCache = new Map();
