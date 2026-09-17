@@ -380,10 +380,16 @@ const STYLES = `
 .book {
   position: relative;
   display: block;
-  /* Equal columns filling the panel; height follows each cover's own ratio, so
-     a landscape photo book still shelves as a landscape photo book — it just
-     sits shorter in its column rather than wider than its neighbours. */
-  flex: 1 1 0;
+  /* Columns sized by the rack's per-shelf setting, not by how many books this
+     particular shelf happens to hold. A flex basis of 0 divided its width
+     among its actual occupants, so a facing whose count didn't divide evenly
+     ended with one book at double width — 20 books at two per shelf gave
+     150x225, 150x225, then a single 310x465. Invisible for a long time because
+     24 books over four facings divides exactly into shelves of two.
+     Height still follows each cover's own ratio, so a landscape photo book
+     shelves shorter in its column rather than wider than its neighbours. The
+     shelf centres its books, so a short one reads as a gap on the shelf. */
+  flex: 0 0 calc((100% - (var(--ps, 2) - 1) * var(--rack-gap)) / var(--ps, 2));
   min-width: 0;
   text-decoration: none;
   color: inherit;
@@ -919,6 +925,7 @@ class SpinnerRack extends HTMLElement {
     this.#bookFont = getComputedStyle(this).getPropertyValue('--rack-book-font').trim()
       || 'Georgia, serif';
     this.style.setProperty('--bh', String(BOOK_SCALE[perShelf]));
+    this.style.setProperty('--ps', String(perShelf));
 
     const label = this.getAttribute('label') || '';
 

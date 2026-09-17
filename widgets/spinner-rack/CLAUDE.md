@@ -192,6 +192,15 @@ must fit. It now renders each candidate tallest-first and keeps the first that
 fits — trying, not predicting. Costs a few layout passes on a resize, which
 happens on rotation rather than per frame.
 
+**A partially-filled shelf inflates its books.** *Symptom: 20 books at two per
+shelf gave 150×225, 150×225, then a single book at 310×465.* A flex basis of 0
+divides the **shelf's** width among its actual occupants, so a facing whose
+count doesn't divide evenly ends with one enormous book. Columns are now sized
+from `--ps` (the rack's per-shelf setting), not from occupancy. This hid for the
+whole prototype because 24 books over four facings is 6 each, which divides
+exactly into shelves of two — the sample data never produced a short shelf.
+Guarded by the `uneven` suite.
+
 **A flat plate straddling z = ±R punches through the panel in front.** CSS 3D
 sorts by average depth, so the old base plinth cut a hole in whatever was
 nearer. Removed.
@@ -231,6 +240,7 @@ npx http-server -p 8907 .
 | `holes` | crown opacity swept 0°→−90° (fixture mode) |
 | `overlap` | the rack paints inside its own box at every angle |
 | `tryit` | `try.html`: parsing, cover matching, markup output |
+| `uneven` | a short shelf keeps its books the same size as a full one |
 
 **A test that cannot fail is worse than no test.** `holes` and `overlap` drove
 the rack by setting the `--angle` custom property. When the frame path changed
