@@ -103,8 +103,29 @@ untouched and neither stylesheet can reach the other.
 **The images cost more than the widget.** `loading="lazy"` does *not* defer the
 facings turned away — they are rotated out of view but still inside the
 viewport, so all of them fetch on load. Covers render around 119×179 CSS px, so
-238×358 covers a 2× screen; a stock 600×900 product image is 6.3× more pixels
-than needed. At twenty-four of them, 1–2 MB versus 400–600 KB.
+238×358 covers a 2× screen; a stock 600×900 product image is ~6× more pixels
+than the rack ever draws.
+
+Measured by re-encoding the five sample covers and scaling to 24:
+
+| 24 covers at | total |
+|---|---|
+| JPEG 600w (a stock product image) | 1022 KB |
+| JPEG 320w | 405 KB |
+| WebP 320w | 201 KB |
+| WebP 240w | 144 KB |
+
+Asking for the right width is 60% off and costs one template change; the format
+halves it again. **Caveat: the sample covers are flat-colour illustrations and
+compress unusually well — real photographic jackets should be expected at
+1.5–2× these totals. The ratios travel; the absolutes do not.**
+
+Only 6 of 24 are visible before anyone turns it, so deferring the non-front
+facings would put ~50 KB on first paint rather than ~200 KB. Not reachable from
+a template — the component would have to hold them in `data-src` and promote
+on first turn or at idle. Load the two *neighbouring* facings eagerly and defer
+only the back one: the back facing cannot be reached without turning through a
+neighbour, so nothing pops in. Not built.
 
 ---
 
