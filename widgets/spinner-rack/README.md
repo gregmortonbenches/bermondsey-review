@@ -626,5 +626,11 @@ It covers the light-DOM form, the no-JS fallback, and a cancelled `rack-select`
 wired to a quick-view. `try.html` is the harness for putting a real catalogue
 through it without a server.
 
+`host-page.html` is the rack dropped onto a retail product page — brand bar,
+serif headings on white, a conventional chevron carousel directly above it and a
+pill CTA below — for judging it against the conventions it has to live beside.
+The seven values in its `:root` are the whole theme; point them at a real set of
+brand tokens and both the page and the rack follow.
+
 The behavioural suites, what each one guards, and the discipline they're held to
 are in `CLAUDE.md`.

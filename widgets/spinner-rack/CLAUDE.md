@@ -67,6 +67,18 @@ and the spare height goes unused. Two things follow: giving the rack the page's
 side gutters buys nothing at 32 titles, and `--rack-max-width` only bites when
 there is height to spare.
 
+**Ragged trade sizes shelve fine.** A real shop list is not uniform 2:3 —
+hardback, B-format, A-format and the odd square cookery book all arrive
+together. Measured at 390×844 with a mixed shelf: covers keep an **equal column
+width** (122.7px each, because the column is the unit) and vary only in
+**height** (184px at 0.667, 189px at 0.649), and every book on a shelf sits on
+the **same bottom line** (883.4px). The grid stays a grid across, and the tops
+go ragged — which is what a real shelf looks like. Nothing to configure; the
+worry that mixed ratios would wreck the layout was unfounded. Set
+`--rack-cover-ratio` to whatever the *majority* of the list is (0.649 for a
+general trade list) so the generated jackets for missing covers match their
+neighbours.
+
 **Gearing.** At the default 0.27°/px a half-screen thumb swipe coasts about 1.4
 facings. A slow drag with no flick in it turns about 54° per 200px and stops
 mid-corner — which is what free-wheeling means.
@@ -386,6 +398,45 @@ image at `238w` and at `238x358` and comparing the pixel dimensions.
 response shape in the README's example comes from search snippets, not the docs
 — check it against a real response. And `thumbnailImageUrl` is a thumbnail: at
 238–320px a 200px thumbnail looks soft.
+
+
+**On a retailer's own page.** Mocked against a bookshop product page: brand
+colour bar, dark-teal serif headings, white ground, pill CTAs, and a chevron
+carousel directly above. **The whole adaptation is host CSS — the component did
+not change:**
+
+```css
+spinner-rack {
+  --rack-max-width: 250px;          /* gutter width ÷ 1.41, or the sweep clips */
+  --rack-page: #ffffff;             /* the facings fade into this */
+  --rack-accent: var(--brand);      /* review marker + focus rings */
+  --rack-rule: rgba(18, 39, 43, 0.16);
+  --rack-book-font: var(--host-serif);
+  --rack-crown-font: var(--host-serif);
+  --rack-cover-ratio: 0.649;
+}
+```
+
+`--rack-page` and `--rack-max-width` are the two that actually bite. A host
+webfont applies inside the shadow root with no plumbing, so the real masthead
+serif arrives for free once the page loads it.
+
+Worth knowing before pitching it:
+
+- **The accent carries the attribution.** Putting the shop's own brand colour on
+  the review marker and on the card's source line is the single biggest win — it
+  stops reading as a widget's decoration and starts reading as the shop's own
+  editorial stamp.
+- **Covers come out bigger than the carousel it sits next to** (123px against
+  104px in the mock), but the block is ~490px tall to show four of sixteen,
+  against ~160px for a strip showing three. It buys depth, not density: an
+  editorial or homepage slot, not a listing page.
+- **No chevrons.** Every other carousel on a retail page has a prev/next pair,
+  and their absence can read as broken rather than as restraint. Unresolved —
+  the rack is a drum, not a strip, and a chevron implies a strip.
+- **The card's link is an underlined text link** where a host's CTAs are filled
+  pills. There is no hook for restyling it, so a host that wants its own button
+  shape has nothing to set.
 
 
 ## Open

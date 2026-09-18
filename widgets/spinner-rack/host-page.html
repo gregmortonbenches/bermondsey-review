@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spinner rack — bookshop host context</title>
+<!--
+  A generic retail host page, for judging the rack against the conventions it
+  will actually sit beside: a brand-coloured bar, serif headings on white, a
+  chevron carousel above and a pill CTA below. The four values in :root are the
+  whole theme - point them at a real set of brand tokens and the page and the
+  rack both follow. Type is Georgia standing in for a masthead serif.
+  Review quotes are placeholder copy.
+-->
+<script type="module" src="./spinner-rack.js"></script>
+<style>
+  :root {
+    /* --- the host page’s own tokens: the whole theme --- */
+    --brand:     #bf3b7c;
+    --brand-ink: #16403f;   /* headings */
+    --ink:       #303030;
+    --muted:     #6b6b6b;
+    --page:      #ffffff;
+    --serif:     Georgia, "Times New Roman", serif;
+    --gutter:    16px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font: 16px/1.5 var(--serif);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* --- brand bar --- */
+  .masthead {
+    background: var(--brand);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0 var(--gutter);
+    height: 56px;
+  }
+  .masthead .burger { width: 20px; display: grid; gap: 4px; }
+  .masthead .burger i { display: block; height: 2px; background: #fff; }
+  .masthead .word { flex: 1; font: 600 18px/1 var(--serif); letter-spacing: .01em; }
+  .masthead .ico { font-size: 17px; opacity: .95; }
+
+  /* --- sections --- */
+  section { padding: 26px var(--gutter) 8px; }
+  h2 {
+    font: 400 27px/1.18 var(--serif);
+    color: var(--brand-ink);
+    margin: 0 0 10px;
+    letter-spacing: -0.01em;
+  }
+  .stand { margin: 0 0 18px; font-size: 15.5px; line-height: 1.55; color: var(--ink); }
+  .rule { height: 1px; background: rgba(18,39,43,.14); margin: 26px var(--gutter) 0; }
+
+  /* --- their existing carousel, for comparison --- */
+  .strip {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .strip::-webkit-scrollbar { display: none; }
+  .strip a { flex: 0 0 104px; scroll-snap-align: start; text-decoration: none; color: inherit; }
+  .strip img { width: 104px; display: block; border: 1px solid rgba(18,39,43,.14); }
+  .strip .t { font-size: 12.5px; line-height: 1.3; margin-top: 7px; }
+  .strip .a { font-size: 12px; color: var(--muted); font-style: italic; }
+  .chevs { display: flex; justify-content: center; gap: 16px; margin-top: 14px; }
+  .chevs button {
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 1px solid var(--brand);
+    background: transparent; color: var(--brand);
+    font: 15px/1 var(--serif); cursor: pointer;
+  }
+
+  /* ------------------------------------------------------------------
+     THE INTEGRATION. Everything the rack needs to live on this page is
+     in this one block — no change to the component.
+     ------------------------------------------------------------------ */
+  spinner-rack {
+    display: block;
+    margin: 0 auto;
+    /* The rack sweeps ~1.41x its panel width as it turns, so the panel is
+       capped at the gutter width divided by that, or it clips at the corners. */
+    --rack-max-width: 250px;
+    --rack-page: var(--page);          /* facings fade into this - must be the real page */
+    --rack-accent: var(--brand);     /* review marker + focus rings */
+    --rack-rule: rgba(18, 39, 43, 0.16);  /* cover hairlines, shelf rules */
+    --rack-book-font: var(--serif);
+    --rack-crown-font: var(--serif);
+    --rack-cover-ratio: 0.649;            /* B-format: most of a general list */
+  }
+  /* What a visitor sees if the module never loads: a plain list of product links. */
+  spinner-rack:not(:defined) { display: block; }
+  spinner-rack:not(:defined) a { display: block; padding: 3px 0; color: var(--brand-ink); }
+
+  .cta {
+    display: block;
+    width: max-content;
+    margin: 26px auto 0;
+    background: var(--brand);
+    color: #fff;
+    text-decoration: none;
+    font: 600 15px/1 var(--serif);
+    padding: 14px 26px;
+    border-radius: 999px;
+  }
+  footer { padding: 34px var(--gutter) 44px; color: var(--muted); font-size: 12px; }
+
+  /* Landscape: the section frame is what starves the rack of width, so the
+     page gives it back rather than the component guessing. */
+  @media (max-height: 520px) {
+    section { padding-left: 40px; padding-right: 40px; }
+    spinner-rack { --rack-max-width: 520px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <span class="burger" aria-hidden="true"><i></i><i></i><i></i></span>
+  <span class="word">The Bookshop</span>
+  <span class="ico" aria-hidden="true">&#9906;</span>
+  <span class="ico" aria-hidden="true">&#128722;</span>
+</header>
+
+<section>
+  <h2>This week&rsquo;s literary highlights</h2>
+  <p class="stand">The books our reviewers have been arguing about, chosen by the
+  editors and dispatched within two working days.</p>
+  <div class="strip">
+    <a href="#"><img src="covers/disappearers.png" alt=""><div class="t">The Disappearers</div><div class="a">Marlon James</div></a>
+    <a href="#"><img src="covers/redwood.png" alt=""><div class="t">Redwood</div><div class="a">Ben Macintyre</div></a>
+    <a href="#"><img src="covers/strangers.png" alt=""><div class="t">The Strangers</div><div class="a">Naomi Alderman</div></a>
+    <a href="#"><img src="covers/exit-party.png" alt=""><div class="t">Exit Party</div><div class="a">Emily St. John Mandel</div></a>
+    <a href="#"><img src="covers/new-dark-ages.png" alt=""><div class="t">The New Dark Ages</div><div class="a">James Marriott</div></a>
+  </div>
+  <div class="chevs">
+    <button type="button" aria-label="Previous">&#10094;</button>
+    <button type="button" aria-label="Next">&#10095;</button>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<section>
+  <h2>Spin the rack</h2>
+  <p class="stand">Four sides, forty titles, the whole shop&rsquo;s front table in
+  the space of one. Give it a flick.</p>
+
+  <spinner-rack label="The Bookshop" sides="4" preview="tap" pick-label="Guardian review">
+    <a href="/books/the-disappearers" data-title="The Disappearers" data-author="Marlon James" data-category="New in" data-cover="covers/disappearers.png" data-review="Three generations, one vanishing act. James writes violence and tenderness in the same breath &mdash; nothing else this year comes close.">The Disappearers</a>
+    <a href="/books/the-new-dark-ages" data-title="The New Dark Ages" data-author="James Marriott" data-category="New in" data-cover="covers/new-dark-ages.png" data-ar="0.649">The New Dark Ages</a>
+    <a href="/books/redwood" data-title="Redwood" data-author="Ben Macintyre" data-category="New in" data-cover="covers/redwood.png">Redwood</a>
+    <a href="/books/the-strangers" data-title="The Strangers" data-author="Naomi Alderman" data-category="New in" data-cover="covers/strangers.png" data-ar="0.649" data-review="Something is wrong in the allotments. Alderman builds dread out of compost heaps and shed doors &mdash; deeply English, deeply unsettling.">The Strangers</a>
+    <a href="/books/exit-party" data-title="Exit Party" data-author="Emily St. John Mandel" data-category="New in" data-cover="covers/exit-party.png" data-ar="0.636">Exit Party</a>
+    <a href="/books/taipei-story" data-title="Taipei Story" data-author="Rebecca F. Kuang" data-category="New in" data-ar="0.649">Taipei Story</a>
+    <a href="/books/no-land-to-stand-on" data-title="No Land to Stand On" data-author="Mahmoud Khalil" data-category="Non-fiction">No Land to Stand On</a>
+    <a href="/books/how-to-be-hopeful" data-title="How to be Hopeful" data-author="Caitlin Moran" data-category="Non-fiction" data-ar="0.649">How to be Hopeful</a>
+    <a href="/books/prisoners-of-geography" data-title="Prisoners of Geography" data-author="Tim Marshall" data-category="Non-fiction" data-ar="0.636">Prisoners of Geography</a>
+    <a href="/books/the-kitchen-year" data-title="The Kitchen Year" data-author="Nadia Okonkwo" data-category="Non-fiction" data-ar="0.82" data-review="A cookery book that reads like a diary, and a diary that happens to feed you. The best food writing of the year.">The Kitchen Year</a>
+    <a href="/books/black-and-british" data-title="Black and British" data-author="David Olusoga" data-category="Non-fiction" data-ar="0.649">Black and British</a>
+    <a href="/books/the-shock-doctrine" data-title="The Shock Doctrine" data-author="Naomi Klein" data-category="Non-fiction" data-ar="0.649">The Shock Doctrine</a>
+    <a href="/books/farewell-to-eden" data-title="Farewell to Eden" data-author="Sebastian Faulks" data-category="Fiction">Farewell to Eden</a>
+    <a href="/books/stories" data-title="Stories" data-author="Annie Proulx" data-category="Fiction" data-ar="0.649">Stories</a>
+    <a href="/books/cloud-atlas" data-title="Cloud Atlas" data-author="David Mitchell" data-category="Fiction" data-ar="0.636">Cloud Atlas</a>
+    <a href="/books/the-bell-jar" data-title="The Bell Jar" data-author="Sylvia Plath" data-category="Fiction" data-ar="0.636">The Bell Jar</a>
+  </spinner-rack>
+
+  <a class="cta" href="/collections/all">Browse all &rsaquo;</a>
+</section>
+
+<footer>Host-context harness. The brand colours are stand-ins and the review quotes are placeholder copy.</footer>
+
+</body>
+</html>
