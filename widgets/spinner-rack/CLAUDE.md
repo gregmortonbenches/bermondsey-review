@@ -254,6 +254,15 @@ on a height and then adding to it. `reserve()` now runs before the first
 measurement and after every correction — any feedback like this has to be
 inside the loop that reads it, not after.
 
+**A host page can starve the rack of the width it needs.** *Symptom: the
+landscape shape measured 1x4 with 16 books on a full-width fixture, and 1x2
+with 8 on the real page.* The rack can only use what its container gives it —
+`avail` is the element's width, not the viewport's. The artifact page's
+two-column grid handed it 420px of an 844px screen, and `try.html` capped it at
+a 480px `main`, so the wide shallow shape was unreachable and the search
+correctly fell back. Both pages now open up under `@media (max-height: 520px)`.
+**If you change the landscape shape, check it on the real page, not a fixture.**
+
 **A partially-filled shelf inflates its books.** *Symptom: 20 books at two per
 shelf gave 150×225, 150×225, then a single book at 310×465.* A flex basis of 0
 divides the **shelf's** width among its actual occupants, so a facing whose
@@ -312,6 +321,11 @@ to a transform on the drum, both silently swept nothing and kept reporting
 you add a suite that asserts something visual, **sabotage the thing it guards
 once and check it actually goes red.** That is how the crown check earned its
 keep: transparent cap → 3.1% show-through, failure.
+
+**Suites make their own fixtures.** `wide.html` and `odd.html` are written by
+`mkfixtures.mjs` at the start of the suites that need them. They used to be
+hand-made files in this directory, so tidying them away before a commit
+silently broke two suites — the same failure as a test that cannot fail.
 
 **Measure against a baseline, not in isolation.** Under CPU throttling a bare
 `requestAnimationFrame` loop can sit at 30 fps for reasons unrelated to the code

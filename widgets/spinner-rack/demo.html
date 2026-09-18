@@ -28,6 +28,11 @@
   /* Fallback styling: what a visitor sees if the module never loads. */
   spinner-rack:not(:defined) { display: block; }
   spinner-rack:not(:defined) a { display: block; padding: 2px 0; }
+
+  @media (max-height: 520px) {
+    .wrap, main { max-width: none; }
+    spinner-rack { --rack-max-width: 520px; }
+  }
 </style>
 </head>
 <body>

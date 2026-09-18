@@ -123,6 +123,13 @@
   textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
   .out { display: none; }
   .out[data-shown] { display: block; }
+
+  /* Landscape: the rack wants the width, and `main`'s 480px cap denies it —
+     which leaves it showing 8 books instead of 16. See CLAUDE.md, Shape search. */
+  @media (max-height: 520px) {
+    .bleed main { max-width: none; }
+    spinner-rack { --rack-max-width: 520px; }
+  }
 </style>
 </head>
 <body>
