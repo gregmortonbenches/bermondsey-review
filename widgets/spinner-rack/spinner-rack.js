@@ -52,6 +52,11 @@ const PERSPECTIVE = 1700;
 /* Narrower than this and a cover is a coloured rectangle rather than a book.
    The rack drops a shelf instead of going below it — see #layout. */
 const MIN_FACE = 150;
+/* Below this a cover reads as a coloured rectangle, not a book. It is the line
+   the shape search uses to decide whether showing more books is still worth
+   anything — see #settleShape. Absolute on purpose: legibility is a physical
+   size, not a proportion of the rack. */
+const MIN_COVER = 90;
 const PERSPECTIVE_ORIGIN_Y = 0.42;
 
 // How tall a book is as a fraction of the panel width, by books-per-shelf.
@@ -748,7 +753,8 @@ class SpinnerRack extends HTMLElement {
   #front = -1;
   #built = false;
   #drum = null;         // the .rack element, the one thing that turns
-  #rowCap = 0;          // shelves the height budget actually allows, 0 = no limit
+  #shapeCap = null;     // {rows, perShelf} the budget allows, null = as authored
+  #settledFor = '';     // the inputs the current shape was chosen for
   #reshaping = false;   // guards the one re-deal a reshape costs
   #shades = [];         // one per facing, dimmed as it turns away
   #reduce = false;
@@ -857,7 +863,14 @@ class SpinnerRack extends HTMLElement {
   }
 
   #sides() { return CLAMP(parseInt(this.getAttribute('sides'), 10) || 4, 3, 8); }
-  #perShelf() { return CLAMP(parseInt(this.getAttribute('per-shelf'), 10) || 2, 1, 4); }
+  #perShelf() {
+    if (this.#shapeCap) return this.#shapeCap.perShelf;
+    return this.#authoredPerShelf();
+  }
+
+  #authoredPerShelf() {
+    return CLAMP(parseInt(this.getAttribute('per-shelf'), 10) || 2, 1, 4);
+  }
 
   /* Where a note came from, for books that do not say so themselves. A shop
      quotes whoever reviewed the book, so this is wording, not a fixed fact:
@@ -896,13 +909,13 @@ class SpinnerRack extends HTMLElement {
 
     const attrRows = parseInt(this.getAttribute('rows'), 10);
     const needed = Math.ceil(Math.max(1, ...counts) / perShelf);
-    // #rowCap is what the height budget was measured to allow. Without it the
+    // #shapeCap is what the height budget was measured to allow. Without it the
     // rack keeps the shelves it wants and overruns the budget instead, which
     // is what used to happen in landscape: the panel bottomed out at its
     // minimum width, the solver ran out of room to shrink, and it silently
     // paid out 25-145px more height than it had.
     let rows = CLAMP(attrRows > 0 ? attrRows : needed, 1, 7);
-    if (this.#rowCap > 0) rows = Math.min(rows, this.#rowCap);
+    if (this.#shapeCap) rows = this.#shapeCap.rows;
     const capacity = rows * perShelf;
 
     let cursor = 0;
@@ -914,7 +927,33 @@ class SpinnerRack extends HTMLElement {
     return { faces, rows };
   }
 
+  /**
+   * Build the rack, then let the shape search have its say.
+   *
+   * The two are separate on purpose. The search used to run from inside the
+   * layout pass, which meant #build -> #layout -> #settleShape -> #build: the
+   * outer build then carried on past #layout and wired the INNER build's DOM,
+   * so the rack ended up with two keydown listeners and every arrow press
+   * turned two panels. A search that re-enters the thing that called it is the
+   * bug; keeping it above the layout pass removes the recursion entirely.
+   */
   #render() {
+    this.#build();
+    this.#maybeSettle();
+  }
+
+  /**
+   * Choose a shape if the inputs have moved since the last one was chosen.
+   * Called after a build and on every resize — a rotation is a resize, and it
+   * changes which shape is right, not just how big it should be.
+   */
+  #maybeSettle() {
+    if (this.#reshaping) return;
+    const budget = this.shadowRoot?.querySelector('.hbudget')?.offsetHeight || 0;
+    if (budget > 0 && this.#needsReshape(budget)) this.#settleShape(budget);
+  }
+
+  #build() {
     const root = this.shadowRoot;
     const books = this.books;
     const sides = this.#sides();
@@ -1147,46 +1186,108 @@ class SpinnerRack extends HTMLElement {
   /** The shelf count the markup asks for, before any budget gets a say. */
   #wantedRows() {
     const sides = this.#sides();
-    const perShelf = this.#perShelf();
+    const perShelf = this.#authoredPerShelf();
     const n = this.books.length;
     const most = Math.ceil(n / sides);
     const attr = parseInt(this.getAttribute('rows'), 10);
     return CLAMP(attr > 0 ? attr : Math.ceil(Math.max(1, most) / perShelf), 1, 7);
   }
 
+  /**
+   * A shape is chosen for a budget, so it only needs choosing again when the
+   * budget moves — which is what turning the phone does. Without this the
+   * search re-ran on every resize callback, seven renders at a time, for ever.
+   */
   #needsReshape(budget) {
-    if ((this.offsetHeight || 0) > budget + 1) return true;
-    // It fits — but it may be fitting on a cap set for a smaller viewport, so
-    // a rack that gave up a shelf turning sideways takes it back turning
-    // upright. A resize is the only notice either way.
-    return this.#rowCap > 0 && this.#rowCap < this.#wantedRows();
+    if (this.#settleKey(budget) !== this.#settledFor) return true;
+    return (this.offsetHeight || 0) > budget + 1;
   }
 
   /**
-   * Settle on a shelf count by trying them, tallest first, and keeping the
-   * first that fits the budget.
+   * Everything the chosen shape depends on. Gating on the budget alone was not
+   * enough: a host that assigns .books after the module loads renders once with
+   * nothing, settles a shape for zero books, and then never reconsiders — which
+   * left try.html showing 8 of 24 in 296px of a 720px budget.
+   */
+  #settleKey(budget) {
+    return `${budget}|${this.books.length}|${this.#authoredPerShelf()}|${this.#sides()}|${this.getAttribute('rows') || ''}`;
+  }
+
+  /** What a rendered candidate is worth: does it fit, how many books, how big. */
+  #score(budget) {
+    const cover = this.shadowRoot?.querySelector('.cover');
+    return {
+      fits: (this.offsetHeight || 0) <= budget + 1,
+      books: this.#rendered.length,
+      cover: cover ? cover.offsetWidth : 0,
+    };
+  }
+
+  /**
+   * Settle on a shape — shelves AND books per shelf — by rendering candidates
+   * and measuring them.
    *
-   * Trying beats predicting here. A shelf's height depends on the panel width,
-   * the panel width depends on how many shelves have to fit, and predicting
-   * one from the other made the answer depend on where it started: a fresh
-   * load at 844x390 settled on two shelves, while rotating into the same
-   * viewport settled on one. Same viewport, different rack. Rendering each
-   * candidate and measuring it costs a few layout passes on a resize — which
-   * happens on rotation, not per frame — and gives one answer per viewport.
+   * Trying beats predicting. A shelf's height depends on the panel width, the
+   * panel width depends on how much has to fit, and predicting one from the
+   * other made the answer depend on where it started: a fresh load at 844x390
+   * settled on two shelves while rotating into the same viewport settled on
+   * one. Same viewport, different rack.
+   *
+   * Why books-per-shelf is in the search: a phone turned sideways has half the
+   * height and twice the width, and a four-sided drum's height follows its
+   * panel width — so the spare width is only reachable by putting more books
+   * on fewer shelves. At 844x390 one shelf of four gives 104x156 covers where
+   * two shelves of two give 70x105, for the same sixteen books.
+   *
+   * The rule is **most books, while a cover is still a cover**. Maximising
+   * books alone picks 24 at 65x97 in landscape, barely better than the 50x75
+   * this replaced; maximising cover size alone drops portrait from 24 books to
+   * 8 so the remaining covers can grow. MIN_COVER separates the two: above it,
+   * more books win; below it, nothing is worth showing and size wins.
    */
   #settleShape(budget) {
     this.#reshaping = true;
     try {
       const wanted = this.#wantedRows();
-      for (let rows = wanted; rows >= 1; rows--) {
-        this.#rowCap = rows;
-        this.#render();
-        if ((this.offsetHeight || 0) <= budget + 1) return;
+      const authored = this.#authoredPerShelf();
+
+      // The authored shape first — in portrait it wins outright and the search
+      // stops at one render.
+      this.#shapeCap = { rows: wanted, perShelf: authored };
+      this.#build();
+      let best = { ...this.#score(budget), rows: wanted, perShelf: authored };
+      if (best.fits && best.cover >= MIN_COVER) {
+        this.#shapeCap = null;
+        this.#build();             // back to exactly what the markup asked for
+        return;
       }
-      // One shelf and still over: there is nothing left to give up, and a rack
-      // too tall for its box beats no rack at all.
+
+      // Then shallower racks, each tried at the authored width and wider. Only
+      // widen once a shelf has been given up: more books per shelf is how the
+      // spare width gets used, and there is no spare width until then.
+      for (let rows = wanted - 1; rows >= 1; rows--) {
+        for (let ps = authored; ps <= 4; ps++) {
+          this.#shapeCap = { rows, perShelf: ps };
+          this.#build();
+          const got = { ...this.#score(budget), rows, perShelf: ps };
+          if (!got.fits) continue;
+          if (!best.fits) { best = got; continue; }
+          const bestOk = best.cover >= MIN_COVER;
+          const gotOk = got.cover >= MIN_COVER;
+          // Both legible: more books. Neither: bigger covers. One of each: the
+          // legible one, whatever it costs in capacity.
+          const better = bestOk === gotOk
+            ? (bestOk ? got.books > best.books : got.cover > best.cover)
+            : gotOk;
+          if (better) best = got;
+        }
+      }
+
+      this.#shapeCap = { rows: best.rows, perShelf: best.perShelf };
+      this.#build();
     } finally {
       this.#reshaping = false;
+      this.#settledFor = this.#settleKey(budget);
     }
   }
 
@@ -1205,7 +1306,7 @@ class SpinnerRack extends HTMLElement {
       rows, perShelf, sides, capacity,
       rendered: Math.min(supplied, this.#rendered.length),
       dropped: Math.max(0, supplied - this.#rendered.length),
-      reshaped: this.#rowCap > 0,
+      reshaped: !!this.#shapeCap,
     };
   }
 
@@ -1240,6 +1341,22 @@ class SpinnerRack extends HTMLElement {
       return R;
     };
 
+    /**
+     * Reserve the overhang: the near bottom corner sits at z = +R, so it is
+     * magnified by P/(P-R); applied to its distance below the vanishing point,
+     * that is how far the rack paints past its own box. Plus real margin — the
+     * deepest painted pixel is a little below the geometric corner, and 1px of
+     * clearance is not clearance.
+     */
+    const reserve = (R) => {
+      const rack = this.shadowRoot?.querySelector('.rack');
+      const h = rack?.offsetHeight || 0;
+      if (!h) return;
+      const drop = h * (1 - PERSPECTIVE_ORIGIN_Y);
+      const overhang = (drop * R) / (PERSPECTIVE - R);
+      this.style.setProperty('--rack-clearance', `${Math.ceil(overhang + 18)}px`);
+    };
+
     const fit = () => {
       const avail = this.clientWidth || 320;
       const max = parseFloat(getComputedStyle(this).getPropertyValue('--rack-max-width')) || 220;
@@ -1271,40 +1388,39 @@ class SpinnerRack extends HTMLElement {
         // which is why a rack that believed it fitted an 80dvh budget did not
         // actually fit on screen at 330px of viewport height and below.
         let faceW = byWidth;
+        // Before the first measurement, not just after a correction: the strip
+        // below the drum is still sized for whatever the rack was last time,
+        // and a stale one made the loop break on a height that then grew. That
+        // is how a 390x900 viewport ended up showing fewer books than 390x844.
+        reserve(R);
         for (let i = 0; i < 4; i++) {
           const h = this.offsetHeight || 0;
           if (!h || h <= budget) break;
           faceW = Math.max(MIN_FACE, faceW * (budget / h) * 0.995);
           R = apply(faceW);
+          // Reserve the overhang again before the next measurement. The strip
+          // below the drum grows with the rack, so leaving it until after the
+          // loop meant converging on a height and then adding to it: 1x4 in
+          // landscape settled at 311px against a 312px budget and came out at
+          // 318, which had the shape search reject a shape that fits.
+          reserve(R);
         }
 
         // Narrowing the panel has a floor, and below it the covers stop being
         // covers — in landscape this bottomed out at 50x75, a coloured stamp.
-        // Past that point the answer is a different rack, not a smaller one:
-        // drop a shelf, and the panel grows back into the width that landscape
-        // has going spare.
-        if (!this.#reshaping && this.#needsReshape(budget)) {
-          this.#settleShape(budget);
-          return;
-        }
+        // Past that point the answer is a different rack, not a smaller one,
+        // and choosing it is #settleShape's job, above this pass.
       }
 
-      // Reserve the overhang: the near bottom corner sits at z = +R, so it is
-      // magnified by P/(P-R); applied to its distance below the vanishing
-      // point, that is how far the rack paints past its own box.
-      const finalH = rack?.offsetHeight || 0;
-      if (finalH) {
-        const drop = finalH * (1 - PERSPECTIVE_ORIGIN_Y);
-        const overhang = (drop * R) / (PERSPECTIVE - R);
-        // Plus real margin: the deepest painted pixel is a little below the
-        // geometric corner, and 1px of clearance is not clearance.
-        this.style.setProperty('--rack-clearance', `${Math.ceil(overhang + 18)}px`);
-      }
+      reserve(R);
     };
 
     fit();
     this.#resizeObserver?.disconnect();
-    this.#resizeObserver = new ResizeObserver(fit);
+    this.#resizeObserver = new ResizeObserver(() => {
+      fit();
+      this.#maybeSettle();
+    });
     this.#resizeObserver.observe(this);
   }
 

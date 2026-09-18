@@ -341,23 +341,24 @@ to a `<style>` element, which a strict policy will refuse.
 
 ### Landscape
 
-A phone turned sideways has half the height, and the width it gains is no use —
-a four-sided drum's height follows its panel width. So the rack **drops a
-shelf** rather than shrinking the covers to nothing, and the panel grows back
-into the spare width:
+A phone turned sideways has half the height, and a four-sided drum's height
+follows its panel width — so the spare width is only reachable by putting **more
+books on fewer shelves.** The rack picks its own shape to suit:
 
 | | Shape | Cover | Books shown |
 |---|---|---|---|
-| 390 × 844, portrait | 3 × 2 | 100 × 150 | 24 of 24 |
-| 844 × 390, landscape | 2 × 2 | 69 × 103 | **16 of 24** |
-| 844 × 280 | 1 × 2 | 91 × 136 | 8 of 24 |
+| 390 × 844, portrait | 3 × 2 | 112 × 168 | 24 of 24 |
+| 844 × 390, landscape | **1 × 4** | **100 × 150** | 16 of 24 |
+| 844 × 280 | 1 × 2 | 87 × 130 | 8 of 24 |
 
-**It costs books.** `rack.shape` reports what happened —
-`{rows, perShelf, sides, capacity, rendered, dropped, reshaped}` — so a host
-that minds can say "16 of 24" rather than quietly showing two thirds. Rotating
-out and back returns the portrait shape exactly.
+One wide shelf of four, rather than two shelves of two — same sixteen books,
+covers half again as big. **It costs books**, so `rack.shape` reports what
+happened (`{rows, perShelf, sides, capacity, rendered, dropped, reshaped}`) and
+a host that minds can say "16 of 24" rather than quietly showing two thirds.
 
-It prefers more books to bigger covers. `rows="1"` flips that.
+Rotating out and back returns the portrait shape exactly, and rotating into a
+viewport gives the same answer as loading in it. Set `rows` and `per-shelf`
+explicitly to opt out of the search.
 
 `--rack-max-height` is measured against **the element**, not the turning drum
 inside it: the crown sits above the drum, and a strip below reserves the

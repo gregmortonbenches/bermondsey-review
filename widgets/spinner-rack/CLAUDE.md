@@ -31,6 +31,7 @@ change would reverse one, that is a conversation, not a cleanup.
 | **No prices anywhere** | Not on the shelf, not on the card, and not on the `aria-label` either — announcing a price nothing displays would describe a sighted view that doesn't exist. `data-price` is still read and still travels on `rack-select`. |
 | **The review marker is a label under the cover** | "Guardian review" in the accent colour, out of flow so a marked book is exactly as tall as a plain one. A richer version that printed the pull quote on the shelf was built and rejected — see *Tried and rejected*. |
 | **Category in the author's own casing** | Forcing sentence case gives "Uk history" and "Vintage classics". Casing belongs to whoever owns the data. |
+| **Landscape is one shelf of four** | A phone turned sideways has half the height, and a four-sided drum's height follows its panel width — so the spare width is only reachable by putting more books on fewer shelves. 16 books at 100×150 beats the same 16 at 70×105, and beats 24 at 65×97. Chosen over keeping all 24; see *Shape search*. |
 | **Georgia for the sign and the jackets** | Set through `--rack-crown-font` / `--rack-book-font`; the host can change both. |
 
 ### Tried and rejected
@@ -122,6 +123,59 @@ on the line it protects.
 
 ---
 
+## Shape search
+
+The rack chooses its own shelves × books-per-shelf to fit the height budget,
+by **rendering each candidate and measuring it**. Trying beats predicting: a
+shelf's height depends on the panel width, the panel width depends on how much
+has to fit, and predicting one from the other made the answer depend on where
+it started.
+
+The rule is **most books, while a cover is still a cover** (`MIN_COVER`, 90px).
+Maximising books alone picks 24 at 65×97 in landscape — barely better than the
+50×75 it replaced. Maximising cover size alone drops portrait from 24 books to
+8 so the survivors can grow. The threshold separates the two.
+
+What it settles on, measured:
+
+| Viewport | Shape | Books | Cover |
+|---|---|---|---|
+| 390×844 | 3×2 | 24/24 | 112×168 |
+| 390×900 | 3×2 | 24/24 | 120×180 |
+| 844×390 | **1×4** | 16/24 | 100×150 |
+| 667×375 | 1×4 | 16/24 | 99×148 |
+| 844×280 | 1×2 | 8/24 | 87×130 |
+| 1024×768 | 3×2 | 24/24 | 91×137 |
+
+Candidates are the authored shape first — portrait wins there and the search
+stops at one build — then shallower racks, each at the authored width and
+wider. Widening only after a shelf has been given up, because there is no spare
+width until then.
+
+`rack.shape` reports the outcome and its cost:
+`{rows, perShelf, sides, capacity, rendered, dropped, reshaped}`.
+
+Three things this got wrong before it was right, all worth not repeating:
+
+**A search must not re-enter what called it.** It ran from inside the layout
+pass: `#build → #layout → #settleShape → #build`. The outer build then carried
+on past `#layout` and wired the **inner** build's DOM, so the rack had two
+keydown listeners and every arrow press turned two panels. The search now sits
+above the layout pass, in `#maybeSettle`, and drives `#build` directly.
+
+**A resize changes which shape is right, not just how big it should be.** Moving
+the search out of the layout pass left the resize path only re-sizing, so
+rotating into a viewport gave a different answer from loading in it. The resize
+observer calls `#maybeSettle` too.
+
+**Gate the search on everything the answer depends on, not just the budget.** A
+host that assigns `.books` after the module loads renders once with nothing,
+settles a shape for zero books, and never reconsiders — `try.html` showed 8 of
+24 in 296px of a 720px budget. `#settleKey` covers the budget, the book count,
+the authored per-shelf, the sides and the `rows` attribute.
+
+---
+
 ## Traps
 
 Each of these cost real time. The symptom is given because that is how you will
@@ -192,6 +246,14 @@ must fit. It now renders each candidate tallest-first and keeps the first that
 fits — trying, not predicting. Costs a few layout passes on a resize, which
 happens on rotation rather than per frame.
 
+**A measurement taken before the thing it depends on is corrected.** *Symptom:
+a 390×900 phone showed fewer books than a 390×844 one; and a shape that fits
+standalone was rejected by the search.* The strip below the drum reserves the
+perspective overhang and grows with the rack, so the height loop was converging
+on a height and then adding to it. `reserve()` now runs before the first
+measurement and after every correction — any feedback like this has to be
+inside the loop that reads it, not after.
+
 **A partially-filled shelf inflates its books.** *Symptom: 20 books at two per
 shelf gave 150×225, 150×225, then a single book at 310×465.* A flex basis of 0
 divides the **shelf's** width among its actual occupants, so a facing whose
@@ -241,6 +303,7 @@ npx http-server -p 8907 .
 | `overlap` | the rack paints inside its own box at every angle |
 | `tryit` | `try.html`: parsing, cover matching, markup output |
 | `uneven` | a short shelf keeps its books the same size as a full one |
+| `shape` | the shape search: budgets, monotonicity, path independence, no churn |
 
 **A test that cannot fail is worse than no test.** `holes` and `overlap` drove
 the rack by setting the `--angle` custom property. When the frame path changed
