@@ -32,6 +32,7 @@ change would reverse one, that is a conversation, not a cleanup.
 | **The review marker is a label under the cover** | "Guardian review" in the accent colour, out of flow so a marked book is exactly as tall as a plain one. A richer version that printed the pull quote on the shelf was built and rejected — see *Tried and rejected*. |
 | **Category in the author's own casing** | Forcing sentence case gives "Uk history" and "Vintage classics". Casing belongs to whoever owns the data. |
 | **Landscape is one shelf of four** | A phone turned sideways has half the height, and a four-sided drum's height follows its panel width — so the spare width is only reachable by putting more books on fewer shelves. 16 books at 100×150 beats the same 16 at 70×105, and beats 24 at 65×97. Chosen over keeping all 24; see *Shape search*. |
+| **Mobile only** | Stated by the owner: the rack ships to the phone experience, nowhere else. So a desktop finding is not a defect — in particular, covers coming out *smaller* at 1200×900 than at 768×1024 (129px against 142px) is real but out of scope. Cause, if it ever comes back into scope: covers are a fixed 2:3, so the panel height budget (`--rack-max-height`, 80vh) sets the cover width, and desktop windows are wide but short. Width alone does nothing — measured, a 420px column widened to 640px moved the cover by 1px. |
 | **Georgia for the sign and the jackets** | Set through `--rack-crown-font` / `--rack-book-font`; the host can change both. |
 
 ### Tried and rejected
