@@ -51,6 +51,12 @@
     --rack-book-font: Georgia, "Times New Roman", serif;
     --rack-crown-font: Georgia, "Times New Roman", serif;
   }
+  /* The rack ships to phones only, so a desktop browser needs a way to see the
+     shape a phone gets. 390px of content is an iPhone with its gutters. */
+  .bleed.phone main {
+    max-width: 390px;
+    border-inline: 1px solid var(--rule);
+  }
   spinner-rack:not(:defined) { font-size: 13px; columns: 2; }
   spinner-rack:not(:defined) a { display: block; padding: 1px 0; color: var(--accent); }
 
@@ -138,16 +144,15 @@
   <p class="hint">Open this file straight from your desktop — no server, no
      install, nothing uploaded anywhere. Everything below stays in this tab.</p>
 
-  <h2>1 · Your books</h2>
-  <p class="hint">One line per book, tab- or comma-separated, in this order.
-     Paste it out of a spreadsheet and it will line up.</p>
-  <p class="hint"><code>title</code> · <code>author</code> · <code>link</code> ·
-     <code>category</code> · <code>review</code> · <code>source</code> ·
-     <code>cover</code> — only <code>title</code> is required. Trailing columns
-     you don't need can just be left off.</p>
-  <p class="hint"><code>category</code> names the panel a book lands on, so
-     four categories fill four facings. <code>review</code> is the note that
-     opens on tap, and <code>source</code> is the paper that wrote it.</p>
+  <h2>1 &middot; Your books</h2>
+  <p class="hint">Paste straight out of a spreadsheet. <b>Keep your header
+     row</b> and the columns can be in any order &mdash; <code>title</code>,
+     <code>author</code>, <code>link</code>, <code>category</code>,
+     <code>cover</code> are recognised under most of their usual names, and
+     anything else is ignored. No header row and it reads them in that order.</p>
+  <p class="hint">Only <code>title</code> is required. <code>category</code>
+     names the panel a book lands on, so four categories fill four facings.
+     It rebuilds as you type.</p>
   <textarea id="feed" spellcheck="false" aria-label="Your book list"></textarea>
   <div class="row">
     <button type="button" class="act" id="apply">Build the rack</button>
@@ -178,10 +183,12 @@ generated jacket until you add some.</p>
 </div>
 
 <main>
-  <p class="hint" style="margin-top:14px">Drag it, flick it, tap a book. Links
-     only go anywhere if they are full <code>https://</code> addresses — a
-     path like <code>/books/x</code> has nothing to resolve against in a file
-     opened from disk.</p>
+  <div class="row">
+    <button type="button" class="act" id="phone" aria-pressed="false">Phone width</button>
+  </div>
+  <p class="hint" style="margin-top:14px">Drag it, flick it. It ships to phones
+     only, so <b>Phone width</b> is the shape that matters &mdash; it pens the
+     rack into 390px, an iPhone with its gutters.</p>
 
   <h2>4 · Take it away</h2>
   <p class="hint">When it looks right, copy the markup and paste it into your
@@ -227,6 +234,32 @@ generated jacket until you add some.</p>
   ];
 
   var COLS = ['title', 'author', 'href', 'category', 'review', 'source', 'cover'];
+
+  /* A real export never has the columns in our order, and it usually has a
+     header row and columns we don't want. So: if the first row names at least
+     two fields we recognise, map by name and ignore the rest. Otherwise fall
+     back to position, which is what a hand-typed list will be. */
+  var ALIASES = {
+    title: 'title', name: 'title', product: 'title', productname: 'title', booktitle: 'title',
+    author: 'author', brand: 'author', by: 'author', contributor: 'author',
+    href: 'href', link: 'href', url: 'href', producturl: 'href', productlink: 'href',
+    permalink: 'href', pageurl: 'href',
+    category: 'category', collection: 'category', section: 'category',
+    genre: 'category', shelf: 'category',
+    cover: 'cover', image: 'cover', coverurl: 'cover', imageurl: 'cover',
+    coverimage: 'cover', thumbnail: 'cover', thumbnailimageurl: 'cover',
+    review: 'review', note: 'review', quote: 'review',
+    source: 'source', paper: 'source', reviewer: 'source'
+  };
+
+  function readHeader(parts) {
+    var map = {}, hits = 0;
+    parts.forEach(function (raw, i) {
+      var key = ALIASES[slug(raw)];
+      if (key && !(key in map)) { map[key] = i; hits++; }
+    });
+    return hits >= 2 && 'title' in map ? map : null;
+  }
   var rack = document.querySelector('spinner-rack');
   var feed = document.getElementById('feed');
   var out = document.getElementById('out');
@@ -236,6 +269,7 @@ generated jacket until you add some.</p>
 
   var books = [];        // what the rack is showing
   var dropped = {};      // slug -> data URL, from the drop zone
+  var headerUsed = null; // column map, when the paste had a header row
 
   /* Titles and filenames are never spelled the same way twice: strip
      everything that isn't a letter or digit so "The Salt Path",
@@ -245,13 +279,25 @@ generated jacket until you add some.</p>
       .replace(/[^a-z0-9]+/g, '');
   }
 
+  // Tabs win where present — a pasted spreadsheet column can hold commas.
+  function cells(line) {
+    return line.indexOf('\t') > -1 ? line.split('\t') : splitCsv(line);
+  }
+
   function parseFeed(text) {
-    return text.split(/\r?\n/).map(function (line) {
-      if (!line.trim()) return null;
-      // Tabs win where present — a pasted spreadsheet column can hold commas.
-      var parts = line.indexOf('\t') > -1 ? line.split('\t') : splitCsv(line);
+    var lines = text.split(/\r?\n/).filter(function (l) { return l.trim(); });
+    headerUsed = lines.length ? readHeader(cells(lines[0])) : null;
+    if (headerUsed) lines = lines.slice(1);
+    return lines.map(function (line) {
+      var parts = cells(line);
       var b = {};
-      COLS.forEach(function (k, i) { b[k] = (parts[i] || '').trim(); });
+      if (headerUsed) {
+        Object.keys(headerUsed).forEach(function (k) {
+          b[k] = (parts[headerUsed[k]] || '').trim();
+        });
+      } else {
+        COLS.forEach(function (k, i) { b[k] = (parts[i] || '').trim(); });
+      }
       return b.title ? b : null;
     }).filter(Boolean);
   }
@@ -312,6 +358,10 @@ generated jacket until you add some.</p>
         cover: coverFor(b)
       };
     });
+    // A marker under a cover with no card behind it is worse than neither, so
+    // the card turns on exactly when something has a note to show.
+    if (books.some(function (b) { return b.review; })) rack.setAttribute('preview', 'tap');
+    else rack.removeAttribute('preview');
     report();
     copyBtn.disabled = books.length === 0;
     if (out.hasAttribute('data-shown')) writeOut();
@@ -333,8 +383,18 @@ generated jacket until you add some.</p>
       });
     });
     var unmatched = Object.keys(dropped).filter(function (k) { return !claimed[k]; });
+    var offsite = books.filter(function (b) {
+      return b.href && !/^(https?:|#|mailto:)/i.test(b.href);
+    });
     var html = '<b>' + books.length + '</b> books · <b>' + withCover.length +
       '</b> with a cover';
+    html += headerUsed
+      ? '\nRead your header row: ' + Object.keys(headerUsed).join(', ')
+      : '\nNo header row found — read in column order: title, author, link, category.';
+    if (offsite.length) {
+      html += '\n<b>' + offsite.length + '</b> link' + (offsite.length === 1 ? '' : 's') +
+        ' are site paths. They will work on your site; from this file they go nowhere.';
+    }
     if (missing.length) {
       html += '\nGenerated jackets: ' +
         missing.slice(0, 4).join(', ') +
@@ -391,7 +451,19 @@ generated jacket until you add some.</p>
       '\n</spinner-rack>';
   }
 
+  /* Build as you type. A paste of 200 lines shouldn't relayout on every
+     keystroke, so wait for the typing to stop. */
+  var typing = null;
+  feed.addEventListener('input', function () {
+    clearTimeout(typing);
+    typing = setTimeout(build, 300);
+  });
   document.getElementById('apply').addEventListener('click', build);
+  document.getElementById('phone').addEventListener('click', function () {
+    var on = document.querySelector('.bleed').classList.toggle('phone');
+    this.textContent = on ? 'Full width' : 'Phone width';
+    this.setAttribute('aria-pressed', String(on));
+  });
   document.getElementById('sample').addEventListener('click', function () {
     feed.value = toFeed(SAMPLE);
     build();

@@ -215,6 +215,19 @@ the authored per-shelf, the sides and the `rows` attribute.
 Each of these cost real time. The symptom is given because that is how you will
 meet it again.
 
+**A module script never loads from `file://`.** `<script type="module"
+src="spinner-rack.js">` in a page opened by double-clicking is fetched as a
+cross-origin request from origin `null`, and Chromium blocks it: *"Cross origin
+requests are only supported for protocol schemes: chrome, data, http, https."*
+You do not get an error on the page — the custom element stays undefined and the
+light-DOM fallback renders, so it looks like a rack that decided not to appear.
+`try.html` shipped for weeks promising "open this file straight from your
+desktop" and doing exactly this. Inlining the module into the page is the fix
+(`build-try.mjs` → `try-standalone.html`); a classic `<script>` would also
+load, but the component ends with `export default`, which is a syntax error
+outside a module. Test any "opens from disk" claim from `file://`, not from a
+static server — the server hides it.
+
 **`setPointerCapture` breaks clicking.** *Symptom: a real mouse click on a book
 does nothing; programmatic `.click()` works fine.* Capture retargets `pointerup`
 **and** the click to the stage, so the click never targets the anchor and the

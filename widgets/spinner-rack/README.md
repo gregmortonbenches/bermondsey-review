@@ -78,15 +78,25 @@ server can render it.
 
 ## Trying it with your own stock
 
-Open **`try.html`** from your desktop. No server, no install, nothing uploaded
-anywhere — it all stays in the tab.
+Open **`try-standalone.html`** from your desktop. No server, no install,
+nothing uploaded anywhere — it all stays in the tab.
 
-1. **Paste your books.** One line each, tab- or comma-separated:
-   `title · author · link · category · review · source · cover`. Only `title`
-   is required, and trailing columns you don't need can be left off. A
-   spreadsheet column that contains commas is fine — paste with tabs, or quote
-   the field. `category` names the panel a book lands on, so four categories
-   fill four facings.
+> Use the **standalone** one. `try.html` loads the component as a module, and a
+> module served from `file://` is blocked by CORS, so double-clicking *that*
+> file gets you the no-JS fallback and no rack. `try-standalone.html` is the
+> same page with the component inlined; regenerate it with `node build-try.mjs`
+> after changing `spinner-rack.js`. Over a static server, either works.
+
+1. **Paste your books**, straight out of a spreadsheet. **Keep the header row**
+   and the columns can be in any order, under most of their usual names —
+   `title`/`name`/`product`, `author`/`brand`, `link`/`url`/`product url`,
+   `category`/`genre`/`collection`, `cover`/`image`/`thumbnail`, plus
+   `review` and `source`. Columns it doesn't recognise are ignored, so a raw
+   catalogue export with SKUs and prices in it works as-is. With no header row
+   it falls back to reading them in that order. Only `title` is required. A
+   spreadsheet field containing commas is fine — paste with tabs, or quote it.
+   `category` names the panel a book lands on, so four categories fill four
+   facings. It rebuilds as you type.
 2. **Add covers, either way.** Put a URL in the `cover` column, or drag the
    image files onto the page. Filenames are matched to titles loosely, so
    `the-salt-path.jpg`, `The Salt Path.png` and `salt path 9780241.jpeg` all
@@ -102,7 +112,11 @@ CDN with public URLs, so paste those into the `cover` column and the rack
 loads them straight from there.
 
 **Links only work as full `https://` addresses** in a file opened from disk —
-a path like `/books/x` has nothing to resolve against.
+a path like `/books/x` has nothing to resolve against. The harness counts them
+and says so rather than letting you find out by tapping.
+
+**`Phone width`** pens the rack into 390px. The rack ships to phones only, so
+that is the shape worth judging; a desktop browser gives it a different one.
 
 ## Attributes
 
@@ -623,8 +637,9 @@ npx http-server -p 8899 .
 ```
 
 It covers the light-DOM form, the no-JS fallback, and a cancelled `rack-select`
-wired to a quick-view. `try.html` is the harness for putting a real catalogue
-through it without a server.
+wired to a quick-view. `try-standalone.html` is the harness for putting a real
+catalogue through it with no server at all — see above for why it's the
+standalone and not `try.html`.
 
 `host-page.html` is the rack dropped onto a retail product page — brand bar,
 serif headings on white, a conventional chevron carousel directly above it and a
