@@ -295,6 +295,36 @@ const STYLES = `
   text-align: center;
 }
 
+/* The sign as a link to its category page. No underline and no accent colour:
+   an underlined coloured link would be the only decorative colour in a rack
+   that is otherwise ink and hairlines, and the chevron carries the affordance
+   on its own. The tap target is taller than the glyphs and grows upward into
+   the headroom the crown already reserves, so 44px costs no layout. */
+.crown-panel .crown-link {
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.18em;
+  min-height: 44px;
+  max-width: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+.crown-panel .crown-link i {
+  font-style: normal;
+  font-size: 0.92em;
+  line-height: 1.05;
+  opacity: 0.55;
+}
+.crown-panel .crown-link:focus-visible {
+  outline: 2px solid var(--rack-accent);
+  outline-offset: 3px;
+}
+@media (hover: hover) {
+  .crown-panel .crown-link:hover span { text-decoration: underline; }
+  .crown-panel .crown-link:hover i { opacity: 1; }
+}
+
 /* The cap. A regular N-gon clipped from a square and laid flat, so the rack
    reads as one solid object from above rather than N floating boards. The
    translate has to carry the lid's own half-height, because rotateX turns it
@@ -889,6 +919,7 @@ class SpinnerRack extends HTMLElement {
       cover: a.dataset.cover || '',
       price: a.dataset.price || '',
       category: a.dataset.category || '',
+      categoryHref: a.dataset.categoryHref || '',
       ar: a.dataset.ar || '',
       review: a.dataset.review || '',
       source: a.dataset.source || '',
@@ -1041,8 +1072,28 @@ class SpinnerRack extends HTMLElement {
     // blind to acronyms and imprint names, and a shop's category list is full
     // of both. Casing belongs to whoever owns the data.
     const text = faceBooks[0]?.category || label || '';
-    return `<div class="crown-panel" data-fa="${(i * 360 / sides).toFixed(4)}" aria-hidden="true">
-      <span>${this.#esc(text)}</span>
+
+    // The sign links to the category page, so a reader who likes this shelf can
+    // see the rest of it — the rack holds a couple of dozen titles and is
+    // otherwise a dead end.
+    //
+    // It links ONLY when every book on the panel really is that category. The
+    // sign already takes its text from the first book, which is honest on a
+    // grouped feed and a lie on an interleaved one; a wrong label is cosmetic,
+    // but a wrong link walks somebody to the wrong page. Gating on the panel
+    // rather than on the feed means a mixed shelf degrades to plain text by
+    // itself instead of relying on whoever wired the data.
+    const cat = faceBooks[0]?.category || '';
+    const href = faceBooks[0]?.categoryHref || '';
+    const honest = !!cat && !!href && faceBooks.every((b) => b.category === cat);
+
+    // aria-hidden only while it is decoration. A focusable link inside an
+    // aria-hidden subtree is a contradiction the browser resolves badly.
+    return `<div class="crown-panel" data-fa="${(i * 360 / sides).toFixed(4)}"
+                 data-face="${i}"${honest ? '' : ' aria-hidden="true"'}>
+      ${honest
+        ? `<a class="crown-link" href="${this.#esc(href)}" aria-label="Browse all ${this.#esc(text)}"><span>${this.#esc(text)}</span><i aria-hidden="true">&rsaquo;</i></a>`
+        : `<span>${this.#esc(text)}</span>`}
     </div>`;
   }
 
@@ -1443,9 +1494,10 @@ class SpinnerRack extends HTMLElement {
       this.#dragX = e.clientX;
       this.#moved = 0;
       this.#swallowClick = false;
-      // Remember what the press landed on. Pointer capture (below) retargets
-      // the click to the stage, so by the time it fires, e.target no longer
-      // knows which book was under the finger.
+      // A drag is not a tap: #swallowClick below cancels the click that a
+      // press-and-turn would otherwise leave behind. (An older comment here
+      // credited pointer capture for retargeting the click — there is no
+      // pointer capture in this file, and there hasn't been.)
       stage.classList.add('dragging');
       window.addEventListener('pointermove', onMove);
       window.addEventListener('pointerup', release);
@@ -1537,7 +1589,7 @@ class SpinnerRack extends HTMLElement {
     // does. This catches the remaining case: focus arriving at a panel that's
     // only part-way round, which then has to be brought square on.
     root.addEventListener('focusin', (e) => {
-      const face = e.target.closest?.('.face');
+      const face = e.target.closest?.('.face, .crown-panel');
       if (!face) return;
       const target = -(+face.dataset.face) * step;
       if (Math.abs(shortestDelta(this.#angle, target)) > 1) {
@@ -1546,6 +1598,16 @@ class SpinnerRack extends HTMLElement {
     });
 
     root.addEventListener('click', (e) => {
+      // The sign sits on the drag surface, so a turn that happens to finish
+      // under the finger would otherwise navigate instead of coasting.
+      const crown = e.target.closest?.('a.crown-link');
+      if (crown) {
+        if (this.#swallowClick) {
+          e.preventDefault();
+          this.#swallowClick = false;
+        }
+        return;
+      }
       const link = e.target.closest?.('a.book');
       if (!link) return;
       if (this.#swallowClick) {
@@ -1744,9 +1806,14 @@ class SpinnerRack extends HTMLElement {
       }
       // Panels round the back take themselves out of the tab order — but never
       // the one holding focus, or the rack would throw focus to the body
-      // mid-turn and lose the reader's place.
-      const hide = facing < 0.35 && !(active && face.contains(active));
+      // mid-turn and lose the reader's place. The sign is a sibling of the
+      // panel rather than a child, so it has to be told separately; before it
+      // could hold a link there was nothing in it to tab to.
+      const crown = this.#crowns[i];
+      const holds = active && (face.contains(active) || (crown && crown.contains(active)));
+      const hide = facing < 0.35 && !holds;
       if (face.inert !== hide) face.inert = hide;
+      if (crown && crown.inert !== hide) crown.inert = hide;
     }
   }
 

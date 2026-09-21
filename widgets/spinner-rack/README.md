@@ -156,6 +156,7 @@ and two bare panels.
 | `data-cover` | | Omit it and a typographic jacket is generated — see below |
 | `data-price` | | Carried on the `rack-select` payload for the host to use. The rack never draws or announces it — see below |
 | `data-category` | | First book on a panel names that panel's crown |
+| `data-category-href` | | Where that category's sign links to — see below |
 | `data-ar` | | Cover width ÷ height. Only needed for a title that differs from `--rack-cover-ratio` |
 | `data-review` | | A short quote from a review. Its presence is what marks a book and gives it a card — see below |
 | `data-source` | | Who reviewed it, e.g. `Observer`. Overrides `pick-label` for this book |
@@ -166,6 +167,30 @@ The rack shows no prices — not on the shelf, not on the card, and not on the
 `aria-label`. `data-price` is still read and still travels on the
 `rack-select` payload, so a host that wants it can put it in its own furniture.
 Reasoning in `CLAUDE.md`.
+
+### The sign as a link
+
+Give the books a `data-category-href` and each panel's sign becomes a link to
+that category page:
+
+```html
+<a href="/the-salt-path/" data-title="The Salt Path" data-author="Raynor Winn"
+   data-category="Nature" data-category-href="/collections/nature/">The Salt Path</a>
+```
+
+A rack holds a couple of dozen titles and is otherwise a dead end — spin, tap a
+book, or leave. The sign already names the shelf, so linking it is the exit to
+the rest of the catalogue without adding any furniture.
+
+**It links itself only where the panel is genuinely one category.** The sign
+takes its text from the first book, which is true on a feed grouped by category
+and a lie on an interleaved one. A wrong label is cosmetic; a wrong link walks a
+customer to the wrong page. So a panel whose books disagree renders its sign as
+plain text, exactly as before, and you don't have to police your feed for it.
+
+No underline and no accent colour — a small chevron carries the affordance, and
+the tap target is 44px, taller than the glyphs, growing up into headroom the
+crown already reserves.
 
 ### Cover proportions
 

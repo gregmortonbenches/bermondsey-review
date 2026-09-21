@@ -150,6 +150,10 @@
      <code>author</code>, <code>link</code>, <code>category</code>,
      <code>cover</code> are recognised under most of their usual names, and
      anything else is ignored. No header row and it reads them in that order.</p>
+  <p class="hint">Add a <code>category url</code> column and each panel&rsquo;s sign
+     becomes a link to that category page &mdash; but only where every book on
+     the panel really is that category, so a mixed shelf stays plain text
+     rather than sending anyone somewhere wrong.</p>
   <p class="hint">Only <code>title</code> is required. <code>category</code>
      names the panel a book lands on, so four categories fill four facings.
      It rebuilds as you type.</p>
@@ -233,7 +237,8 @@ generated jacket until you add some.</p>
     ['Wilding', 'Isabella Tree', 'https://example.com/books/wilding', 'Nature']
   ];
 
-  var COLS = ['title', 'author', 'href', 'category', 'review', 'source', 'cover'];
+  var COLS = ['title', 'author', 'href', 'category', 'review', 'source', 'cover',
+              'categoryHref'];
 
   /* A real export never has the columns in our order, and it usually has a
      header row and columns we don't want. So: if the first row names at least
@@ -249,7 +254,9 @@ generated jacket until you add some.</p>
     cover: 'cover', image: 'cover', coverurl: 'cover', imageurl: 'cover',
     coverimage: 'cover', thumbnail: 'cover', thumbnailimageurl: 'cover',
     review: 'review', note: 'review', quote: 'review',
-    source: 'source', paper: 'source', reviewer: 'source'
+    source: 'source', paper: 'source', reviewer: 'source',
+    categoryhref: 'categoryHref', categoryurl: 'categoryHref',
+    categorylink: 'categoryHref', collectionurl: 'categoryHref'
   };
 
   function readHeader(parts) {
@@ -354,7 +361,8 @@ generated jacket until you add some.</p>
     rack.books = books.map(function (b) {
       return {
         title: b.title, author: b.author, href: b.href || '#',
-        category: b.category, review: b.review, source: b.source,
+        category: b.category, categoryHref: b.categoryHref,
+        review: b.review, source: b.source,
         cover: coverFor(b)
       };
     });
@@ -441,6 +449,7 @@ generated jacket until you add some.</p>
                'data-title="' + esc(b.title) + '"'];
       if (b.author) a.push('data-author="' + esc(b.author) + '"');
       if (b.category) a.push('data-category="' + esc(b.category) + '"');
+      if (b.categoryHref) a.push('data-category-href="' + esc(b.categoryHref) + '"');
       if (coverFor(b)) a.push('data-cover="' + esc(coverFor(b)) + '"');
       if (b.review) a.push('data-review="' + esc(b.review) + '"');
       if (b.source) a.push('data-source="' + esc(b.source) + '"');

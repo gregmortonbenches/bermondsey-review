@@ -33,6 +33,7 @@ change would reverse one, that is a conversation, not a cleanup.
 | **Category in the author's own casing** | Forcing sentence case gives "Uk history" and "Vintage classics". Casing belongs to whoever owns the data. |
 | **Landscape is one shelf of four** | A phone turned sideways has half the height, and a four-sided drum's height follows its panel width — so the spare width is only reachable by putting more books on fewer shelves. 16 books at 100×150 beats the same 16 at 70×105, and beats 24 at 65×97. Chosen over keeping all 24; see *Shape search*. |
 | **Mobile only** | Stated by the owner: the rack ships to the phone experience, nowhere else. So a desktop finding is not a defect — in particular, covers coming out *smaller* at 1200×900 than at 768×1024 (129px against 142px) is real but out of scope. Cause, if it ever comes back into scope: covers are a fixed 2:3, so the panel height budget (`--rack-max-height`, 80vh) sets the cover width, and desktop windows are wide but short. Width alone does nothing — measured, a 420px column widened to 640px moved the cover by 1px. |
+| **The sign links to its category, but only when it can be honest** | A rack is otherwise a dead end: spin, tap a book, or leave. The sign already names the shelf, so it is the exit to the rest of the catalogue with no new furniture. It becomes a link only where every book on the panel shares that category — the sign takes its text from the first book, so on an interleaved feed it already misnames its shelf, and a wrong label is cosmetic where a wrong link walks somebody to the wrong page. Gating on the panel means a mixed shelf degrades to plain text by itself. No underline, no accent colour; a chevron and a 44px target. |
 | **Georgia for the sign and the jackets** | Set through `--rack-crown-font` / `--rack-book-font`; the host can change both. |
 
 ### Tried and rejected
@@ -360,6 +361,7 @@ npx http-server -p 8907 .
 | `tryit` | `try.html`: parsing, cover matching, markup output |
 | `uneven` | a short shelf keeps its books the same size as a full one |
 | `shape` | the shape search: budgets, monotonicity, path independence, no churn |
+| `crown` | the sign as a link: honesty gating, inert round the back, drag vs tap |
 
 **A test that cannot fail is worse than no test.** `holes` and `overlap` drove
 the rack by setting the `--angle` custom property. When the frame path changed
@@ -368,6 +370,22 @@ to a transform on the drum, both silently swept nothing and kept reporting
 you add a suite that asserts something visual, **sabotage the thing it guards
 once and check it actually goes red.** That is how the crown check earned its
 keep: transparent cap → 3.1% show-through, failure.
+
+**A drag never lands a click on the sign, and I could not make it.** Adding the
+link, I predicted the obvious failure — the sign sits on the drag surface, so a
+turn finishing under the finger would navigate — and wrote a `#swallowClick`
+guard for it. Then sabotage-tested the guard, and the test stayed green. Traced
+it: in Chromium the drum rotates between pointerdown and pointerup, so no click
+is dispatched to the link at all, at any drag distance down to 5px (which still
+turns the rack 32°). A pure tap navigates; a drag does not. **The guard is
+therefore insurance, not a fix**, kept only because the shipping target is iOS
+Safari, which cannot be tested from here and synthesises clicks from touch
+differently. The check in `crown` is labelled an outcome assertion for the same
+reason: it pins what a reader experiences, and it does not exercise the guard.
+
+While tracing that, the comment in `pointerdown` crediting *pointer capture*
+for retargeting the click turned out to be wrong — there is no
+`setPointerCapture` in the file and there never has been. Corrected.
 
 **Suites make their own fixtures.** `wide.html` and `odd.html` are written by
 `mkfixtures.mjs` at the start of the suites that need them. They used to be
@@ -492,8 +510,11 @@ Worth knowing before pitching it:
   bigger covers — `rows="1"` flips that.
 - **Dark themes untested.** Facings fade to `--rack-page`, so it should hold up,
   but it has only ever been rendered on cream.
-- **No end to the shelf.** You spin, tap a book, or leave. In a shop the spinner
-  sits next to a table; online it is on its own.
+- **No end to the shelf — partly addressed.** The sign now links to its category
+  page wherever the panel is honestly one category, which is the exit to the
+  wider catalogue. Still nothing that says *you have seen all of it*: a reader
+  who spins past the fourth facing gets the first again with no signal that they
+  have been round.
 - **Real covers have never been through it.** Every measurement above used five
   stand-in jackets repeated, or generated ones. `try.html` exists so a real
   catalogue can be dropped in without a server.
