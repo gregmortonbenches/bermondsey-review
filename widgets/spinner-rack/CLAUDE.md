@@ -4,6 +4,10 @@ Working notes for whoever changes this next. `README.md` is the reference for
 *using* the component; this file is why it is the way it is, what was measured
 rather than guessed, and the traps that cost time once already.
 
+> **Not for integrators.** This file is design reasoning, for whoever picks the
+> work up next. A developer wiring the rack into a shop wants `INTEGRATION.md`;
+> `README.md` is the full reference between the two.
+
 ## Scope
 
 **This widget is standalone.** It is not part of the Bermondsey Review site and

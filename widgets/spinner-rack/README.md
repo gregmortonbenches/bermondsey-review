@@ -21,6 +21,10 @@ by the design direction in the repo's root `CLAUDE.md`. It imports nothing,
 touches no global styles, and has no build step. Drop it into any shop front
 end — plain HTML, Shopify/Liquid, WooCommerce, Next, whatever.
 
+> **Integrating it into a shop?** `INTEGRATION.md` is the one-page version
+> written for that: the markup contract, where the script and markup go, the
+> data requirements and what to check. This file is the full reference.
+
 > **Why is it like this?** `CLAUDE.md` in this directory carries the design
 > decisions and the reasoning behind them, what was measured rather than
 > guessed, the traps that cost time once already, and what is still open. Read
@@ -272,14 +276,13 @@ spinner-rack {
   --rack-page: #f4f1ea;          /* YOUR page colour — facings fade into it */
   --rack-accent: #b8262b;        /* focus rings */
   --rack-max-width: 220px;      /* panel width; the rack sweeps ~1.41× this */
-  --rack-display-font: "Helvetica Neue", Arial, sans-serif;   /* controls */
   --rack-book-font: Georgia, serif;                           /* generated jackets */
   --rack-crown-font: Georgia, serif;                          /* the sign */
 }
 ```
 
 Web fonts loaded in the host page apply inside the shadow root, so
-`--rack-display-font: "Your Grotesk"` works with no extra plumbing.
+`--rack-book-font: "Your Grotesk"` works with no extra plumbing.
 
 `--rack-page` is the one you must set: it is what a facing fades into as it
 turns away, so it has to be your actual page background. The default is
@@ -337,7 +340,7 @@ across the rack doesn't strobe.
 
 | | raw | gzipped |
 |---|---|---|
-| source, as shipped (26% comments) | 70 KB | 23.6 KB |
+| source, as shipped (~22% comments) | 73 KB | 24.8 KB |
 | minified (esbuild) | 36 KB | **13 KB** |
 
 Zero dependencies, no build step. Less than any one of the sample cover images.
